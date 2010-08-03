@@ -130,8 +130,9 @@ int read_regulator_info(int verbose)
 
 		dir = opendir(filename);
 		if (!dir) {
-			ret = 1;
-			goto exit2;
+			//ret = 1;
+			//goto exit2;
+			continue;
 		}
 
 		count++;
@@ -156,8 +157,9 @@ int read_regulator_info(int verbose)
 			fptr = fgets(line, 1024, file);
 			fclose(file);
 			if (!fptr) {
-				ret = 1;
-				goto exit1;
+				//ret = 1;
+				//goto exit1;
+				continue;
 			}
 			// printf("Read file %s, data=%s, count = %d\n", filename, fptr, count);
 
@@ -190,7 +192,7 @@ exit1:
 		if (ret)
 			break;
 	}	
-exit2:
+//exit2:
 	closedir(regdir);
 
 	return ret;
