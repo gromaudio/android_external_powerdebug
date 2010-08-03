@@ -141,8 +141,8 @@ int read_regulator_info(int verbose)
 			goto exit1;
 		}
 
+		strcpy(regulators_info[count-1].name, item->d_name);
 		while((ritem = readdir(dir))) {
-			strcpy(regulators_info[count-1].name, item->d_name);
 			if (strlen(ritem->d_name) < 3)
 				continue;
 
