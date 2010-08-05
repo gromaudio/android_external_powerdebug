@@ -24,7 +24,8 @@ int init_regulator_ds(void)
 	regulators_info = (struct regulator_info *)malloc(numregulators*
 						sizeof(struct regulator_info));
 	if (!regulators_info) {
-		fprintf(stderr, "init_regulator_ds: Not enough memory to read information for %d regulators!\n",
+		fprintf(stderr, "init_regulator_ds: Not enough memory to ");
+		fprintf(stderr, "read information for %d regulators!\n",
 			numregulators);
 		return(1);
 	}
@@ -133,19 +134,17 @@ int read_regulator_info(int verbose)
 		if (strncmp(item->d_name, "regulator", 9))
 			continue;
 
-		len = sprintf(filename, "/sys/class/regulator/%s",item->d_name);
+		len = sprintf(filename, "/sys/class/regulator/%s",
+			      item->d_name);
 
 		dir = opendir(filename);
-		if (!dir) {
-			//ret = 1;
-			//goto exit2;
+		if (!dir)
 			continue;
-		}
 
 		count++;
 		if (count > numregulators) {
 			ret = 1;
-			goto exit1;
+			goto exit;
 		}
 
 		strcpy(regulators_info[count-1].name, item->d_name);
@@ -154,7 +153,6 @@ int read_regulator_info(int verbose)
 				continue;
 
 			sprintf(filename + len, "/%s", ritem->d_name);
-			// printf("Inside %s directory. Opening file %s!\n", item->d_name, ritem->d_name);
 
 			file = fopen(filename, "r");
 			if (!file)
@@ -163,12 +161,8 @@ int read_regulator_info(int verbose)
 			memset(line, 0, 1024);
 			fptr = fgets(line, 1024, file);
 			fclose(file);
-			if (!fptr) {
-				//ret = 1;
-				//goto exit1;
+			if (!fptr)
 				continue;
-			}
-			// printf("Read file %s, data=%s, count = %d\n", filename, fptr, count);
 
 			if (!strcmp(ritem->d_name, "name"))
 				strcpy(regulators_info[count-1].name, fptr);
@@ -205,12 +199,11 @@ int read_regulator_info(int verbose)
 			if (!strcmp(ritem->d_name, "num_users"))
 				regulators_info[count-1].num_users = atoi(fptr);
 		}
-exit1:
+exit:
 		closedir(dir);
 		if (ret)
 			break;
 	}	
-//exit2:
 	closedir(regdir);
 
 	return ret;
@@ -290,6 +283,5 @@ int main(int argc, char **argv)
 		read_and_print_sensor_info(verbose);
 	}
 
-	return 0;
-
+	exit(0);
 }
