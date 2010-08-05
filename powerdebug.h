@@ -32,4 +32,4 @@ extern void usage(char **argv);
 extern void version(void);
 extern void print_regulator_info(int verbose);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
-
+extern void print_string_val(char *name, char *val);

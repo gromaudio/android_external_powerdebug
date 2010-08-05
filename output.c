@@ -18,25 +18,32 @@ void version()
 	exit(0);
 }
 
+void print_string_val(char *name, char *val)
+{
+	printf("\t%s=%s", name, val);
+	if(!strchr(val, '\n'))
+		printf("\n");
+}
+
 void print_regulator_info(int verbose)
 {
 	int i;
 
 	for (i=0; i<numregulators; i++) {
 		printf("Regulator # %d\n", i+1);
-		printf("\tname=%s\n", regulators_info[i].name);
+			print_string_val("name", regulators_info[i].name);
 		if (strcmp(regulators_info[i].status, ""))
-			printf("\tstatus=%s\n", regulators_info[i].status);
+			print_string_val("status", regulators_info[i].status);
 		if (strcmp(regulators_info[i].state, ""))
-			printf("\tstate=%s\n", regulators_info[i].state);
+			print_string_val("state", regulators_info[i].state);
 
 		if (!verbose)
 			continue;
 
 		if (strcmp(regulators_info[i].type, ""))
-			printf("\ttype=%s\n", regulators_info[i].type);
+			print_string_val("type", regulators_info[i].type);
 		if (strcmp(regulators_info[i].opmode, ""))
-			printf("\topmode=%s\n", regulators_info[i].opmode);
+			print_string_val("opmode", regulators_info[i].opmode);
 
 		if (regulators_info[i].microvolts)
 			printf("\tmicrovolts=%d\n",
