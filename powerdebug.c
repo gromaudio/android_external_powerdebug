@@ -35,7 +35,7 @@ int init_regulator_ds(void)
 int read_and_print_sensor_info(int verbose)
 {
 	DIR *dir, *subdir;
-	int len;
+	int len, found = 0;
 	char filename[PATH_MAX], devpath[PATH_MAX];
 	char device[PATH_MAX];
 	struct dirent *item, *subitem;
@@ -66,6 +66,8 @@ int read_and_print_sensor_info(int verbose)
 	while ((item = readdir(dir))) {
 		if (item->d_name[0] == '.')  /* skip the hidden files */
 			continue;
+
+		found = 1;
 
 		sprintf(filename, "/sys/class/hwmon/%s", item->d_name);
 		sprintf(devpath, "%s/device", filename);
@@ -103,6 +105,11 @@ int read_and_print_sensor_info(int verbose)
 		closedir(subdir);
 	}
 	closedir(dir);
+
+	if(!found && verbose) {
+		printf("Could not find sensor information!");
+		printf(" Looks like /sys/class/hwmon is empty.\n");
+	}
 
 	return 0;
 }
