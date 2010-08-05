@@ -215,40 +215,60 @@ int main(int argc, char **argv)
 	int c;
 	int regulators = 0, sensors = 0, verbose = 0;
 
-	/* Options:
-	 * -r : regulator
-	 * -s : sensors
-	 * -v : verbose
-	 * no option / default : all
+	/*
+	 * Options:
+	 * -r, --regulator	: regulator
+	 * -s, --sensor		: sensors
+	 * -v, --verbose	: verbose
+	 * -V, --version	: version
+	 * -h, --help		: help
+	 * no option / default : show usage!
 	 */
 
-	while ((c = getopt (argc, argv, "rsvh")) != -1)
-	switch (c)
-	{
-	case 'r':
-		regulators = 1;
-		break;
-	case 's':
-		sensors = 1;
-		break;
-	case 'v':
-		verbose = 1;
-		break;
-	case 'h':
-		usage (argv);
-	case '?':
-		fprintf (stderr, "Unknown option %c'.\n", optopt);
-		return 1;
-	default:
-		usage(argv);
+	while (1) {
+		int optindex = 0;
+		static struct option long_options[] = {
+			{"regulator", 0, 0, 'r'},
+			{"sensor", 0, 0, 's'},
+			{"verbose", 0, 0, 'v'},
+			{"version", 0, 0, 'V'},
+			{"help", 0, 0, 'h'},
+			{0, 0, 0, 0}
+		};
+
+		c = getopt_long(argc, argv, "rsvVh", long_options, &optindex);
+		if (c == -1)
+			break;
+
+		switch (c) {
+			case 'r':
+				regulators = 1;
+				break;
+			case 's':
+				sensors = 1;
+				break;
+			case 'v':
+				verbose = 1;
+				break;
+			case 'V':
+				version();
+				break;
+			case 'h':
+				usage(argv);
+				break;
+			case '?':
+				fprintf (stderr, "%s: Unknown option %c'.\n",
+					 argv[0], optopt);
+				exit(1);
+			default:
+				usage(argv);
+				break;
+		}
 	}
 
-	/* By default print both regulator and sensor information */
+
+	/* Need atleast one option specified */
 	if (!regulators && !sensors) {
-		/*  What should be the default behavior ?
-		regulators = 1;
-		sensors = 1;
-		*/
 		usage(argv);
 	}
 

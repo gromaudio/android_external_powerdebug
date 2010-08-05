@@ -3,14 +3,20 @@
 void usage(char **argv)
 {
 	printf("Usage: %s [OPTIONS]\n", argv[0]);
-	printf("  -r 		Show regulator information\n");
-	printf("  -s 		Show sensor information\n");
-	printf("  -v 		Verbose\n");
-	printf("  -h 		Help\n");
+	printf("  -r, --regulator 	Show regulator information\n");
+	printf("  -s, --sensor		Show sensor information\n");
+	printf("  -v, --verbose		Verbose mode (use with -r and/or -s)\n");
+	printf("  -V, --version		Show Version\n");
+	printf("  -h, --help 		Help\n");
 
 	exit(0);
 }
-	
+
+void version()
+{
+	printf("powerdebug version %s\n", VERSION);
+	exit(0);
+}
 
 void print_regulator_info(int verbose)
 {
@@ -51,5 +57,10 @@ void print_regulator_info(int verbose)
 		if (regulators_info[i].num_users)
 			printf("\tnum_users=%d\n", regulators_info[i].num_users);
 		printf("\n");
+	}
+
+	if (!numregulators && verbose) {
+		printf("Could not find regulator information!");
+		printf(" Looks like /sys/class/regulator is empty.\n\n");
 	}
 }

@@ -6,6 +6,8 @@
 #include <getopt.h>
 #include <errno.h>
 
+#define VERSION "1.0"
+
 //#define PATH_MAX 1024
 //#define NAME_MAX 128
 #define VALUE_MAX 16
@@ -29,6 +31,7 @@ struct regulator_info {
 extern int numregulators;
 
 extern void usage(char **argv);
+extern void version(void);
 extern void print_regulator_info(int verbose);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 
