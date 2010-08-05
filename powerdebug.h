@@ -17,7 +17,12 @@ struct regulator_info {
 	char type[VALUE_MAX];
 	char opmode[VALUE_MAX];
 	int microvolts;
+	int min_microvolts;
+	int max_microvolts;
 	int microamps;
+	int min_microamps;
+	int max_microamps;
+	int requested_microamps;
 	int num_users;
 } *regulators_info;
 

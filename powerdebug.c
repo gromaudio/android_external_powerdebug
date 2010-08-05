@@ -181,11 +181,22 @@ int read_regulator_info(int verbose)
 
 			if (!strcmp(ritem->d_name, "microvolts"))
 				regulators_info[count-1].microvolts = atoi(fptr);
+			if (!strcmp(ritem->d_name, "min_microvolts"))
+				regulators_info[count-1].min_microvolts = atoi(fptr);
+			if (!strcmp(ritem->d_name, "max_microvolts"))
+				regulators_info[count-1].max_microvolts = atoi(fptr);
+
 			if (!strcmp(ritem->d_name, "microamps"))
 				regulators_info[count-1].microamps = atoi(fptr);
+			if (!strcmp(ritem->d_name, "min_microamps"))
+				regulators_info[count-1].min_microamps = atoi(fptr);
+			if (!strcmp(ritem->d_name, "max_microamps"))
+				regulators_info[count-1].max_microamps = atoi(fptr);
+			if (!strcmp(ritem->d_name, "requested_microamps"))
+				regulators_info[count-1].requested_microamps = atoi(fptr);
+
 			if (!strcmp(ritem->d_name, "num_users"))
 				regulators_info[count-1].num_users = atoi(fptr);
-
 		}
 exit1:
 		closedir(dir);
