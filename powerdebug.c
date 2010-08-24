@@ -1,9 +1,9 @@
 #include <getopt.h>
-
 #include "powerdebug.h"
 
-
 int numregulators;
+int dump;
+int ticktime=3;  /* in seconds */
 
 int init_regulator_ds(void)
 {
@@ -115,8 +115,41 @@ int read_and_print_sensor_info(int verbose)
 	return 0;
 }
 
+void read_info_from_dirent(struct dirent *ritem, char *str, int idx)
+{
+	if (!strcmp(ritem->d_name, "name"))
+		strcpy(regulators_info[idx].name, str);
+	if (!strcmp(ritem->d_name, "state"))
+		strcpy(regulators_info[idx].state, str);
+	if (!strcmp(ritem->d_name, "status"))
+		strcpy(regulators_info[idx].status, str);
 
-int read_regulator_info(int verbose)
+	if (!strcmp(ritem->d_name, "type"))
+		strcpy(regulators_info[idx].type, str);
+	if (!strcmp(ritem->d_name, "opmode"))
+		strcpy(regulators_info[idx].opmode, str);
+
+	if (!strcmp(ritem->d_name, "microvolts"))
+		regulators_info[idx].microvolts = atoi(str);
+	if (!strcmp(ritem->d_name, "min_microvolts"))
+		regulators_info[idx].min_microvolts = atoi(str);
+	if (!strcmp(ritem->d_name, "max_microvolts"))
+		regulators_info[idx].max_microvolts = atoi(str);
+
+	if (!strcmp(ritem->d_name, "microamps"))
+		regulators_info[idx].microamps = atoi(str);
+	if (!strcmp(ritem->d_name, "min_microamps"))
+		regulators_info[idx].min_microamps = atoi(str);
+	if (!strcmp(ritem->d_name, "max_microamps"))
+		regulators_info[idx].max_microamps = atoi(str);
+	if (!strcmp(ritem->d_name, "requested_microamps"))
+		regulators_info[idx].requested_microamps = atoi(str);
+
+	if (!strcmp(ritem->d_name, "num_users"))
+		regulators_info[idx].num_users = atoi(str);
+}
+
+int read_regulator_info(void)
 {
 	FILE *file = NULL;
 	DIR *regdir, *dir;
@@ -164,40 +197,7 @@ int read_regulator_info(int verbose)
 			if (!fptr)
 				continue;
 
-			if (!strcmp(ritem->d_name, "name"))
-				strcpy(regulators_info[count-1].name, fptr);
-			if (!strcmp(ritem->d_name, "state"))
-				strcpy(regulators_info[count-1].state, fptr);
-			if (!strcmp(ritem->d_name, "status"))
-				strcpy(regulators_info[count-1].status, fptr);
-
-			/* Read following _only_ if verbose option specified */
-			if(!verbose)
-				continue;
-
-			if (!strcmp(ritem->d_name, "type"))
-				strcpy(regulators_info[count-1].type, fptr);
-			if (!strcmp(ritem->d_name, "opmode"))
-				strcpy(regulators_info[count-1].opmode, fptr);
-
-			if (!strcmp(ritem->d_name, "microvolts"))
-				regulators_info[count-1].microvolts = atoi(fptr);
-			if (!strcmp(ritem->d_name, "min_microvolts"))
-				regulators_info[count-1].min_microvolts = atoi(fptr);
-			if (!strcmp(ritem->d_name, "max_microvolts"))
-				regulators_info[count-1].max_microvolts = atoi(fptr);
-
-			if (!strcmp(ritem->d_name, "microamps"))
-				regulators_info[count-1].microamps = atoi(fptr);
-			if (!strcmp(ritem->d_name, "min_microamps"))
-				regulators_info[count-1].min_microamps = atoi(fptr);
-			if (!strcmp(ritem->d_name, "max_microamps"))
-				regulators_info[count-1].max_microamps = atoi(fptr);
-			if (!strcmp(ritem->d_name, "requested_microamps"))
-				regulators_info[count-1].requested_microamps = atoi(fptr);
-
-			if (!strcmp(ritem->d_name, "num_users"))
-				regulators_info[count-1].num_users = atoi(fptr);
+                        read_info_from_dirent(ritem, fptr, count - 1);
 		}
 exit:
 		closedir(dir);
@@ -213,12 +213,14 @@ exit:
 int main(int argc, char **argv)
 {
 	int c;
+	int firsttime = 1;
 	int regulators = 0, sensors = 0, verbose = 0;
 
 	/*
 	 * Options:
 	 * -r, --regulator	: regulator
 	 * -s, --sensor		: sensors
+	 * -d, --dump		: dump
 	 * -v, --verbose	: verbose
 	 * -V, --version	: version
 	 * -h, --help		: help
@@ -230,13 +232,14 @@ int main(int argc, char **argv)
 		static struct option long_options[] = {
 			{"regulator", 0, 0, 'r'},
 			{"sensor", 0, 0, 's'},
+			{"dump", 0, 0, 'd'},
 			{"verbose", 0, 0, 'v'},
 			{"version", 0, 0, 'V'},
 			{"help", 0, 0, 'h'},
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "rsvVh", long_options, &optindex);
+		c = getopt_long(argc, argv, "rsdvVh", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -246,6 +249,9 @@ int main(int argc, char **argv)
 				break;
 			case 's':
 				sensors = 1;
+				break;
+			case 'd':
+				dump = 1;
 				break;
 			case 'v':
 				verbose = 1;
@@ -274,13 +280,56 @@ int main(int argc, char **argv)
 
 	init_regulator_ds();
 
-	if (regulators) {
-		read_regulator_info(verbose);
-		print_regulator_info(verbose);
-	}
+	while(1) {
+		int key = 0;
+		struct timeval tval;
+		fd_set readfds;
 
-	if (sensors) {
-		read_and_print_sensor_info(verbose);
+		if (!dump) {
+			if(firsttime) {
+				init_curses();
+				firsttime = 0;
+			}
+			create_windows();
+			show_header();
+		}
+	
+		if (regulators) {
+			read_regulator_info();
+			if (!dump)
+				show_regulator_info(verbose);
+			else
+				print_regulator_info(verbose);
+		}
+
+
+		if (sensors) {
+			read_and_print_sensor_info(verbose);
+		}
+
+		if (dump)
+			break;
+
+		FD_ZERO(&readfds);
+		FD_SET(0, &readfds);
+		tval.tv_sec = ticktime;
+		tval.tv_usec = (ticktime - tval.tv_sec) * 1000000;
+
+		key = select(1, &readfds, NULL, NULL, &tval);
+
+		if (key)  {
+			char keychar;
+
+			int keystroke = fgetc(stdin);
+			if (keystroke == EOF)
+				exit(0);
+
+			keychar = toupper(keystroke);
+			if (keychar == 'Q')
+				exit(0);
+			if (keychar == 'R')
+				ticktime = 3;
+		}
 	}
 
 	exit(0);

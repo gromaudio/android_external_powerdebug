@@ -5,6 +5,7 @@ void usage(char **argv)
 	printf("Usage: %s [OPTIONS]\n", argv[0]);
 	printf("  -r, --regulator 	Show regulator information\n");
 	printf("  -s, --sensor		Show sensor information\n");
+	printf("  -d, --dump		Dump information once (no refresh)\n");
 	printf("  -v, --verbose		Verbose mode (use with -r and/or -s)\n");
 	printf("  -V, --version		Show Version\n");
 	printf("  -h, --help 		Help\n");
@@ -30,7 +31,7 @@ void print_regulator_info(int verbose)
 	int i;
 
 	for (i=0; i<numregulators; i++) {
-		printf("Regulator # %d\n", i+1);
+		printf("Regulator %d:\n", i+1);
 			print_string_val("name", regulators_info[i].name);
 		if (strcmp(regulators_info[i].status, ""))
 			print_string_val("status", regulators_info[i].status);

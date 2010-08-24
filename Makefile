@@ -1,8 +1,8 @@
 WARNFLAGS=-Wall -Wshadow -W -Wformat -Wimplicit-function-declaration -Wimplicit-int
-CFLAGS?=-O1 -g ${WARNFLAGS}
+CFLAGS?=-O1 -g ${WARNFLAGS} -lncurses
 CC?=gcc
 
-OBJS = powerdebug.o output.o sensor.o
+OBJS = powerdebug.o output.o sensor.o display.o
 
 
 powerdebug: $(OBJS) powerdebug.h
