@@ -1,8 +1,11 @@
 powerdebug
 ----------
 
-This is a new tool which displays regulator and sensor information.
-Current version only displays regulator information properly. Support
-will be added for sensors, clock domains and voltage domains, later.
+This is a new tool which displays regulator, sensor and clock tree
+information.
 
- -- Amit Arora <amit.arora@linaro.org>  Fri, 03 Sep 2010 
+Current version only displays regulator information properly. And shows
+first level of clock tree from debugfs (linux-pm branch kernel
+required). Support will be added for sensors and voltage domains, later.
+
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 08 Sep 2010 

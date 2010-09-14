@@ -43,14 +43,26 @@ struct regulator_info {
 	int num_users;
 } *regulators_info;
 
+struct clock_info {
+        char name[NAME_MAX];
+        int flags;
+        int rate;
+        int usecount;
+} *clocks_info;
+
 extern int numregulators;
 extern int dump;
 
 extern void usage(char **argv);
 extern void version(void);
 extern void print_regulator_info(int verbose);
+extern int  read_and_print_clock_info(int verbose, int hrow);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern void print_string_val(char *name, char *val);
+extern void print_clock_header(int level);
+extern void print_sensor_header(void);
+extern void print_clock_info_line(int line, char *clockname, int flags,
+                                  int rate, int usecount, int highlight);
 
 #define PT_COLOR_DEFAULT    1
 #define PT_COLOR_HEADER_BAR 2
@@ -68,4 +80,7 @@ extern void fini_curses(void);
 extern void killall_windows(void);
 extern void show_header(void);
 extern void create_windows(void);
+extern int  create_regulator_win(int row, int numrows);
+extern int  create_clock_win(int row, int numrows);
+extern int  create_sensor_win(int row, int numrows);
 extern void show_regulator_info(int verbose);

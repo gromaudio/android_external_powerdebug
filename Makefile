@@ -5,7 +5,9 @@ WARNFLAGS=-Wall -Wshadow -W -Wformat -Wimplicit-function-declaration -Wimplicit-
 CFLAGS?=-O1 -g ${WARNFLAGS}
 CC?=gcc
 
-OBJS = powerdebug.o output.o sensor.o display.o
+OBJS = powerdebug.o output.o sensor.o clocks.o display.o
+
+default: powerdebug
 
 powerdebug.8.gz: powerdebug.8
 	gzip -c $< > $@
@@ -20,6 +22,8 @@ install: powerdebug powerdebug.8.gz
 	cp powerdebug.8.gz ${DESTDIR}${MANDIR}
 
 All: install
+
+all: powerdebug powerdebug.8.gz
 
 clean:
 	rm -f powerdebug *.o powerdebug.8.gz

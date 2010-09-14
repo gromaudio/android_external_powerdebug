@@ -19,7 +19,8 @@
 
 int numregulators;
 int dump;
-int ticktime=3;  /* in seconds */
+int highlighted_row;
+double ticktime = 10.0;  /* in seconds */
 
 int init_regulator_ds(void)
 {
@@ -230,12 +231,14 @@ int main(int argc, char **argv)
 {
 	int c;
 	int firsttime = 1;
-	int regulators = 0, sensors = 0, verbose = 0;
+	int regulators = 0, sensors = 0, clocks = 0, verbose = 0;
 
 	/*
 	 * Options:
 	 * -r, --regulator	: regulator
 	 * -s, --sensor		: sensors
+	 * -c, --clock		: clocks
+	 * -t, --time		: ticktime
 	 * -d, --dump		: dump
 	 * -v, --verbose	: verbose
 	 * -V, --version	: version
@@ -248,6 +251,8 @@ int main(int argc, char **argv)
 		static struct option long_options[] = {
 			{"regulator", 0, 0, 'r'},
 			{"sensor", 0, 0, 's'},
+			{"clock", 0, 0, 'c'},
+			{"time", 0, 0, 't'},
 			{"dump", 0, 0, 'd'},
 			{"verbose", 0, 0, 'v'},
 			{"version", 0, 0, 'V'},
@@ -255,7 +260,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "rsdvVh", long_options, &optindex);
+		c = getopt_long(argc, argv, "rsct:dvVh", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -265,6 +270,12 @@ int main(int argc, char **argv)
 				break;
 			case 's':
 				sensors = 1;
+				break;
+			case 'c':
+				clocks = 1;
+				break;
+			case 't':
+                                ticktime = strtod(optarg, NULL);
 				break;
 			case 'd':
 				dump = 1;
@@ -290,7 +301,7 @@ int main(int argc, char **argv)
 
 
 	/* Need atleast one option specified */
-	if (!regulators && !sensors) {
+	if (!regulators && !sensors && !clocks) {
 		usage(argv);
 	}
 
@@ -300,6 +311,7 @@ int main(int argc, char **argv)
 		int key = 0;
 		struct timeval tval;
 		fd_set readfds;
+                int row = 1;
 
 		if (!dump) {
 			if(firsttime) {
@@ -312,15 +324,30 @@ int main(int argc, char **argv)
 	
 		if (regulators) {
 			read_regulator_info();
-			if (!dump)
+			if (!dump) {
+                                row = create_regulator_win(row,
+numregulators+2);
 				show_regulator_info(verbose);
+                        }
 			else
 				print_regulator_info(verbose);
 		}
 
+                if (clocks && !dump) {
+                        int hrow;
+                        row = create_clock_win(row, 100);//giv big no.as of now
+                        hrow = read_and_print_clock_info(verbose,
+                                                         highlighted_row);
+                        highlighted_row = hrow;
+                }
 
 		if (sensors) {
-			read_and_print_sensor_info(verbose);
+                        if (!dump) {
+                                row = create_sensor_win(row, 100);//big no. as of now
+                                print_sensor_header();
+                        }
+                        else
+			        read_and_print_sensor_info(verbose);
 		}
 
 		if (dump)
@@ -340,7 +367,20 @@ int main(int argc, char **argv)
 			if (keystroke == EOF)
 				exit(0);
 
+                        if (keystroke == 9)
+                                highlighted_row++;
+
 			keychar = toupper(keystroke);
+#ifdef DEBUG_KEY
+                        if (keystroke == 13) {
+                        killall_windows();
+                        fini_curses();
+                        printf("powerdebug: key=%d : char=%c\n", keystroke, keychar);
+                               printf("highlighted_row = %d\n", highlighted_row);
+                        exit(0);
+                        }
+#endif
+
 			if (keychar == 'Q')
 				exit(0);
 			if (keychar == 'R')
