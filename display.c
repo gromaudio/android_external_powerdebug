@@ -101,9 +101,15 @@ void create_windows(void)
 
 }
 
-int create_regulator_win(int row, int maxrows)
+/*
+ * maxrows is the MAXIMUM number of rows we need for this window 
+ * pshare is the minimum number of rows we should have for this (in %age)
+ * maxrows prevails in case of an argument !
+ */
+int create_regulator_win(int row, int maxrows, int *pshare)
 {
         int numrows;
+        int idealrows; // Based on pshare provided to us
 
         if (regulator_win) {
                 delwin(regulator_win);
@@ -111,10 +117,13 @@ int create_regulator_win(int row, int maxrows)
         }
 
         getmaxyx(stdscr, maxy, maxx);
-        if (maxrows < (maxy/2 - 2))
+
+        idealrows = ((maxy - 2) * (*pshare)) / 100;
+        if (maxrows < idealrows) {
                 numrows = maxrows;
-        else
-                numrows = maxy/2 - 2;
+                *pshare = (numrows * 100) / maxy;
+        } else
+                numrows = idealrows;
         regulator_win = subwin(stdscr, numrows, maxx, row, 0);
 
         refresh();
@@ -122,9 +131,10 @@ int create_regulator_win(int row, int maxrows)
         return numrows + row;
 }
 
-int create_clock_win(int row, int maxrows)
+int create_clock_win(int row, int maxrows, int *pshare)
 {
         int numrows;
+        int idealrows;
 
         if (clock_win) {
                 delwin(clock_win);
@@ -132,10 +142,12 @@ int create_clock_win(int row, int maxrows)
         }
 
         getmaxyx(stdscr, maxy, maxx);
-        if (maxrows < (maxy/2 - 2))
+        idealrows = ((maxy - 2) * (*pshare)) / 100;
+
+        if (maxrows < idealrows)
                 numrows = maxrows;
         else
-                numrows = maxy/2 - 2;
+                numrows = idealrows;
         clock_win = subwin(stdscr, numrows, maxx, row, 0);
 
         refresh();
@@ -143,9 +155,10 @@ int create_clock_win(int row, int maxrows)
         return numrows + row;
 }
 
-int create_sensor_win(int row, int maxrows)
+int create_sensor_win(int row, int maxrows, int *pshare)
 {
         int numrows;
+        int idealrows;
 
         if (sensor_win) {
                 delwin(sensor_win);
@@ -153,10 +166,12 @@ int create_sensor_win(int row, int maxrows)
         }
 
         getmaxyx(stdscr, maxy, maxx);
-        if (maxrows < 4)
+        idealrows = ((maxy - 2) * (*pshare)) / 100;
+
+        if (maxrows < idealrows)
                 numrows = maxrows;
         else
-                numrows = 4;
+                numrows = idealrows;
         sensor_win = subwin(stdscr, numrows, maxx, row, 0);
 
         refresh();
@@ -284,20 +299,22 @@ void print_sensor_header(void)
 void print_clock_info_line(int line, char *clockname, int flags, int rate,
                            int usecount, int highlight)
 {
-        if (highlight) {
-                //wattrset(clock_win, COLOR_PAIR(PT_COLOR_RED));
-                //wbkgd(clock_win, COLOR_PAIR(PT_COLOR_RED));
-                wattron(clock_win, WA_BOLD);
-        }
+        if (highlight)
+                wattron(clock_win, WA_BOLD|WA_STANDOUT);
+        else
+                wattron(clock_win, WA_DIM);
+
         print(clock_win, 0, line + 2, "%s", clockname); 
-        print(clock_win, 24, line + 2, "%d", flags); 
-        print(clock_win, 36, line + 2, "%d", rate); 
-        print(clock_win, 48, line + 2, "%d", usecount);
-        if (highlight) {
-                //use_default_colors();
-                //wattrset(clock_win, COLOR_PAIR(PT_COLOR_DEFAULT));
-                //wbkgd(clock_win, COLOR_PAIR(PT_COLOR_DEFAULT));
-                wattroff(clock_win, WA_BOLD);
+        if (strcmp(clockname, "..")) {
+                print(clock_win, 24, line + 2, "%d", flags); 
+                print(clock_win, 36, line + 2, "%d", rate); 
+                print(clock_win, 48, line + 2, "%d", usecount);
         }
+
+        if (highlight)
+                wattroff(clock_win, WA_BOLD|WA_STANDOUT);
+        else
+                wattroff(clock_win, WA_DIM);
+
         wrefresh(clock_win);
 }

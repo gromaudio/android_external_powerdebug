@@ -15,8 +15,21 @@
  *******************************************************************************/
 
 #include "powerdebug.h"
-#include<error.h>
-#include<errno.h>
+#include <errno.h>
+
+static int  clk_tree_level = 1;
+static char clk_dir_path[PATH_MAX];
+static char highlighted_path[PATH_MAX];
+static char clk_name[NAME_MAX];
+static int  gadder = 0;
+
+
+void init_clock_details(void)
+{
+        strcpy(clk_dir_path, "/debug/clock");
+        strcpy(clk_name, "");
+        strcpy(highlighted_path, "");
+}
 
 int get_int_from(char *file)
 {
@@ -35,29 +48,65 @@ int get_int_from(char *file)
         return atoi(result);
 }
 
-int read_and_print_clock_info(int verbose, int hrow)
+int read_and_print_clock_info(int verbose, int hrow, int selected)
+{
+        if (selected) {
+        //        if (!(strcmp(clk_dir_path, "/debug/clock") &&
+         //               strcmp(highlighted_path, ".."))) {
+                strcpy(clk_dir_path, highlighted_path);
+                hrow = 0;
+                clk_tree_level += gadder;
+                if (clk_tree_level <=0)
+                        clk_tree_level = 1;
+        }
+
+        hrow = read_and_print_clock_one_level(verbose, hrow, selected);
+
+        return hrow;
+}
+
+void set_hl_dir_path_to_parent(void)
+{
+        char *ptr;
+
+        strcpy(highlighted_path, clk_dir_path);
+        if (strcmp(clk_dir_path, "/clock/debug")) {
+                ptr = strrchr(highlighted_path, '/');
+                if (ptr)
+                        ptr[0]='\0';
+        }
+}
+
+int read_and_print_clock_one_level(int verbose, int hrow, int selected)
 {
         int line = 0, usecount = 0, flags = 0, rate = 0;
+//      int parent_dir_row = 1000;
         DIR *dir, *subdir;
         char filename[PATH_MAX], devpath[PATH_MAX], clockname[NAME_MAX];
         struct dirent *item, *subitem;
 
         (void)verbose;
 
-        print_clock_header(1);
+        print_clock_header(clk_tree_level);
 
-        sprintf(filename, "%s", "/debug/clock");
+        sprintf(filename, "%s", clk_dir_path);
 
         dir = opendir(filename);
         if (!dir)
                 return 0;
 
         while ((item = readdir(dir))) {
-                if (item->d_name[0] == '.')  /* skip the hidden files */
+                /* skip hidden dirs except ".." */
+                if (item->d_name[0] == '.' && strcmp(item->d_name, ".."))
                         continue;
 
-                sprintf(devpath, "/debug/clock/%s", item->d_name);
-                strcpy(clockname, item->d_name);
+                if (selected && hrow == line && !strcmp(item->d_name, "..")) {
+                        sprintf(devpath, "%s", clk_dir_path);
+                        strcpy(clockname, "..");
+                } else {
+                        sprintf(devpath, "%s/%s", clk_dir_path, item->d_name);
+                        strcpy(clockname, item->d_name);
+                }
 
                 subdir = opendir(devpath);
 
@@ -80,8 +129,38 @@ int read_and_print_clock_info(int verbose, int hrow)
                                 usecount = get_int_from(filename);
                 }
 
-                print_clock_info_line(line, clockname, flags, rate,
-                                      usecount, (hrow == line) ? 1 : 0);
+                if (hrow == line) {
+                        if (!strcmp(clockname, "..")) {
+                                if (clk_tree_level != 1) {
+                                        set_hl_dir_path_to_parent();
+                                        gadder = -1;
+                                } 
+                        } else {
+                                strcpy(highlighted_path, devpath);
+                                gadder = 1;
+                        }
+                }
+
+//                sprintf(clockname, "%s:dp-%s:n-%s:hp-%s",
+//                        clockname, clk_dir_path, clk_name, highlighted_path);
+
+/*                if (strcmp(clockname, "..")) {
+                        int row = line + 1;
+
+                        if (line > parent_dir_row)
+                                row--;
+                        print_clock_info_line(row, clockname, flags, rate, usecount,
+                                              (hrow == line) ? 1 : 0);
+                } else {
+                        print_clock_info_line(0, clockname, flags, rate, usecount,
+                                              (hrow == line) ? 1 : 0);
+                        parent_dir_row = line;
+                }
+*/
+
+                print_clock_info_line(line, clockname, flags, rate, usecount,
+                                      (hrow == line) ? 1 : 0);
+
                 line++;
                 closedir(subdir);
         }

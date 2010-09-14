@@ -41,9 +41,8 @@ int init_regulator_ds(void)
 	regulators_info = (struct regulator_info *)malloc(numregulators*
 						sizeof(struct regulator_info));
 	if (!regulators_info) {
-		fprintf(stderr, "init_regulator_ds: Not enough memory to ");
-		fprintf(stderr, "read information for %d regulators!\n",
-			numregulators);
+		fprintf(stderr, "init_regulator_ds: Not enough memory to "
+		"read information for %d regulators!\n", numregulators);
 		return(1);
 	}
 
@@ -231,7 +230,9 @@ int main(int argc, char **argv)
 {
 	int c;
 	int firsttime = 1;
+        int enter_hit = 0;
 	int regulators = 0, sensors = 0, clocks = 0, verbose = 0;
+        int r_share = 0, s_share = 0, c_share = 0; //%age share of the win size
 
 	/*
 	 * Options:
@@ -314,19 +315,32 @@ int main(int argc, char **argv)
                 int row = 1;
 
 		if (!dump) {
-			if(firsttime) {
+			if(firsttime)
 				init_curses();
-				firsttime = 0;
-			}
 			create_windows();
 			show_header();
+                        if (sensors)
+                                s_share = 20;
+                        if (regulators) {
+                                if (!sensors && clocks)
+                                        r_share = 50;
+                                else if (clocks)
+                                        r_share = 40;
+                                else
+                                        r_share = 80;
+                        }
+                        c_share = 100 - (r_share + s_share);
 		}
 	
 		if (regulators) {
 			read_regulator_info();
 			if (!dump) {
+                                int orig_r_share = r_share;
+
                                 row = create_regulator_win(row,
-numregulators+2);
+                                                           numregulators + 2,
+                                                           &r_share);
+                                c_share += (orig_r_share - r_share);
 				show_regulator_info(verbose);
                         }
 			else
@@ -335,15 +349,20 @@ numregulators+2);
 
                 if (clocks && !dump) {
                         int hrow;
-                        row = create_clock_win(row, 100);//giv big no.as of now
+
+                        if (firsttime)
+                                init_clock_details();
+                        row = create_clock_win(row, 100, &c_share);//giv big no.as of now
                         hrow = read_and_print_clock_info(verbose,
-                                                         highlighted_row);
+                                                         highlighted_row,
+                                                         enter_hit);
                         highlighted_row = hrow;
+                        enter_hit = 0;
                 }
 
 		if (sensors) {
                         if (!dump) {
-                                row = create_sensor_win(row, 100);//big no. as of now
+                                row = create_sensor_win(row, 100, &s_share);//big no. as of now
                                 print_sensor_header();
                         }
                         else
@@ -371,21 +390,16 @@ numregulators+2);
                                 highlighted_row++;
 
 			keychar = toupper(keystroke);
-#ifdef DEBUG_KEY
-                        if (keystroke == 13) {
-                        killall_windows();
-                        fini_curses();
-                        printf("powerdebug: key=%d : char=%c\n", keystroke, keychar);
-                               printf("highlighted_row = %d\n", highlighted_row);
-                        exit(0);
-                        }
-#endif
+                        if (keystroke == 13)
+                                enter_hit = 1;
 
 			if (keychar == 'Q')
 				exit(0);
 			if (keychar == 'R')
 				ticktime = 3;
 		}
+                if (firsttime)
+                        firsttime = 0;
 	}
 
 	exit(0);
