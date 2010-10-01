@@ -171,3 +171,107 @@ int read_and_print_clock_one_level(int verbose, int hrow, int selected)
                 hrow = -1;
         return hrow;
 }
+
+void dump_clock_info(int verbose)
+{
+        printf("Clock Tree :\n");
+        printf("**********\n");
+        printf("/\n");
+        dump_clock_info_recur(verbose, clk_dir_path);
+}
+
+void dump_clock_info_recur(int verbose, char *clkdirpath)
+{
+        int usecount = 0, flags = 0, rate = 0;
+        DIR *dir, *subdir;
+        char filename[PATH_MAX], devpath[PATH_MAX];
+        struct dirent *item, *subitem;
+        char *clock, *clockp;
+
+        sprintf(filename, "%s", clkdirpath);
+
+        dir = opendir(filename);
+        if (!dir)
+                return;
+
+        while ((item = readdir(dir))) {
+                int cnt = 0;
+
+                /* skip hidden dirs except ".." */
+                if (item->d_name[0] == '.' )
+                        continue;
+
+                sprintf(devpath, "%s/%s", clkdirpath, item->d_name);
+
+                subdir = opendir(devpath);
+
+                if (!subdir)
+                        continue;
+
+                while ((subitem = readdir(subdir))) {
+                        if (subitem->d_name[0] == '.') /* skip hidden
+files */
+                                continue;
+
+                        sprintf(filename, "%s/%s", devpath, subitem->d_name);
+
+                        if (!strcmp(subitem->d_name, "flags"))
+                                flags = get_int_from(filename);
+
+                        if (!strcmp(subitem->d_name, "rate"))
+                                rate = get_int_from(filename);
+
+                        if (!strcmp(subitem->d_name, "usecount"))
+                                usecount = get_int_from(filename);
+                }
+
+                if (!usecount && !verbose)
+                        continue;
+
+                
+                clockp = strrchr(devpath, '/');
+                if (clockp)
+                        clockp++;
+                else
+                        continue;
+
+                clock = strchr(devpath, '/');
+                if (clock) {
+                        clock++;
+                        clock = strchr(clock, '/');
+                        if (clock)
+                                clock++;
+                }
+
+                while (clock) {
+                        clock = strchr(clock, '/');
+                        if (clock)
+                                clock++;
+                        else
+                                break;
+                        cnt ++;
+                }
+
+                printf("|");
+                if (cnt == 1) {
+                        cnt --;
+                        printf("-- ");
+                } else
+                        printf("   ");
+
+
+                while (cnt) {
+                        if (cnt == 2)
+                                printf("|-");
+                        else if (cnt == 1)
+                                printf("- ");
+                        else
+                                printf("|   ");
+                        cnt --;
+                }
+
+                printf("%s <flags=0x%x:rate=%d:usecount=%d>\n",
+                        clockp, flags, rate, usecount);
+                dump_clock_info_recur(verbose, devpath);
+        }
+}

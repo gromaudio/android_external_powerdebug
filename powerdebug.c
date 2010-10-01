@@ -347,17 +347,21 @@ int main(int argc, char **argv)
 				print_regulator_info(verbose);
 		}
 
-                if (clocks && !dump) {
-                        int hrow;
-
+                if (clocks) {
                         if (firsttime)
                                 init_clock_details();
-                        row = create_clock_win(row, 100, &c_share);//giv big no.as of now
-                        hrow = read_and_print_clock_info(verbose,
-                                                         highlighted_row,
-                                                         enter_hit);
-                        highlighted_row = hrow;
-                        enter_hit = 0;
+                        if (!dump) {
+                                int hrow;
+
+                                //giv big no. in second arg as of now
+                                row = create_clock_win(row, 100, &c_share);
+                                hrow = read_and_print_clock_info(verbose,
+                                                                highlighted_row,
+                                                                enter_hit);
+                                highlighted_row = hrow;
+                                enter_hit = 0;
+                        } else
+                                dump_clock_info(verbose);
                 }
 
 		if (sensors) {

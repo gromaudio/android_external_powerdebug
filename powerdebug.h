@@ -56,6 +56,8 @@ extern int dump;
 extern void usage(char **argv);
 extern void version(void);
 extern void print_regulator_info(int verbose);
+extern void dump_clock_info(int verbose);
+extern void dump_clock_info_recur(int verbose, char *clkdirpath);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
 extern int  read_and_print_clock_one_level(int verbose, int hrow, int selected);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
