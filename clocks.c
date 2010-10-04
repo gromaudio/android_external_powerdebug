@@ -85,8 +85,6 @@ int read_and_print_clock_one_level(int verbose, int hrow, int selected)
         char filename[PATH_MAX], devpath[PATH_MAX], clockname[NAME_MAX];
         struct dirent *item, *subitem;
 
-        (void)verbose;
-
         print_clock_header(clk_tree_level);
 
         sprintf(filename, "%s", clk_dir_path);
@@ -158,10 +156,11 @@ int read_and_print_clock_one_level(int verbose, int hrow, int selected)
                 }
 */
 
-                print_clock_info_line(line, clockname, flags, rate, usecount,
-                                      (hrow == line) ? 1 : 0);
-
-                line++;
+                if (verbose || usecount) {
+                        print_clock_info_line(line, clockname, flags, rate,
+                                              usecount, (hrow == line) ? 1 : 0);
+                        line++;
+                }
                 closedir(subdir);
         }
 
