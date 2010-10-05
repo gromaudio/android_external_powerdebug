@@ -189,6 +189,8 @@ void show_header(void)
 
 	print(header_win, 0, 0, "PowerDebug version %s         (C) Linaro",
 	      VERSION);
+	print(header_win, 50, 0, "Refresh Rate %4.2f Secs",
+	      ticktime);
 
 	wrefresh(header_win);
 
