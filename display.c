@@ -299,10 +299,17 @@ void print_sensor_header(void)
 void print_clock_info_line(int line, char *clockname, int flags, int rate,
                            int usecount, int highlight)
 {
-        if (highlight)
-                wattron(clock_win, WA_BOLD|WA_STANDOUT);
-        else
+        if (usecount)
+                wattron(clock_win, WA_BOLD);
+        else {
+                wattroff(clock_win, WA_BOLD);
                 wattron(clock_win, WA_DIM);
+        }
+
+        if (highlight)
+                wattron(clock_win, WA_REVERSE);
+        else
+                wattroff(clock_win, WA_REVERSE);
 
         print(clock_win, 0, line + 2, "%s", clockname); 
         if (strcmp(clockname, "..")) {

@@ -52,6 +52,7 @@ struct clock_info {
 
 extern int numregulators;
 extern int dump;
+extern double ticktime;
 
 extern void usage(char **argv);
 extern void version(void);
