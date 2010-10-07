@@ -26,6 +26,13 @@
 #define VERSION "1.0"
 
 #define VALUE_MAX 16
+#define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
+
+WINDOW windows[TOTAL_FEATURE_WINS];
+extern char *win_names[TOTAL_FEATURE_WINS];
+
+enum {REGULATOR, CLOCK, SENSOR};
+extern int selectedwindow;
 
 struct regulator_info {
 	char name[NAME_MAX];
@@ -82,10 +89,8 @@ extern void print_clock_info_line(int line, char *clockname, int flags,
 
 extern void init_curses(void);
 extern void fini_curses(void);
-extern void killall_windows(void);
+extern void killall_windows(int all);
 extern void show_header(void);
 extern void create_windows(void);
-extern int  create_regulator_win(int row, int numrows, int *pshare);
-extern int  create_clock_win(int row, int numrows, int *pshare);
-extern int  create_sensor_win(int row, int numrows, int *pshare);
+extern void create_selectedwindow(void);
 extern void show_regulator_info(int verbose);

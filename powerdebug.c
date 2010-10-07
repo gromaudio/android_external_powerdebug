@@ -20,7 +20,13 @@
 int numregulators;
 int dump;
 int highlighted_row;
+int selectedwindow = -1;
 double ticktime = 10.0;  /* in seconds */
+
+char *win_names[TOTAL_FEATURE_WINS] = {
+        "Regulators",
+        "Clocks",
+        "Sensors" };
 
 int init_regulator_ds(void)
 {
@@ -228,17 +234,20 @@ exit:
 
 int main(int argc, char **argv)
 {
-	int c;
-	int firsttime = 1;
+	int c, i;
+	int firsttime[TOTAL_FEATURE_WINS];
         int enter_hit = 0;
 	int regulators = 0, sensors = 0, clocks = 0, verbose = 0;
         int r_share = 0, s_share = 0, c_share = 0; //%age share of the win size
 
+        for (i = 0; i < TOTAL_FEATURE_WINS; i++)
+                firsttime[i] = 1;
+
 	/*
 	 * Options:
-	 * -r, --regulator	: regulator
-	 * -s, --sensor		: sensors
-	 * -c, --clock		: clocks
+         * -r, --regulator      : regulator
+         * -s, --sensor         : sensors
+         * -c, --clock          : clocks
 	 * -t, --time		: ticktime
 	 * -d, --dump		: dump
 	 * -v, --verbose	: verbose
@@ -250,9 +259,9 @@ int main(int argc, char **argv)
 	while (1) {
 		int optindex = 0;
 		static struct option long_options[] = {
-			{"regulator", 0, 0, 'r'},
-			{"sensor", 0, 0, 's'},
-			{"clock", 0, 0, 'c'},
+                        {"regulator", 0, 0, 'r'},
+                        {"sensor", 0, 0, 's'},
+                        {"clock", 0, 0, 'c'},
 			{"time", 0, 0, 't'},
 			{"dump", 0, 0, 'd'},
 			{"verbose", 0, 0, 'v'},
@@ -266,15 +275,18 @@ int main(int argc, char **argv)
 			break;
 
 		switch (c) {
-			case 'r':
-				regulators = 1;
-				break;
-			case 's':
-				sensors = 1;
-				break;
-			case 'c':
-				clocks = 1;
-				break;
+                        case 'r':
+                                regulators = 1;
+                                selectedwindow = REGULATOR;
+                                break;
+                        case 's':
+                                sensors = 1;
+                                selectedwindow = SENSOR;
+                                break;
+                        case 'c':
+                                clocks = 1;
+                                selectedwindow = CLOCK;
+                                break;
 			case 't':
                                 ticktime = strtod(optarg, NULL);
 				break;
@@ -300,11 +312,13 @@ int main(int argc, char **argv)
 		}
 	}
 
+        if (!dump && (regulators || clocks || sensors)) {
+                fprintf(stderr, "Option supported only in dump mode (-d)\n");
+                usage(argv);
+        } 
 
-	/* Need atleast one option specified */
-	if (!regulators && !sensors && !clocks) {
-		usage(argv);
-	}
+        if (!dump)
+                selectedwindow = REGULATOR;
 
 	init_regulator_ds();
 
@@ -312,10 +326,9 @@ int main(int argc, char **argv)
 		int key = 0;
 		struct timeval tval;
 		fd_set readfds;
-                int row = 1;
 
 		if (!dump) {
-			if(firsttime)
+			if(firsttime[0])
 				init_curses();
 			create_windows();
 			show_header();
@@ -332,29 +345,25 @@ int main(int argc, char **argv)
                         c_share = 100 - (r_share + s_share);
 		}
 	
-		if (regulators) {
+		if (selectedwindow == REGULATOR) {
 			read_regulator_info();
 			if (!dump) {
-                                int orig_r_share = r_share;
-
-                                row = create_regulator_win(row,
-                                                           numregulators + 2,
-                                                           &r_share);
-                                c_share += (orig_r_share - r_share);
+                                create_selectedwindow();
 				show_regulator_info(verbose);
                         }
 			else
 				print_regulator_info(verbose);
 		}
 
-                if (clocks) {
-                        if (firsttime)
+                if (selectedwindow == CLOCK) {
+                        if (firsttime[CLOCK]) {
                                 init_clock_details();
+                                firsttime[CLOCK] = 0;
+                        }
                         if (!dump) {
                                 int hrow;
 
-                                //giv big no. in second arg as of now
-                                row = create_clock_win(row, 100, &c_share);
+                                create_selectedwindow();
                                 hrow = read_and_print_clock_info(verbose,
                                                                 highlighted_row,
                                                                 enter_hit);
@@ -364,9 +373,9 @@ int main(int argc, char **argv)
                                 dump_clock_info(verbose);
                 }
 
-		if (sensors) {
+		if (selectedwindow == SENSOR) {
                         if (!dump) {
-                                row = create_sensor_win(row, 100, &s_share);//big no. as of now
+                                create_selectedwindow();
                                 print_sensor_header();
                         }
                         else
@@ -386,14 +395,36 @@ int main(int argc, char **argv)
 		if (key)  {
 			char keychar;
 
-			int keystroke = fgetc(stdin);
+			//int keystroke = fgetc(stdin);
+			int keystroke = getch();
 			if (keystroke == EOF)
 				exit(0);
 
-                        if (keystroke == 9)
-                                highlighted_row++;
+                        if (keystroke == KEY_RIGHT || keystroke == 9)
+                                selectedwindow++;
+
+                        if (keystroke == KEY_LEFT || keystroke == 353)
+                                selectedwindow--;
+
+                        if (selectedwindow >= TOTAL_FEATURE_WINS)
+                                selectedwindow = 0;
+
+                        if (selectedwindow < 0)
+                                selectedwindow = TOTAL_FEATURE_WINS - 1;
+
+                        if (selectedwindow == CLOCK) {
+                                if (keystroke == KEY_DOWN)
+                                        highlighted_row++;
+                                if (keystroke == KEY_UP && highlighted_row > 0)
+                                        highlighted_row--;
+                        }
 
 			keychar = toupper(keystroke);
+
+                        //killall_windows(1); fini_curses();
+                        //printf("key entered %d:%c\n", keystroke, keychar);
+                        //exit(1);
+
                         if (keystroke == 13)
                                 enter_hit = 1;
 
@@ -402,8 +433,6 @@ int main(int argc, char **argv)
 			if (keychar == 'R')
 				ticktime = 3;
 		}
-                if (firsttime)
-                        firsttime = 0;
 	}
 
 	exit(0);
