@@ -221,9 +221,10 @@ void show_regulator_info(int verbose)
 	print(regulator_win, 12, 1, "Status");
 	print(regulator_win, 24, 1, "State");
 	print(regulator_win, 36, 1, "Type");
-	print(regulator_win, 48, 1, "Microvolts");
-	print(regulator_win, 60, 1, "Min u-volts");
-	print(regulator_win, 72, 1, "Max u-volts");
+	print(regulator_win, 48, 1, "Users");
+	print(regulator_win, 60, 1, "Microvolts");
+	print(regulator_win, 72, 1, "Min u-volts");
+	print(regulator_win, 84, 1, "Max u-volts");
 	wattroff(regulator_win, A_BOLD);
 
 	for (i=0; i<numregulators; i++) {
@@ -246,6 +247,9 @@ void show_regulator_info(int verbose)
 		col += 12;
 		print(regulator_win, col, count, "%s",
 		      regulators_info[i].type);
+		col += 12;
+		print(regulator_win, col, count, "%d",
+		      regulators_info[i].num_users);
 		col += 12;
 		print(regulator_win, col, count, "%d",
 		      regulators_info[i].microvolts);
