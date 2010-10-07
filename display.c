@@ -277,8 +277,21 @@ void print_clock_info_line(int line, char *clockname, int flags, int rate,
 
         print(clock_win, 0, line + 1, "%s", clockname); 
         if (strcmp(clockname, "..")) {
+                double drate = 0.0;
+                char unit[8];
+
                 print(clock_win, 48, line + 1, "%d", flags); 
-                print(clock_win, 60, line + 1, "%d", rate); 
+                if (rate > 1000 && rate < 1000000) {
+                        drate = (double)rate/1000.0;
+                        strcpy(unit, "KHz");
+                } else if (rate > 1000000) {
+                        drate = (double)rate/1000000.0;
+                        strcpy(unit, "MHz");
+                } else {
+                        drate = (double)rate;
+                        strcpy(unit, " Hz");
+                }
+                print(clock_win, 60, line + 1, "%6.2f %s", drate, unit); 
                 print(clock_win, 72, line + 1, "%d", usecount);
         }
 
