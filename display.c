@@ -176,6 +176,8 @@ void show_regulator_info(int verbose)
 {
 	int i, count = 1;
 
+        (void)verbose;
+
 	werase(regulator_win);
 	wattron(regulator_win, A_BOLD);
 	print(regulator_win, 0, 0, "Name");
@@ -194,9 +196,11 @@ void show_regulator_info(int verbose)
 		if((i + 2) > (maxy-2))
 			break;
 
-		if(!verbose && !strncmp(regulators_info[i].state, "disabled", 8))
-			continue;
-
+		if(regulators_info[i].num_users > 0)
+                        wattron(regulator_win, WA_BOLD);
+                else
+                        wattroff(regulator_win, WA_BOLD);
+                        
 		print(regulator_win, col, count, "%s",
 		      regulators_info[i].name);
 		col += 12;
