@@ -55,6 +55,10 @@ struct clock_info {
         int flags;
         int rate;
         int usecount;
+        int num_children;
+        int last_child;
+        struct clock_info *parent;
+        struct clock_info **children;
 } *clocks_info;
 
 extern int numregulators;
@@ -65,7 +69,11 @@ extern void usage(char **argv);
 extern void version(void);
 extern void print_regulator_info(int verbose);
 extern void dump_clock_info(int verbose);
-extern void dump_clock_info_recur(int verbose, char *clkdirpath);
+extern void read_clock_info(char *clkpath);
+extern struct clock_info *read_clock_info_recur(char *clkpath, int level, struct
+                                                clock_info *parent);
+extern void print_clock_info(struct clock_info *clk, int level, int bmp);
+extern void insert_children(struct clock_info **parent, struct clock_info *clk);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
 extern int  read_and_print_clock_one_level(int verbose, int hrow, int selected);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);

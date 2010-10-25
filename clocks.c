@@ -16,6 +16,7 @@
 
 #include "powerdebug.h"
 #include <errno.h>
+#include <sys/stat.h>
 
 static int  clk_tree_level = 1;
 static char clk_dir_path[PATH_MAX];
@@ -174,104 +175,178 @@ int read_and_print_clock_one_level(int verbose, int hrow, int selected)
 
 void dump_clock_info(int verbose)
 {
+        (void)verbose;
         printf("Clock Tree :\n");
         printf("**********\n");
-        printf("/\n");
-        dump_clock_info_recur(verbose, clk_dir_path);
+        read_clock_info(clk_dir_path);
+        print_clock_info(clocks_info, 1, 1);
 }
 
-void dump_clock_info_recur(int verbose, char *clkdirpath)
+void read_clock_info(char *clkpath)
 {
-        int usecount = 0, flags = 0, rate = 0;
-        DIR *dir, *subdir;
-        char filename[PATH_MAX], devpath[PATH_MAX];
-        struct dirent *item, *subitem;
-        char *clock, *clockp;
+        DIR *dir;
+        struct dirent *item;
+        char filename[NAME_MAX], clockname[NAME_MAX];
+        struct clock_info *child;
+        struct clock_info *cur;
 
-        sprintf(filename, "%s", clkdirpath);
-
-        dir = opendir(filename);
+        dir = opendir(clkpath);
         if (!dir)
                 return;
 
-        while ((item = readdir(dir))) {
-                int cnt = 0;
+        clocks_info = (struct clock_info *)malloc(sizeof(struct clock_info));
+        memset(clocks_info, 0, sizeof(clocks_info));
+        strcpy(clocks_info->name, "/");
 
+        while ((item = readdir(dir))) {
+                /* skip hidden dirs except ".." */
+                if (item->d_name[0] == '.')
+                        continue;
+
+                strcpy(clockname, item->d_name);
+                sprintf(filename, "%s/%s", clkpath, item->d_name);
+                cur = (struct clock_info *)malloc(sizeof(struct clock_info));
+                memset(cur, 0, sizeof(cur));
+                strcpy(cur->name, clockname);
+                cur->parent = clocks_info;
+                insert_children(&clocks_info, cur);
+                child = read_clock_info_recur(filename, 2, cur);
+        }
+        closedir(dir);
+}
+
+struct clock_info *read_clock_info_recur(char *clkpath, int level,
+                        struct clock_info *parent)
+{
+        int ret = 0;
+        DIR *dir;
+        char filename[PATH_MAX];
+        struct dirent *item;
+        struct clock_info *cur = NULL;
+        struct stat buf;
+
+        dir = opendir(clkpath);
+        if (!dir)
+                return NULL;
+
+        while ((item = readdir(dir))) {
+                struct clock_info *child;
                 /* skip hidden dirs except ".." */
                 if (item->d_name[0] == '.' )
                         continue;
 
-                sprintf(devpath, "%s/%s", clkdirpath, item->d_name);
+                sprintf(filename, "%s/%s", clkpath, item->d_name);
 
-                subdir = opendir(devpath);
+                ret = stat(filename, &buf);
 
-                if (!subdir)
+                if (ret < 0) {
+                        printf("Error doing a stat on %s\n", filename);
+                        exit(1);
+                }
+
+                if (S_ISREG(buf.st_mode))
+                {
+                        if (!strcmp(item->d_name, "flags"))
+                                parent->flags = get_int_from(filename);
+                        if (!strcmp(item->d_name, "rate"))
+                                parent->rate = get_int_from(filename);
+                        if (!strcmp(item->d_name, "usecount"))
+                                parent->usecount = get_int_from(filename);
+                        continue;
+                }
+
+                if (!S_ISDIR(buf.st_mode))
                         continue;
 
-                while ((subitem = readdir(subdir))) {
-                        if (subitem->d_name[0] == '.') /* skip hidden
-files */
-                                continue;
+                cur = (struct clock_info *)malloc(sizeof(struct clock_info));
+                memset(cur, 0, sizeof(cur));
+                strcpy(cur->name, item->d_name);
+                cur->children = NULL;
+                cur->parent = NULL;
+                cur->num_children = 0;
+                child = read_clock_info_recur(filename, level + 1, cur);
 
-                        sprintf(filename, "%s/%s", devpath, subitem->d_name);
-
-                        if (!strcmp(subitem->d_name, "flags"))
-                                flags = get_int_from(filename);
-
-                        if (!strcmp(subitem->d_name, "rate"))
-                                rate = get_int_from(filename);
-
-                        if (!strcmp(subitem->d_name, "usecount"))
-                                usecount = get_int_from(filename);
-                }
-
-                if (!usecount && !verbose)
-                        continue;
-
-                
-                clockp = strrchr(devpath, '/');
-                if (clockp)
-                        clockp++;
-                else
-                        continue;
-
-                clock = strchr(devpath, '/');
-                if (clock) {
-                        clock++;
-                        clock = strchr(clock, '/');
-                        if (clock)
-                                clock++;
-                }
-
-                while (clock) {
-                        clock = strchr(clock, '/');
-                        if (clock)
-                                clock++;
-                        else
-                                break;
-                        cnt ++;
-                }
-
-                printf("|");
-                if (cnt == 1) {
-                        cnt --;
-                        printf("-- ");
-                } else
-                        printf("   ");
-
-
-                while (cnt) {
-                        if (cnt == 2)
-                                printf("|-");
-                        else if (cnt == 1)
-                                printf("- ");
-                        else
-                                printf("|   ");
-                        cnt --;
-                }
-
-                printf("%s <flags=0x%x:rate=%d:usecount=%d>\n",
-                        clockp, flags, rate, usecount);
-                dump_clock_info_recur(verbose, devpath);
+                insert_children(&parent, cur);
+                cur->parent = parent;
         }
+        closedir(dir);
+
+        return cur;
+}
+
+void insert_children(struct clock_info **parent, struct clock_info *clk)
+{
+        if (!(*parent)->children) {
+                (*parent)->children = (struct clock_info **)
+                                      malloc(sizeof(struct clock_info *)*2);
+                (*parent)->num_children = 0;
+        } else
+                (*parent)->children = (struct clock_info **)
+                                      realloc((*parent)->children,
+                                      sizeof(struct clock_info *) *
+                                      ((*parent)->num_children + 2));
+        if ((*parent)->num_children > 0)
+                (*parent)->children[(*parent)->num_children - 1]->last_child = 0;
+        clk->last_child = 1;
+        (*parent)->children[(*parent)->num_children] = clk;
+        (*parent)->children[(*parent)->num_children + 1] = NULL;
+        (*parent)->num_children++;
+}
+
+
+void print_clock_info(struct clock_info *clk, int level, int bmp)
+{
+        int i, j;
+
+        if (!clk)
+                return;
+
+        for (i = 1, j = 0; i < level; i++, j = (i - 1)) {
+                if (i == (level - 1)) {
+                        if (clk->last_child)
+                                printf("`-- ");
+                        else
+                                printf("|-- ");
+                } else {
+                        if ((1<<j) & bmp)
+                                printf("|   ");
+                        else
+                                printf("    ");
+                }
+        }
+        if (clk == clocks_info)
+                printf("%s\n", clk->name);
+        else {
+                char *unit = "Hz";
+                double drate = (double)clk->rate;
+                
+                if (drate > 1000 && drate < 1000000) {
+                        unit = "KHz";
+                        drate /= 1000;
+                }
+                if (drate > 1000000) {
+                        unit = "MHz";
+                        drate /= 1000000;
+                }
+                printf("%s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+                        clk->name, clk->flags, clk->usecount, drate, unit);
+                //printf("%s (flags:%d,usecount:%d,rate:%5.2f %s, bmp=0x%x)\n",
+                //        clk->name, clk->flags, clk->usecount, drate, unit, bmp);
+        }
+        if (clk->children) {
+                int tbmp = bmp;
+                int xbmp = -1;
+
+                if (clk->last_child) {
+                        xbmp ^= 1 << (level - 2 );
+        
+                        xbmp = tbmp & xbmp;
+                } else
+                        xbmp = bmp;
+                for (i = 0; i<clk->num_children; i++) {
+                        //if (clk->children[i]->last_child)
+                        tbmp = xbmp | (1<<level);
+                        print_clock_info(clk->children[i], level + 1, tbmp);
+                }
+        } 
 }
