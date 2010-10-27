@@ -15,6 +15,7 @@
  *******************************************************************************/
 
 #include "powerdebug.h"
+#include "clocks.h"
 #include <errno.h>
 #include <sys/stat.h>
 
@@ -27,7 +28,24 @@ static int  gadder = 0;
 
 void init_clock_details(void)
 {
-        strcpy(clk_dir_path, "/debug/clock");
+        char *path = debugfs_locate_mpoint();
+        struct stat buf;
+
+
+        if (path)
+                strcpy(clk_dir_path, path);
+        else {
+                fprintf(stderr, "powerdebug: Unable to locate debugfs mount"
+                        " point. Mount debugfs and try again..\n");
+                exit(1);
+        }
+        sprintf(clk_dir_path, "%s/clock", clk_dir_path);
+        //strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
+        if (stat(clk_dir_path, &buf)) {
+                fprintf(stderr, "powerdebug: Unable to find clock tree"
+                        " information at %s. Exiting..\n", clk_dir_path);
+                exit(1);
+        }
         strcpy(clk_name, "");
         strcpy(highlighted_path, "");
 }
@@ -349,4 +367,38 @@ void print_clock_info(struct clock_info *clk, int level, int bmp)
                         print_clock_info(clk->children[i], level + 1, tbmp);
                 }
         } 
+}
+
+char *debugfs_locate_mpoint(void)
+{
+	int ret;
+	FILE *filep;
+	char **path;
+	char fsname[64];
+	struct statfs sfs;
+
+	path = likely_mpoints;
+	while (*path) {
+                ret = statfs(*path, &sfs);
+                if (ret >= 0 && sfs.f_type == (long)DEBUGFS_MAGIC)
+			return *path;
+		path++;
+	}
+
+	filep = fopen("/proc/mounts", "r");
+	if (filep == NULL) {
+		fprintf(stderr, "powerdebug: Error opening /proc/mounts.");
+                exit(1);
+        }
+
+	while (fscanf(filep, "%*s %s %s %*s %*d %*d\n",
+		      debugfs_mntpoint, fsname) == 2)
+		if (!strcmp(fsname, "debugfs"))
+			break;
+	fclose(filep);
+
+	if (strcmp(fsname, "debugfs"))
+		return NULL;
+
+	return debugfs_mntpoint;
 }

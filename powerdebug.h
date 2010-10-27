@@ -27,12 +27,7 @@
 
 #define VALUE_MAX 16
 #define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
-
-WINDOW windows[TOTAL_FEATURE_WINS];
-extern char *win_names[TOTAL_FEATURE_WINS];
-
 enum {REGULATOR, CLOCK, SENSOR};
-extern int selectedwindow;
 
 struct regulator_info {
 	char name[NAME_MAX];
@@ -50,16 +45,8 @@ struct regulator_info {
 	int num_users;
 } *regulators_info;
 
-struct clock_info {
-        char name[NAME_MAX];
-        int flags;
-        int rate;
-        int usecount;
-        int num_children;
-        int last_child;
-        struct clock_info *parent;
-        struct clock_info **children;
-} *clocks_info;
+extern char *win_names[TOTAL_FEATURE_WINS];
+extern int selectedwindow;
 
 extern int numregulators;
 extern int dump;
@@ -83,17 +70,7 @@ extern void print_clock_header(int level);
 extern void print_sensor_header(void);
 extern void print_clock_info_line(int line, char *clockname, int flags,
                                   int rate, int usecount, int highlight);
-
-#define PT_COLOR_DEFAULT    1
-#define PT_COLOR_HEADER_BAR 2
-#define PT_COLOR_ERROR      3
-#define PT_COLOR_RED        4
-#define PT_COLOR_YELLOW     5
-#define PT_COLOR_GREEN      6
-#define PT_COLOR_BRIGHT     7
-#define PT_COLOR_BLUE       8
-
-
+extern char *debugfs_locate_mpoint(void);
 
 extern void init_curses(void);
 extern void fini_curses(void);

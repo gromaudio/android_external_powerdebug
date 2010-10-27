@@ -15,6 +15,7 @@
  *******************************************************************************/
 
 #include "powerdebug.h"
+#include "display.h"
 
 #define print(w, x, y, fmt, args...) do { mvwprintw(w, y, x, fmt, ##args); } while (0)
 #define NUM_FOOTER_ITEMS 5
