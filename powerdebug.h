@@ -57,8 +57,8 @@ extern void version(void);
 extern void print_regulator_info(int verbose);
 extern void dump_clock_info(int verbose);
 extern void read_clock_info(char *clkpath);
-extern struct clock_info *read_clock_info_recur(char *clkpath, int level, struct
-                                                clock_info *parent);
+extern struct clock_info *read_clock_info_recur(char *clkpath, int level,
+						struct clock_info *parent);
 extern void print_clock_info(struct clock_info *clk, int level, int bmp);
 extern void insert_children(struct clock_info **parent, struct clock_info *clk);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
@@ -69,7 +69,7 @@ extern void init_clock_details(void);
 extern void print_clock_header(int level);
 extern void print_sensor_header(void);
 extern void print_clock_info_line(int line, char *clockname, int flags,
-                                  int rate, int usecount, int highlight);
+				  int rate, int usecount, int highlight);
 extern char *debugfs_locate_mpoint(void);
 
 extern void init_curses(void);

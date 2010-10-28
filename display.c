@@ -62,26 +62,26 @@ void killall_windows(int all)
 
 void init_curses(void)
 {
-        initscr();
-        start_color();
-        keypad(stdscr, TRUE);
-        noecho();
-        cbreak();
-        curs_set(0);
-        nonl();
-        use_default_colors();
+	initscr();
+	start_color();
+	keypad(stdscr, TRUE);
+	noecho();
+	cbreak();
+	curs_set(0);
+	nonl();
+	use_default_colors();
 
-        init_pair(PT_COLOR_DEFAULT, COLOR_WHITE, COLOR_BLACK);
-        init_pair(PT_COLOR_ERROR, COLOR_BLACK, COLOR_RED);
-        //init_pair(PT_COLOR_HEADER_BAR, COLOR_BLACK, COLOR_WHITE);
-        init_pair(PT_COLOR_HEADER_BAR, COLOR_BLACK, COLOR_GREEN);
-        init_pair(PT_COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW);
-        init_pair(PT_COLOR_GREEN, COLOR_WHITE, COLOR_GREEN);
-        init_pair(PT_COLOR_BRIGHT, COLOR_WHITE, COLOR_BLACK);
-        init_pair(PT_COLOR_BLUE, COLOR_WHITE, COLOR_BLUE);
-        init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED);
+	init_pair(PT_COLOR_DEFAULT, COLOR_WHITE, COLOR_BLACK);
+	init_pair(PT_COLOR_ERROR, COLOR_BLACK, COLOR_RED);
+	//init_pair(PT_COLOR_HEADER_BAR, COLOR_BLACK, COLOR_WHITE);
+	init_pair(PT_COLOR_HEADER_BAR, COLOR_BLACK, COLOR_GREEN);
+	init_pair(PT_COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW);
+	init_pair(PT_COLOR_GREEN, COLOR_WHITE, COLOR_GREEN);
+	init_pair(PT_COLOR_BRIGHT, COLOR_WHITE, COLOR_BLACK);
+	init_pair(PT_COLOR_BLUE, COLOR_WHITE, COLOR_BLUE);
+	init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED);
 
-        atexit(fini_curses);
+	atexit(fini_curses);
 }
 
 
@@ -107,34 +107,34 @@ void create_windows(void)
 
 void create_selectedwindow(void)
 {
-        WINDOW *win;
+	WINDOW *win;
 
-        killall_windows(0);
+	killall_windows(0);
 
-        getmaxyx(stdscr, maxy, maxx);
+	getmaxyx(stdscr, maxy, maxx);
 
-        win = subwin(stdscr, maxy - 2, maxx, 1, 0);
+	win = subwin(stdscr, maxy - 2, maxx, 1, 0);
 
-        switch (selectedwindow) {
-                case REGULATOR: regulator_win = win;
-                                break;
+	switch (selectedwindow) {
+	case REGULATOR: regulator_win = win;
+			break;
 
-                case CLOCK:     clock_win = win;
-                                break;
+	case CLOCK:     clock_win = win;
+			break;
 
-                case SENSOR:    sensor_win = win;
-                                break;
-        }
+	case SENSOR:    sensor_win = win;
+			break;
+	}
 
-        selected_win = win;
-        
-        refresh();
+	selected_win = win;
+
+	refresh();
 }
 
 void show_header(void)
 {
 	int i, j = 0;
-        //char format[64];
+	//char format[64];
 
 	wattrset(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
 	wbkgd(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
@@ -144,19 +144,19 @@ void show_header(void)
 	      VERSION);
 	//print(header_win, 50, 0, "Refresh Rate %4.2f Secs", ticktime);
 
-        for (i = 0; i < TOTAL_FEATURE_WINS; i++) {
-                if (selectedwindow == i)
-		        wattron(header_win, A_REVERSE);
-                else 
-		        wattroff(header_win, A_REVERSE);
+	for (i = 0; i < TOTAL_FEATURE_WINS; i++) {
+		if (selectedwindow == i)
+			wattron(header_win, A_REVERSE);
+		else
+			wattroff(header_win, A_REVERSE);
 
-                //sprintf(format, " %%-%ds ", sizeof(win_names[i]) + 2);
-                //sprintf(format, " %%s ");
+		//sprintf(format, " %%-%ds ", sizeof(win_names[i]) + 2);
+		//sprintf(format, " %%s ");
 
-                print(header_win, i*(maxx / TOTAL_FEATURE_WINS) + 20, 0, 
-                        " %s ", win_names[i]);
-        }
-        wrefresh(header_win);
+		print(header_win, i*(maxx / TOTAL_FEATURE_WINS) + 20, 0,
+			" %s ", win_names[i]);
+	}
+	wrefresh(header_win);
 
 
 	werase(footer_win);
@@ -177,7 +177,7 @@ void show_regulator_info(int verbose)
 {
 	int i, count = 1;
 
-        (void)verbose;
+	(void)verbose;
 
 	werase(regulator_win);
 	wattron(regulator_win, A_BOLD);
@@ -198,10 +198,10 @@ void show_regulator_info(int verbose)
 			break;
 
 		if(regulators_info[i].num_users > 0)
-                        wattron(regulator_win, WA_BOLD);
-                else
-                        wattroff(regulator_win, WA_BOLD);
-                        
+			wattron(regulator_win, WA_BOLD);
+		else
+			wattroff(regulator_win, WA_BOLD);
+
 		print(regulator_win, col, count, "%s",
 		      regulators_info[i].name);
 		col += 12;
@@ -234,72 +234,72 @@ void show_regulator_info(int verbose)
 
 void print_clock_header(int level)
 {
-        char lev[NAME_MAX];
+	char lev[NAME_MAX];
 
-        sprintf(lev, "(Level %d)\n", level);
-        werase(clock_win);
-        wattron(clock_win, A_BOLD);
-        print(clock_win, 0, 0, "Name  %s", lev);
-        print(clock_win, 48, 0, "Flags");
-        print(clock_win, 60, 0, "Rate");
-        print(clock_win, 72, 0, "Usecount");
-        wattroff(clock_win, A_BOLD);
+	sprintf(lev, "(Level %d)\n", level);
+	werase(clock_win);
+	wattron(clock_win, A_BOLD);
+	print(clock_win, 0, 0, "Name  %s", lev);
+	print(clock_win, 48, 0, "Flags");
+	print(clock_win, 60, 0, "Rate");
+	print(clock_win, 72, 0, "Usecount");
+	wattroff(clock_win, A_BOLD);
 	wrefresh(clock_win);
 }
 
 void print_sensor_header(void)
 {
-        werase(sensor_win);
-        wattron(sensor_win, A_BOLD);
-        print(sensor_win, 0, 0, "Name");
-        print(sensor_win, 36, 0, "Temperature");
-        wattroff(sensor_win, A_BOLD);
-        wattron(sensor_win, A_BLINK);
-        print(sensor_win, 0, 1, "Currently Sensor information available"
-                                  " only in Dump mode!");
-        wattroff(sensor_win, A_BLINK);
+	werase(sensor_win);
+	wattron(sensor_win, A_BOLD);
+	print(sensor_win, 0, 0, "Name");
+	print(sensor_win, 36, 0, "Temperature");
+	wattroff(sensor_win, A_BOLD);
+	wattron(sensor_win, A_BLINK);
+	print(sensor_win, 0, 1, "Currently Sensor information available"
+				  " only in Dump mode!");
+	wattroff(sensor_win, A_BLINK);
 	wrefresh(sensor_win);
 }
 
 void print_clock_info_line(int line, char *clockname, int flags, int rate,
-                           int usecount, int highlight)
+			   int usecount, int highlight)
 {
-        if (usecount)
-                wattron(clock_win, WA_BOLD);
-        else {
-                wattroff(clock_win, WA_BOLD);
-                wattron(clock_win, WA_DIM);
-        }
+	if (usecount)
+		wattron(clock_win, WA_BOLD);
+	else {
+		wattroff(clock_win, WA_BOLD);
+		wattron(clock_win, WA_DIM);
+	}
 
-        if (highlight)
-                wattron(clock_win, WA_REVERSE);
-        else
-                wattroff(clock_win, WA_REVERSE);
+	if (highlight)
+		wattron(clock_win, WA_REVERSE);
+	else
+		wattroff(clock_win, WA_REVERSE);
 
-        print(clock_win, 0, line + 1, "%s", clockname); 
-        if (strcmp(clockname, "..")) {
-                double drate = 0.0;
-                char unit[8];
+	print(clock_win, 0, line + 1, "%s", clockname);
+	if (strcmp(clockname, "..")) {
+		double drate = 0.0;
+		char unit[8];
 
-                print(clock_win, 48, line + 1, "%d", flags); 
-                if (rate > 1000 && rate < 1000000) {
-                        drate = (double)rate/1000.0;
-                        strcpy(unit, "KHz");
-                } else if (rate > 1000000) {
-                        drate = (double)rate/1000000.0;
-                        strcpy(unit, "MHz");
-                } else {
-                        drate = (double)rate;
-                        strcpy(unit, " Hz");
-                }
-                print(clock_win, 60, line + 1, "%6.2f %s", drate, unit); 
-                print(clock_win, 72, line + 1, "%d", usecount);
-        }
+		print(clock_win, 48, line + 1, "%d", flags);
+		if (rate > 1000 && rate < 1000000) {
+			drate = (double)rate/1000.0;
+			strcpy(unit, "KHz");
+		} else if (rate > 1000000) {
+			drate = (double)rate/1000000.0;
+			strcpy(unit, "MHz");
+		} else {
+			drate = (double)rate;
+			strcpy(unit, " Hz");
+		}
+		print(clock_win, 60, line + 1, "%6.2f %s", drate, unit);
+		print(clock_win, 72, line + 1, "%d", usecount);
+	}
 
-        if (highlight)
-                wattroff(clock_win, WA_BOLD|WA_STANDOUT);
-        else
-                wattroff(clock_win, WA_DIM);
+	if (highlight)
+		wattroff(clock_win, WA_BOLD|WA_STANDOUT);
+	else
+		wattroff(clock_win, WA_DIM);
 
-        wrefresh(clock_win);
+	wrefresh(clock_win);
 }

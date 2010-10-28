@@ -19,20 +19,20 @@
 #include <linux/magic.h>
 
 struct clock_info {
-        char name[NAME_MAX];
-        int flags;
-        int rate;
-        int usecount;
-        int num_children;
-        int last_child;
-        struct clock_info *parent;
-        struct clock_info **children;
+	char name[NAME_MAX];
+	int flags;
+	int rate;
+	int usecount;
+	int num_children;
+	int last_child;
+	struct clock_info *parent;
+	struct clock_info **children;
 } *clocks_info;
 
 char debugfs_mntpoint[1024];
 
 char *likely_mpoints[] = {
-        "/sys/kernel/debug",
-        "/debug",
-        NULL
+	"/sys/kernel/debug",
+	"/debug",
+	NULL
 };
