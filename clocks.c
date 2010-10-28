@@ -40,7 +40,7 @@ void init_clock_details(void)
 		exit(1);
 	}
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
-	strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
+	//strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
 	if (stat(clk_dir_path, &buf)) {
 		fprintf(stderr, "powerdebug: Unable to find clock tree"
 			" information at %s. Exiting..\n", clk_dir_path);
@@ -70,8 +70,6 @@ int get_int_from(char *file)
 int read_and_print_clock_info(int verbose, int hrow, int selected)
 {
 	if (selected) {
-	//	if (!(strcmp(clk_dir_path, "/debug/clock") &&
-	 //	       strcmp(highlighted_path, ".."))) {
 		strcpy(clk_dir_path, highlighted_path);
 		hrow = 0;
 		clk_tree_level += gadder;
@@ -99,7 +97,6 @@ void set_hl_dir_path_to_parent(void)
 int read_and_print_clock_one_level(int verbose, int hrow, int selected)
 {
 	int line = 0, usecount = 0, flags = 0, rate = 0;
-//      int parent_dir_row = 1000;
 	DIR *dir, *subdir;
 	char filename[PATH_MAX], devpath[PATH_MAX], clockname[NAME_MAX];
 	struct dirent *item, *subitem;
@@ -160,27 +157,9 @@ int read_and_print_clock_one_level(int verbose, int hrow, int selected)
 			}
 		}
 
-//		sprintf(clockname, "%s:dp-%s:n-%s:hp-%s",
-//			clockname, clk_dir_path, clk_name, highlighted_path);
-
-/*		if (strcmp(clockname, "..")) {
-			int row = line + 1;
-
-			if (line > parent_dir_row)
-				row--;
-			print_clock_info_line(row, clockname, flags, rate, usecount,
-					      (hrow == line) ? 1 : 0);
-		} else {
-			print_clock_info_line(0, clockname, flags, rate, usecount,
-					      (hrow == line) ? 1 : 0);
-			parent_dir_row = line;
-		}
-*/
-
 		print_clock_info_line(line, clockname, flags, rate, usecount,
 				      (hrow == line) ? 1 : 0);
 		line++;
-
 		closedir(subdir);
 	}
 
@@ -348,8 +327,6 @@ void print_clock_info(struct clock_info *clk, int level, int bmp)
 		}
 		printf("%s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
 			clk->name, clk->flags, clk->usecount, drate, unit);
-		//printf("%s (flags:%d,usecount:%d,rate:%5.2f %s, bmp=0x%x)\n",
-		//	clk->name, clk->flags, clk->usecount, drate, unit, bmp);
 	}
 	if (clk->children) {
 		int tbmp = bmp;
@@ -362,7 +339,6 @@ void print_clock_info(struct clock_info *clk, int level, int bmp)
 		} else
 			xbmp = bmp;
 		for (i = 0; i < clk->num_children; i++) {
-			//if (clk->children[i]->last_child)
 			tbmp = xbmp | (1 << level);
 			print_clock_info(clk->children[i], level + 1, tbmp);
 		}

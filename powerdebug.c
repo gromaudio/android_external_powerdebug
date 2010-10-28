@@ -63,25 +63,7 @@ int read_and_print_sensor_info(int verbose)
 	char device[PATH_MAX];
 	struct dirent *item, *subitem;
 
-/* 
-	1. readdir /sys/class/hwmon
-	2. foreach subdir in above, do following
-	  a) check if its virtual or physical (check for device)
-	  b) for each *type* (in, temp, pwm, fan, curr, power, energy)
-		i> search for "_" (strrchr... check for last)
-		ii> check the *item* depending on type
-		    i.e for "in" type items=min, max, input, label
-		 	for "fan" type items=min,max,input,div,target,label
-			for "pwm" type items=enable, mode, freq
-			for "temp" type items=type, max, min,input,crit,offset,label,lowest,highest,
-			for "curr" type items=max,min,input
-			for "power" type items=average,average_interval,average_min/max, average_highest/lowest, input, input_highest/lowest, accuracy,alarm, cap, cap_min/max
-			for "energy" type items=input
-			for "intrusion" type items=alarm,beep
-*/
-
 	sprintf(filename, "%s", "/sys/class/hwmon");
-
 	dir = opendir(filename);
 	if (!dir)
 		return errno;
@@ -106,6 +88,7 @@ int read_and_print_sensor_info(int verbose)
 
 		printf("\nSensor Information for %s :\n", item->d_name);
 		fflush(stdin);
+
 		while ((subitem = readdir(subdir))) {
 			if (subitem->d_name[0] == '.') /* skip hidden files */
 				continue;
@@ -195,8 +178,8 @@ int read_regulator_info(void)
 		dir = opendir(filename);
 		if (!dir)
 			continue;
-
 		count++;
+
 		if (count > numregulators) {
 			ret = 1;
 			goto exit;
@@ -208,17 +191,14 @@ int read_regulator_info(void)
 				continue;
 
 			sprintf(filename + len, "/%s", ritem->d_name);
-
 			file = fopen(filename, "r");
 			if (!file)
 				continue;
-
 			memset(line, 0, 1024);
 			fptr = fgets(line, 1024, file);
 			fclose(file);
 			if (!fptr)
 				continue;
-
 			read_info_from_dirent(ritem, fptr, count - 1);
 		}
 exit:
@@ -238,7 +218,6 @@ int main(int argc, char **argv)
 	int firsttime[TOTAL_FEATURE_WINS];
 	int enter_hit = 0;
 	int regulators = 0, sensors = 0, clocks = 0, verbose = 0;
-	int r_share = 0, s_share = 0, c_share = 0; //%age share of the win size
 
 	for (i = 0; i < TOTAL_FEATURE_WINS; i++)
 		firsttime[i] = 1;
@@ -332,17 +311,6 @@ int main(int argc, char **argv)
 				init_curses();
 			create_windows();
 			show_header();
-			if (sensors)
-				s_share = 20;
-			if (regulators) {
-				if (!sensors && clocks)
-					r_share = 50;
-				else if (clocks)
-					r_share = 40;
-				else
-					r_share = 80;
-			}
-			c_share = 100 - (r_share + s_share);
 		}
 	
 		if (selectedwindow == REGULATOR) {
@@ -393,9 +361,8 @@ int main(int argc, char **argv)
 
 		if (key)  {
 			char keychar;
-
-			//int keystroke = fgetc(stdin);
 			int keystroke = getch();
+
 			if (keystroke == EOF)
 				exit(0);
 
@@ -433,6 +400,5 @@ int main(int argc, char **argv)
 				ticktime = 3;
 		}
 	}
-
 	exit(0);
 }

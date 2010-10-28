@@ -73,7 +73,6 @@ void init_curses(void)
 
 	init_pair(PT_COLOR_DEFAULT, COLOR_WHITE, COLOR_BLACK);
 	init_pair(PT_COLOR_ERROR, COLOR_BLACK, COLOR_RED);
-	//init_pair(PT_COLOR_HEADER_BAR, COLOR_BLACK, COLOR_WHITE);
 	init_pair(PT_COLOR_HEADER_BAR, COLOR_BLACK, COLOR_GREEN);
 	init_pair(PT_COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW);
 	init_pair(PT_COLOR_GREEN, COLOR_WHITE, COLOR_GREEN);
@@ -92,9 +91,6 @@ void create_windows(void)
 	killall_windows(1);
 
 	header_win = subwin(stdscr, 1, maxx, 0, 0);
-//	regulator_win = subwin(stdscr, maxy/2 - 2, maxx, 1, 0);
-//	clock_win = subwin(stdscr, maxy/2 - 2, maxx, maxy/2, 0);
-
 	footer_win = subwin(stdscr, 1, maxx, maxy-1, 0);
 
 	strcpy(footer_items[0], " Q (Quit) ");
@@ -134,15 +130,12 @@ void create_selectedwindow(void)
 void show_header(void)
 {
 	int i, j = 0;
-	//char format[64];
 
 	wattrset(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
 	wbkgd(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
 	werase(header_win);
 
-	print(header_win, 0, 0, "PowerDebug %s",
-	      VERSION);
-	//print(header_win, 50, 0, "Refresh Rate %4.2f Secs", ticktime);
+	print(header_win, 0, 0, "PowerDebug %s", VERSION);
 
 	for (i = 0; i < TOTAL_FEATURE_WINS; i++) {
 		if (selectedwindow == i)
@@ -150,15 +143,10 @@ void show_header(void)
 		else
 			wattroff(header_win, A_REVERSE);
 
-		//sprintf(format, " %%-%ds ", sizeof(win_names[i]) + 2);
-		//sprintf(format, " %%s ");
-
 		print(header_win, i*(maxx / TOTAL_FEATURE_WINS) + 20, 0,
 			" %s ", win_names[i]);
 	}
 	wrefresh(header_win);
-
-
 	werase(footer_win);
 
 	for (i=0; i<NUM_FOOTER_ITEMS; i++) {

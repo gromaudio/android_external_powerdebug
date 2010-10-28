@@ -78,16 +78,13 @@ void get_sensor_info(char *path, char *fname, char *sensor, int verbose)
 		return;
 
 	num = get_num(fname, sensor);
-//	strncpy(num, fname, item - fname -1);
-
 	filep = fopen(filename, "r");
 
 	if(!filep) 
 		goto exit;
-
 	ret = fscanf(filep, "%s", result);
-
 	fclose(filep);
+
 	if(ret != 1)
 		goto exit;
 
@@ -98,10 +95,7 @@ void get_sensor_info(char *path, char *fname, char *sensor, int verbose)
 				suffix[count]);
 		count++;
 	}
-
 exit:
 	free(num);
 	return;
 }
-
-
