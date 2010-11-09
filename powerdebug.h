@@ -62,14 +62,12 @@ extern struct clock_info *read_clock_info_recur(char *clkpath, int level,
 extern void print_clock_info(struct clock_info *clk, int level, int bmp);
 extern void insert_children(struct clock_info **parent, struct clock_info *clk);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
-extern int  read_and_print_clock_one_level(int verbose, int hrow, int selected);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern void print_string_val(char *name, char *val);
 extern void init_clock_details(void);
 extern void print_clock_header(int level);
 extern void print_sensor_header(void);
-extern void print_clock_info_line(int line, char *clockname, int flags,
-				  int rate, int usecount, int highlight);
+extern void print_one_clock(int line, char *str, int bold);
 extern char *debugfs_locate_mpoint(void);
 
 extern void init_curses(void);

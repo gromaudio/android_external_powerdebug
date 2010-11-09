@@ -228,8 +228,8 @@ void print_clock_header(int level)
 	werase(clock_win);
 	wattron(clock_win, A_BOLD);
 	print(clock_win, 0, 0, "Name  %s", lev);
-	print(clock_win, 48, 0, "Flags");
-	print(clock_win, 60, 0, "Rate");
+	print(clock_win, 54, 0, "Flags");
+	print(clock_win, 64, 0, "Rate");
 	print(clock_win, 72, 0, "Usecount");
 	wattroff(clock_win, A_BOLD);
 	wrefresh(clock_win);
@@ -249,45 +249,12 @@ void print_sensor_header(void)
 	wrefresh(sensor_win);
 }
 
-void print_clock_info_line(int line, char *clockname, int flags, int rate,
-			   int usecount, int highlight)
+void print_one_clock(int line, char *str, int bold)
 {
-	if (usecount)
+	if (bold)
 		wattron(clock_win, WA_BOLD);
-	else {
+	print(clock_win, 0, line + 1, "%s", str);
+	if (bold)
 		wattroff(clock_win, WA_BOLD);
-		wattron(clock_win, WA_DIM);
-	}
-
-	if (highlight)
-		wattron(clock_win, WA_REVERSE);
-	else
-		wattroff(clock_win, WA_REVERSE);
-
-	print(clock_win, 0, line + 1, "%s", clockname);
-	if (strcmp(clockname, "..")) {
-		double drate = 0.0;
-		char unit[8];
-
-		print(clock_win, 48, line + 1, "%d", flags);
-		if (rate > 1000 && rate < 1000000) {
-			drate = (double)rate/1000.0;
-			strcpy(unit, "KHz");
-		} else if (rate > 1000000) {
-			drate = (double)rate/1000000.0;
-			strcpy(unit, "MHz");
-		} else {
-			drate = (double)rate;
-			strcpy(unit, " Hz");
-		}
-		print(clock_win, 60, line + 1, "%6.2f %s", drate, unit);
-		print(clock_win, 72, line + 1, "%d", usecount);
-	}
-
-	if (highlight)
-		wattroff(clock_win, WA_BOLD|WA_STANDOUT);
-	else
-		wattroff(clock_win, WA_DIM);
-
 	wrefresh(clock_win);
 }
