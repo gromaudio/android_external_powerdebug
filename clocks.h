@@ -16,6 +16,8 @@
 
 #include <sys/stat.h>
 #include <sys/vfs.h>
+#include <errno.h>
+#include <sys/stat.h>
 #include <linux/magic.h>
 
 #define MAX_LINES 80
@@ -28,6 +30,7 @@ struct clock_info {
 	int num_children;
 	int last_child;
 	int expanded;
+	int level;
 	struct clock_info *parent;
 	struct clock_info **children;
 } *clocks_info;
@@ -35,6 +38,7 @@ struct clock_info {
 char debugfs_mntpoint[1024];
 char clock_lines[MAX_LINES][128];
 int  clock_line_no;
+int  old_clock_line_no;
 
 char *likely_mpoints[] = {
 	"/sys/kernel/debug",
@@ -42,6 +46,7 @@ char *likely_mpoints[] = {
 	NULL
 };
 
-void add_clock_details_recur(struct clock_info *clk);
+void add_clock_details_recur(struct clock_info *clk, int hrow, int selected);
 void destroy_clocks_info(void);
 void destroy_clocks_info_recur(struct clock_info *clock);
+void collapse_all_subclocks(struct clock_info *clock);

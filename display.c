@@ -220,17 +220,15 @@ void show_regulator_info(int verbose)
 }
 
 
-void print_clock_header(int level)
+void print_clock_header(void)
 {
-	char lev[NAME_MAX];
-
-	sprintf(lev, "(Level %d)\n", level);
 	werase(clock_win);
 	wattron(clock_win, A_BOLD);
-	print(clock_win, 0, 0, "Name  %s", lev);
+	print(clock_win, 0, 0, "Name");
 	print(clock_win, 54, 0, "Flags");
 	print(clock_win, 64, 0, "Rate");
 	print(clock_win, 72, 0, "Usecount");
+	print(clock_win, 84, 0, "ChildCount");
 	wattroff(clock_win, A_BOLD);
 	wrefresh(clock_win);
 }
@@ -249,12 +247,17 @@ void print_sensor_header(void)
 	wrefresh(sensor_win);
 }
 
-void print_one_clock(int line, char *str, int bold)
+void print_one_clock(int line, char *str, int bold, int highlight)
 {
 	if (bold)
 		wattron(clock_win, WA_BOLD);
+	if (highlight)
+		wattron(clock_win, WA_STANDOUT);
+
 	print(clock_win, 0, line + 1, "%s", str);
 	if (bold)
 		wattroff(clock_win, WA_BOLD);
+	if (highlight)
+		wattroff(clock_win, WA_STANDOUT);
 	wrefresh(clock_win);
 }

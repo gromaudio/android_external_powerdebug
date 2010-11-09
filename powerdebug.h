@@ -55,19 +55,20 @@ extern double ticktime;
 extern void usage(char **argv);
 extern void version(void);
 extern void print_regulator_info(int verbose);
-extern void dump_clock_info(int verbose);
+extern void read_and_dump_clock_info(int verbose);
 extern void read_clock_info(char *clkpath);
 extern struct clock_info *read_clock_info_recur(char *clkpath, int level,
 						struct clock_info *parent);
-extern void print_clock_info(struct clock_info *clk, int level, int bmp);
+extern void dump_clock_info(struct clock_info *clk, int level, int bmp);
 extern void insert_children(struct clock_info **parent, struct clock_info *clk);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
+extern void print_clock_info(int verbose, int hrow, int selected);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern void print_string_val(char *name, char *val);
 extern void init_clock_details(void);
-extern void print_clock_header(int level);
+extern void print_clock_header(void);
 extern void print_sensor_header(void);
-extern void print_one_clock(int line, char *str, int bold);
+extern void print_one_clock(int line, char *str, int bold, int highlight);
 extern char *debugfs_locate_mpoint(void);
 
 extern void init_curses(void);

@@ -312,6 +312,7 @@ int main(int argc, char **argv)
 			create_windows();
 			show_header();
 		}
+
 	
 		if (selectedwindow == REGULATOR) {
 			read_regulator_info();
@@ -338,7 +339,7 @@ int main(int argc, char **argv)
 				highlighted_row = hrow;
 				enter_hit = 0;
 			} else
-				dump_clock_info(verbose);
+				read_and_dump_clock_info(verbose);
 		}
 
 		if (selectedwindow == SENSOR) {
