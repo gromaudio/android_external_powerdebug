@@ -29,22 +29,36 @@ int init_clock_details(void)
 	if (path)
 		strcpy(clk_dir_path, path);
 	else {
-		create_selectedwindow();
-		sprintf(clock_lines[0], "Unable to locate debugfs mount point."
-			" Mount debugfs and try again..\n");
-		print_one_clock(0, clock_lines[0], 1, 0);
-		old_clock_line_no = 1;
-		return(1);
+		if (!dump) {
+			create_selectedwindow();
+			sprintf(clock_lines[0], "Unable to locate debugfs "
+						"mount point. Mount debugfs "
+						"and try again..\n");
+			print_one_clock(0, clock_lines[0], 1, 0);
+			old_clock_line_no = 1;
+			return(1);
+		} else {
+			fprintf(stderr, "powerdebug: Unable to locate debugfs "
+					"mount point. Mount debugfs and try "
+					"again..\n");
+			exit(1);
+		}
 	}
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
 	//strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
 	if (stat(clk_dir_path, &buf)) {
-		create_selectedwindow();
-		sprintf(clock_lines[0], "Unable to find clock tree"
-			" information at %s.\n", clk_dir_path);
-		print_one_clock(0, clock_lines[0], 1, 0);
-		old_clock_line_no = 1;
-		return(1);
+		if (!dump) {
+			create_selectedwindow();
+			sprintf(clock_lines[0], "Unable to find clock tree"
+				" information at %s.\n", clk_dir_path);
+			print_one_clock(0, clock_lines[0], 1, 0);
+			old_clock_line_no = 1;
+			return(1);
+		} else {
+			fprintf(stderr, "powerdebug: Unable to find clock tree"
+				" information at %s.\n", clk_dir_path);
+			exit(1);
+		}
 	}
 	strcpy(clk_name, "");
 	return(0);
