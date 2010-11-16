@@ -37,7 +37,7 @@ int init_clock_details(void)
 		return(1);
 	}
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
-	strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
+	//strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
 	if (stat(clk_dir_path, &buf)) {
 		create_selectedwindow();
 		sprintf(clock_lines[0], "Unable to find clock tree"
