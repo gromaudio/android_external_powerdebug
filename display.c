@@ -228,7 +228,7 @@ void print_clock_header(void)
 	print(clock_win, 54, 0, "Flags");
 	print(clock_win, 64, 0, "Rate");
 	print(clock_win, 72, 0, "Usecount");
-	print(clock_win, 84, 0, "ChildCount");
+	print(clock_win, 84, 0, "Children");
 	wattroff(clock_win, A_BOLD);
 	wrefresh(clock_win);
 }

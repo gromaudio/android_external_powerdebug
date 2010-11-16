@@ -65,7 +65,7 @@ extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
 extern void print_clock_info(int verbose, int hrow, int selected);
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern void print_string_val(char *name, char *val);
-extern void init_clock_details(void);
+extern int  init_clock_details(void);
 extern void print_clock_header(void);
 extern void print_sensor_header(void);
 extern void print_one_clock(int line, char *str, int bold, int highlight);

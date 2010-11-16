@@ -21,27 +21,33 @@ static char clk_dir_path[PATH_MAX];
 static char clk_name[NAME_MAX];
 static int  bold[MAX_LINES];
 
-void init_clock_details(void)
+int init_clock_details(void)
 {
 	char *path = debugfs_locate_mpoint();
 	struct stat buf;
 
-
 	if (path)
 		strcpy(clk_dir_path, path);
 	else {
-		fprintf(stderr, "powerdebug: Unable to locate debugfs mount"
-			" point. Mount debugfs and try again..\n");
-		exit(1);
+		create_selectedwindow();
+		sprintf(clock_lines[0], "Unable to locate debugfs mount point."
+			" Mount debugfs and try again..\n");
+		print_one_clock(0, clock_lines[0], 1, 0);
+		old_clock_line_no = 1;
+		return(1);
 	}
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
 	strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
 	if (stat(clk_dir_path, &buf)) {
-		fprintf(stderr, "powerdebug: Unable to find clock tree"
-			" information at %s. Exiting..\n", clk_dir_path);
-		exit(1);
+		create_selectedwindow();
+		sprintf(clock_lines[0], "Unable to find clock tree"
+			" information at %s.\n", clk_dir_path);
+		print_one_clock(0, clock_lines[0], 1, 0);
+		old_clock_line_no = 1;
+		return(1);
 	}
 	strcpy(clk_name, "");
+	return(0);
 }
 
 int get_int_from(char *file)

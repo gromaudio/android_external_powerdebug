@@ -22,7 +22,7 @@
 
 extern int maxy;
 
-#define MAX_LINES 80
+#define MAX_LINES 120
 
 struct clock_info {
 	char name[NAME_MAX];

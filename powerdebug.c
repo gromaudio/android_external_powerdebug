@@ -325,11 +325,13 @@ int main(int argc, char **argv)
 		}
 
 		if (selectedwindow == CLOCK) {
+			int ret = 0;
 			if (firsttime[CLOCK]) {
-				init_clock_details();
-				firsttime[CLOCK] = 0;
+				ret = init_clock_details();
+				if (!ret)
+					firsttime[CLOCK] = 0;
 			}
-			if (!dump) {
+			if (!ret && !dump) {
 				int hrow;
 
 				create_selectedwindow();
@@ -338,7 +340,8 @@ int main(int argc, char **argv)
 								enter_hit);
 				highlighted_row = hrow;
 				enter_hit = 0;
-			} else
+			}
+			if (!ret && dump)
 				read_and_dump_clock_info(verbose);
 		}
 
