@@ -20,6 +20,8 @@
 #include <sys/stat.h>
 #include <linux/magic.h>
 
+extern int maxy;
+
 #define MAX_LINES 80
 
 struct clock_info {

@@ -35,7 +35,7 @@ void init_clock_details(void)
 		exit(1);
 	}
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
-	//strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
+	strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
 	if (stat(clk_dir_path, &buf)) {
 		fprintf(stderr, "powerdebug: Unable to find clock tree"
 			" information at %s. Exiting..\n", clk_dir_path);
@@ -78,9 +78,17 @@ int read_and_print_clock_info(int verbose, int hrow, int selected)
 	return hrow;
 }
 
+int calc_delta_screen_size(int hrow)
+{
+	if (hrow > (maxy - 3))
+		return hrow - (maxy - 3);
+
+	return 0;
+}
+
 void print_clock_info(int verbose, int hrow, int selected)
 {
-	int i, count = 0;
+	int i, count = 0, delta;
 
 	(void)verbose;
 
@@ -90,9 +98,16 @@ void print_clock_info(int verbose, int hrow, int selected)
 		add_clock_details_recur(clocks_info->children[i],
 					hrow, selected);
 
-	while (clock_lines[count] && strcmp(clock_lines[count], "")) {
-		print_one_clock(count, clock_lines[count], bold[count],
-				(hrow == count));
+	delta = calc_delta_screen_size(hrow);
+
+	while (clock_lines[count + delta] &&
+	       strcmp(clock_lines[count + delta], "")) {
+		if (count < delta) {
+			count++;
+			continue;
+		}
+		print_one_clock(count - delta, clock_lines[count + delta],
+				bold[count + delta], (hrow == (count + delta)));
 		count++;
 	}
 
