@@ -1,3 +1,19 @@
+0.5 -- Nov, 16th 2010
+        * Fix coding style issues and some more cleanups
+        * Discover debugfs mount point and remove hard coded path
+        * Display clock tree in ncurses mode using in-memory data structures
+
+0.4 -- Oct, 28th 2010
+        * Read clocks into memory and add dump support
+        * Show all regulators and clocks by default
+        * Discover debugfs mount point at runtime
+        * Show units for clock rate
+        * Display regulator num_users info
+
+0.3 -- Oct, 1st 2010
+        * Add multi-level support for clock tree
+        * Add dump option support for clock tree
+
 0.2 -- Sep, 8th 2010
         * Add support for clock tree
 

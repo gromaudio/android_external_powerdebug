@@ -9,6 +9,6 @@ Homepage: <insert the upstream URL, if relevant>
 Package: powerdebug
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: This tool displays regulator and sensor information.
- PowerDebug refreshes this information every three seconds. You can
+Description: This tool displays regulator, sensor and clock information.
+ PowerDebug refreshes this information every few seconds. You can
  also use dump option to display the information just once.
