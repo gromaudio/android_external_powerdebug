@@ -100,8 +100,8 @@ int read_and_print_clock_info(int verbose, int hrow, int selected)
 
 int calc_delta_screen_size(int hrow)
 {
-	if (hrow > (maxy - 3))
-		return hrow - (maxy - 3);
+	if (hrow >= (maxy - 3))
+		return hrow - (maxy - 4);
 
 	return 0;
 }
