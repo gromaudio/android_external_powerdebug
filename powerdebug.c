@@ -216,8 +216,9 @@ int main(int argc, char **argv)
 {
 	int c, i;
 	int firsttime[TOTAL_FEATURE_WINS];
-	int enter_hit = 0;
-	int regulators = 0, sensors = 0, clocks = 0, verbose = 0;
+	int enter_hit = 0, verbose = 0;
+	int regulators = 0, sensors = 0, clocks = 0, findparent = 0;
+	char clkarg[64];
 
 	for (i = 0; i < TOTAL_FEATURE_WINS; i++)
 		firsttime[i] = 1;
@@ -227,6 +228,7 @@ int main(int argc, char **argv)
 	 * -r, --regulator      : regulator
 	 * -s, --sensor	 : sensors
 	 * -c, --clock	  : clocks
+	 * -p, --findparents    : clockname whose parents have to be found
 	 * -t, --time		: ticktime
 	 * -d, --dump		: dump
 	 * -v, --verbose	: verbose
@@ -241,6 +243,7 @@ int main(int argc, char **argv)
 			{"regulator", 0, 0, 'r'},
 			{"sensor", 0, 0, 's'},
 			{"clock", 0, 0, 'c'},
+			{"findparents", 0, 0, 'p'},
 			{"time", 0, 0, 't'},
 			{"dump", 0, 0, 'd'},
 			{"verbose", 0, 0, 'v'},
@@ -249,7 +252,7 @@ int main(int argc, char **argv)
 			{0, 0, 0, 0}
 		};
 
-		c = getopt_long(argc, argv, "rsct:dvVh", long_options, &optindex);
+		c = getopt_long(argc, argv, "rscp:t:dvVh", long_options, &optindex);
 		if (c == -1)
 			break;
 
@@ -265,6 +268,10 @@ int main(int argc, char **argv)
 		case 'c':
 			clocks = 1;
 			selectedwindow = CLOCK;
+			break;
+		case 'p':
+			findparent = 1;
+			strcpy(clkarg, optarg);
 			break;
 		case 't':
 			ticktime = strtod(optarg, NULL);
@@ -293,6 +300,12 @@ int main(int argc, char **argv)
 
 	if (!dump && (regulators || clocks || sensors)) {
 		fprintf(stderr, "Option supported only in dump mode (-d)\n");
+		usage(argv);
+	}
+
+	if (findparent && (!clocks || !dump)) {
+		fprintf(stderr, "-p option passed without -c and -d."
+			" Exiting...\n");
 		usage(argv);
 	}
 
@@ -341,8 +354,12 @@ int main(int argc, char **argv)
 				highlighted_row = hrow;
 				enter_hit = 0;
 			}
-			if (!ret && dump)
-				read_and_dump_clock_info(verbose);
+			if (!ret && dump) {
+				if (findparent)
+					read_and_dump_clock_info_one(clkarg);
+				else
+					read_and_dump_clock_info(verbose);
+			}
 		}
 
 		if (selectedwindow == SENSOR) {

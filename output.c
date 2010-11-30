@@ -22,6 +22,7 @@ void usage(char **argv)
 	printf("  -r, --regulator 	Show regulator information\n");
 	printf("  -s, --sensor		Show sensor information\n");
 	printf("  -c, --clock		Show clock information\n");
+	printf("  -p, --findparents	Show all parents for a particular clock\n");
 	printf("  -t, --time		Set ticktime in seconds (eg. 10.0)\n");
 	printf("  -d, --dump		Dump information once (no refresh)\n");
 	printf("  -v, --verbose		Verbose mode (use with -r and/or -s)\n");

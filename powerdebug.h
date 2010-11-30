@@ -56,6 +56,7 @@ extern void usage(char **argv);
 extern void version(void);
 extern void print_regulator_info(int verbose);
 extern void read_and_dump_clock_info(int verbose);
+extern void read_and_dump_clock_info_one(char *clk);
 extern void read_clock_info(char *clkpath);
 extern struct clock_info *read_clock_info_recur(char *clkpath, int level,
 						struct clock_info *parent);

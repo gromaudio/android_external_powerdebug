@@ -232,6 +232,14 @@ void destroy_clocks_info_recur(struct clock_info *clock)
 	}
 }
 
+void read_and_dump_clock_info_one(char *clk)
+{
+	printf("Clock Tree : (clock name = %s)\n", clk);
+	printf("**********\n");
+	read_clock_info(clk_dir_path);
+	dump_all_parents(clk);
+}
+
 void read_and_dump_clock_info(int verbose)
 {
 	(void)verbose;
@@ -355,6 +363,82 @@ void insert_children(struct clock_info **parent, struct clock_info *clk)
 	(*parent)->children[(*parent)->num_children] = clk;
 	(*parent)->children[(*parent)->num_children + 1] = NULL;
 	(*parent)->num_children++;
+}
+
+void dump_parent(struct clock_info *clk)
+{
+	char *unit = "Hz";
+	double drate;
+	static char spaces[256];
+		
+	if (clk && clk->parent)
+		dump_parent(clk->parent);
+
+ 	drate = (double)clk->rate;
+	if (drate > 1000 && drate < 1000000) {
+		unit = "KHz";
+		drate /= 1000;
+	}
+	if (drate > 1000000) {
+		unit = "MHz";
+		drate /= 1000000;
+	}
+	if (clk == clocks_info) {
+		strcpy(spaces, "");
+		printf("%s%s (flags:%d,usecount:%d,rate:%5.2f %s)\n", spaces,
+			clk->name, clk->flags, clk->usecount, drate, unit);
+	} else {
+		if (!(clk->parent == clocks_info))
+			strcat(spaces, "  ");
+		printf("%s`- %s (flags:%d,usecount:%d,rate:%5.2f %s)\n", spaces,
+			clk->name, clk->flags, clk->usecount, drate, unit);
+	}
+}
+
+void dump_all_parents(char *clkarg)
+{
+	struct clock_info *clk;
+	char spaces[1024];
+
+	strcpy(spaces, "");
+
+	clk = find_clock(clocks_info, clkarg);
+
+	if (!clk)
+		printf("Clock NOT found!\n");
+	else {
+//		while(clk && clk != clocks_info) {
+//			printf("%s\n", clk->name);
+//			strcat(spaces, "  ");
+//			clk = clk->parent;
+//			printf("%s <-- ", spaces);
+//		}
+//		printf("  /\n");
+		dump_parent(clk);
+	}
+}
+
+struct clock_info *find_clock(struct clock_info *clk, char *clkarg)
+{
+	int i;
+	struct clock_info *ret = clk;
+
+	if (!strcmp(clk->name, clkarg))
+		return ret;
+
+	if (clk->children) {
+		for (i = 0; i < clk->num_children; i++) {
+			if (!strcmp(clk->children[i]->name, clkarg))
+				return clk->children[i];
+		}
+		for (i = 0; i < clk->num_children; i++) {
+			ret = find_clock(clk->children[i], clkarg);
+			if (ret)
+				return ret;
+		}
+	}
+
+	return NULL;
 }
 
 
