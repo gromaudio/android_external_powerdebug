@@ -81,8 +81,27 @@ int get_int_from(char *file)
 	return atoi(result);
 }
 
+void find_parents_for_clock(char *clkname, int complete)
+{
+	char name[256];
+
+	name[0] = '\0';
+	if (!complete) {
+		char str[256];
+
+		strcat(name, clkname);
+		sprintf(str, "Enter Clock Name : %s\n", name);
+		print_one_clock(2, str, 1, 0);
+		return;
+	}
+	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
+	print_one_clock(0, name, 1, 1);
+	dump_all_parents(clkname);
+} 
+
 int read_and_print_clock_info(int verbose, int hrow, int selected)
 {
+	print_one_clock(0, "Reading Clock Tree ...", 1, 1);
 	if (!old_clock_line_no)
 		read_clock_info(clk_dir_path);
 
@@ -234,8 +253,7 @@ void destroy_clocks_info_recur(struct clock_info *clock)
 
 void read_and_dump_clock_info_one(char *clk)
 {
-	printf("Clock Tree : (clock name = %s)\n", clk);
-	printf("**********\n");
+	printf("\nParents for \"%s\" Clock :\n\n", clk);
 	read_clock_info(clk_dir_path);
 	dump_all_parents(clk);
 }
@@ -365,14 +383,19 @@ void insert_children(struct clock_info **parent, struct clock_info *clk)
 	(*parent)->num_children++;
 }
 
-void dump_parent(struct clock_info *clk)
+void dump_parent(struct clock_info *clk, int line)
 {
 	char *unit = "Hz";
 	double drate;
-	static char spaces[256];
+	static char spaces[64];
+	char str[256];
+	static int maxline;
+
+	if (maxline < line)
+		maxline = line;
 		
 	if (clk && clk->parent)
-		dump_parent(clk->parent);
+		dump_parent(clk->parent, ++line);
 
  	drate = (double)clk->rate;
 	if (drate > 1000 && drate < 1000000) {
@@ -384,15 +407,23 @@ void dump_parent(struct clock_info *clk)
 		drate /= 1000000;
 	}
 	if (clk == clocks_info) {
+		line++;
 		strcpy(spaces, "");
-		printf("%s%s (flags:%d,usecount:%d,rate:%5.2f %s)\n", spaces,
-			clk->name, clk->flags, clk->usecount, drate, unit);
+		sprintf(str, "%s%s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+			spaces, clk->name, clk->flags, clk->usecount, drate,
+			unit);
 	} else {
 		if (!(clk->parent == clocks_info))
 			strcat(spaces, "  ");
-		printf("%s`- %s (flags:%d,usecount:%d,rate:%5.2f %s)\n", spaces,
-			clk->name, clk->flags, clk->usecount, drate, unit);
+		sprintf(str, "%s`- %s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+			spaces, clk->name, clk->flags, clk->usecount, drate,
+			unit);
 	}
+	if (dump)
+		//printf("line=%d:m%d:l%d %s", maxline - line + 2, maxline, line, str);
+		printf("%s", str);
+	else
+		print_one_clock(maxline - line + 2, str, 1, 0);
 }
 
 void dump_all_parents(char *clkarg)
@@ -414,7 +445,7 @@ void dump_all_parents(char *clkarg)
 //			printf("%s <-- ", spaces);
 //		}
 //		printf("  /\n");
-		dump_parent(clk);
+		dump_parent(clk, 1);
 	}
 }
 

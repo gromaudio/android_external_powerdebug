@@ -216,9 +216,9 @@ int main(int argc, char **argv)
 {
 	int c, i;
 	int firsttime[TOTAL_FEATURE_WINS];
-	int enter_hit = 0, verbose = 0;
+	int enter_hit = 0, verbose = 0, findparent_ncurses = 0;
 	int regulators = 0, sensors = 0, clocks = 0, findparent = 0;
-	char clkarg[64];
+	char clkarg[64], clkname_str[64];
 
 	for (i = 0; i < TOTAL_FEATURE_WINS; i++)
 		firsttime[i] = 1;
@@ -343,16 +343,22 @@ int main(int argc, char **argv)
 				ret = init_clock_details();
 				if (!ret)
 					firsttime[CLOCK] = 0;
+				strcpy(clkname_str, "");
 			}
 			if (!ret && !dump) {
 				int hrow;
 
 				create_selectedwindow();
-				hrow = read_and_print_clock_info(verbose,
+				if (!findparent_ncurses) {
+					hrow = read_and_print_clock_info(
+								verbose,
 								highlighted_row,
 								enter_hit);
-				highlighted_row = hrow;
-				enter_hit = 0;
+					highlighted_row = hrow;
+					enter_hit = 0;
+				} else
+					find_parents_for_clock(clkname_str,
+								enter_hit);
 			}
 			if (!ret && dump) {
 				if (findparent)
@@ -383,6 +389,7 @@ int main(int argc, char **argv)
 		if (key)  {
 			char keychar;
 			int keystroke = getch();
+			int oldselectedwin = selectedwindow;
 
 			if (keystroke == EOF)
 				exit(0);
@@ -404,18 +411,49 @@ int main(int argc, char **argv)
 					highlighted_row++;
 				if (keystroke == KEY_UP && highlighted_row > 0)
 					highlighted_row--;
+				if (keystroke == 47)
+					findparent_ncurses = 1;
+
+				if ((keystroke == 27 || oldselectedwin !=
+					selectedwindow) && findparent_ncurses) {
+					findparent_ncurses = 0;
+					clkname_str[0] = '\0';
+				}
+
+				if (findparent_ncurses && keystroke != 13) {
+					int len = strlen(clkname_str);
+					char str[2];
+
+					if (keystroke == 263) {
+						if (len > 0)
+							len--;
+
+						clkname_str[len] = '\0';
+					} else {
+						if (strlen(clkname_str) ||
+							keystroke != '/') {
+						str[0] = keystroke;
+						str[1] = '\0';
+						if (len < 63)
+							strcat(clkname_str,
+								str);
+						}
+					}
+				}
 			}
 
 			keychar = toupper(keystroke);
-
-			//killall_windows(1); fini_curses();
-			//printf("key entered %d:%c\n", keystroke, keychar);
-			//exit(1);
+//#define DEBUG
+#ifdef DEBUG
+			killall_windows(1); fini_curses();
+			printf("key entered %d:%c\n", keystroke, keychar);
+			exit(1);
+#endif
 
 			if (keystroke == 13)
 				enter_hit = 1;
 
-			if (keychar == 'Q')
+			if (keychar == 'Q' && !findparent_ncurses)
 				exit(0);
 			if (keychar == 'R')
 				ticktime = 3;
