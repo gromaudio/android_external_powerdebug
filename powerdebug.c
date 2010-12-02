@@ -54,7 +54,7 @@ int main(int argc, char **argv)
 {
 	int c, i;
 	int firsttime[TOTAL_FEATURE_WINS];
-	int enter_hit = 0, verbose = 0, findparent_ncurses = 0;
+	int enter_hit = 0, verbose = 0, findparent_ncurses = 0, refreshwin = 0;
 	int regulators = 0, sensors = 0, clocks = 0, findparent = 0;
 	char clkarg[64], clkname_str[64];
 
@@ -64,8 +64,8 @@ int main(int argc, char **argv)
 	/*
 	 * Options:
 	 * -r, --regulator      : regulator
-	 * -s, --sensor	 : sensors
-	 * -c, --clock	  : clocks
+	 * -s, --sensor	 	: sensors
+	 * -c, --clock	  	: clocks
 	 * -p, --findparents    : clockname whose parents have to be found
 	 * -t, --time		: ticktime
 	 * -d, --dump		: dump
@@ -135,9 +135,16 @@ int main(int argc, char **argv)
 			break;
 		}
 	}
-
+/*
 	if (!dump && (regulators || clocks || sensors)) {
 		fprintf(stderr, "Option supported only in dump mode (-d)\n");
+		usage(argv);
+	}
+*/
+
+	if (dump && !(regulators || clocks || sensors)) {
+		fprintf(stderr, "Dump mode (-d) supported only with -c, -r "
+				"or -s ..\n");
 		usage(argv);
 	}
 
@@ -147,7 +154,7 @@ int main(int argc, char **argv)
 		usage(argv);
 	}
 
-	if (!dump)
+	if (!dump && selectedwindow == -1)
 		selectedwindow = REGULATOR;
 
 	init_regulator_ds();
@@ -188,10 +195,16 @@ int main(int argc, char **argv)
 
 				create_selectedwindow();
 				if (!findparent_ncurses) {
+					int command = 0;
+
+					if (enter_hit)
+						command = CLOCK_SELECTED;
+					if (refreshwin)
+						command = REFRESH_WINDOW;
 					hrow = read_and_print_clock_info(
 								verbose,
 								highlighted_row,
-								enter_hit);
+								command);
 					highlighted_row = hrow;
 					enter_hit = 0;
 				} else
@@ -293,8 +306,11 @@ int main(int argc, char **argv)
 
 			if (keychar == 'Q' && !findparent_ncurses)
 				exit(0);
-			if (keychar == 'R')
+			if (keychar == 'R') {
+				refreshwin = 1;
 				ticktime = 3;
+			} else
+				refreshwin = 0;
 		}
 	}
 	exit(0);

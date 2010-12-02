@@ -102,16 +102,23 @@ void find_parents_for_clock(char *clkname, int complete)
 int read_and_print_clock_info(int verbose, int hrow, int selected)
 {
 	print_one_clock(0, "Reading Clock Tree ...", 1, 1);
-	if (!old_clock_line_no)
+
+	if (!old_clock_line_no || selected == REFRESH_WINDOW) {
+		destroy_clocks_info();
 		read_clock_info(clk_dir_path);
+	}
 
 	if (!clocks_info->num_children) {
 		fprintf(stderr, "powerdebug: No clocks found. Exiting..\n");
 		exit(1);
 	}
 
+	if (selected == CLOCK_SELECTED)
+		selected = 1;
+	else
+		selected = 0;
+
 	print_clock_info(verbose, hrow, selected);
-	//destroy_clocks_info();
 	hrow = (hrow < old_clock_line_no) ? hrow : old_clock_line_no - 1;
 
 	return hrow;
@@ -221,6 +228,9 @@ void destroy_clocks_info(void)
 {
 	int i;
 
+	if (!clocks_info)
+		return;
+
 	if (clocks_info->num_children) {
 		for (i = (clocks_info->num_children - 1); i >= 0 ; i--) {
 			destroy_clocks_info_recur(clocks_info->children[i]);
@@ -230,6 +240,7 @@ void destroy_clocks_info(void)
 			}
 		}
 	}
+	clocks_info->num_children = 0;
 	free(clocks_info);
 	clocks_info = NULL;
 }
