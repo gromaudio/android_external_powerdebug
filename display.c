@@ -96,6 +96,14 @@ void create_windows(void)
 	strcpy(footer_items[0], " Q (Quit) ");
 	strcpy(footer_items[1], " R (Refresh) ");
 
+	if (selectedwindow == CLOCK)
+		strcpy(footer_items[2], " Other Keys: 'Left', 'Right', 'Up', 'Down', 'enter', "
+					" '/', 'Esc' ");
+	else
+		strcpy(footer_items[2], " Other Keys: 'Left', 'Right' ");
+
+	strcpy(footer_items[3], "");
+
 	werase(stdscr);
 	refresh();
 
