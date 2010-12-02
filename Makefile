@@ -5,7 +5,7 @@ WARNFLAGS=-Wall -Wshadow -W -Wformat -Wimplicit-function-declaration -Wimplicit-
 CFLAGS?=-O1 -g ${WARNFLAGS}
 CC?=gcc
 
-OBJS = powerdebug.o output.o sensor.o clocks.o display.o
+OBJS = powerdebug.o sensor.o clocks.o regulator.o display.o
 
 default: powerdebug
 

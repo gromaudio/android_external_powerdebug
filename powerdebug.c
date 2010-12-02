@@ -28,189 +28,27 @@ char *win_names[TOTAL_FEATURE_WINS] = {
 	"Clocks",
 	"Sensors" };
 
-int init_regulator_ds(void)
+void usage(char **argv)
 {
-	DIR *regdir;
-	struct dirent *item;
+	printf("Usage: %s [OPTIONS]\n", argv[0]);
+	printf("  -r, --regulator 	Show regulator information\n");
+	printf("  -s, --sensor		Show sensor information\n");
+	printf("  -c, --clock		Show clock information\n");
+	printf("  -p, --findparents	Show all parents for a particular clock\n");
+	printf("  -t, --time		Set ticktime in seconds (eg. 10.0)\n");
+	printf("  -d, --dump		Dump information once (no refresh)\n");
+	printf("  -v, --verbose		Verbose mode (use with -r and/or -s)\n");
+	printf("  -V, --version		Show Version\n");
+	printf("  -h, --help 		Help\n");
 
-	regdir = opendir("/sys/class/regulator");
-	if (!regdir)
-		return(1);
-	while((item = readdir(regdir))) {
-		if (strncmp(item->d_name, "regulator", 9))
-			continue;
-
-		numregulators++;
-	}
-	closedir(regdir);
-
-	regulators_info = (struct regulator_info *)malloc(numregulators*
-						sizeof(struct regulator_info));
-	if (!regulators_info) {
-		fprintf(stderr, "init_regulator_ds: Not enough memory to "
-		"read information for %d regulators!\n", numregulators);
-		return(1);
-	}
-
-	return(0);	
+	exit(0);
 }
 
-int read_and_print_sensor_info(int verbose)
+void version()
 {
-	DIR *dir, *subdir;
-	int len, found = 0;
-	char filename[PATH_MAX], devpath[PATH_MAX];
-	char device[PATH_MAX];
-	struct dirent *item, *subitem;
-
-	sprintf(filename, "%s", "/sys/class/hwmon");
-	dir = opendir(filename);
-	if (!dir)
-		return errno;
-
-	while ((item = readdir(dir))) {
-		if (item->d_name[0] == '.')  /* skip the hidden files */
-			continue;
-
-		found = 1;
-
-		sprintf(filename, "/sys/class/hwmon/%s", item->d_name);
-		sprintf(devpath, "%s/device", filename);
-
-		len = readlink(devpath, device, PATH_MAX - 1);
-
-		if (len < 0)
-			strcpy(devpath, filename);
-		else
-			device[len] = '\0';
-
-		subdir = opendir(devpath);
-
-		printf("\nSensor Information for %s :\n", item->d_name);
-		fflush(stdin);
-
-		while ((subitem = readdir(subdir))) {
-			if (subitem->d_name[0] == '.') /* skip hidden files */
-				continue;
-
-			if(!strncmp(subitem->d_name, "in", 2))
-				get_sensor_info(devpath, subitem->d_name, "in",
-						verbose);
-			else if (!strncmp(subitem->d_name, "temp", 4))
-				get_sensor_info(devpath, subitem->d_name,
-						"temp", verbose);
-			else if (!strncmp(subitem->d_name, "fan", 4))
-				get_sensor_info(devpath, subitem->d_name,
-						"fan", verbose);
-			else if (!strncmp(subitem->d_name, "pwm", 4))
-				get_sensor_info(devpath, subitem->d_name,
-						"pwm", verbose);
-
-		}
-
-		closedir(subdir);
-	}
-	closedir(dir);
-
-	if(!found && verbose) {
-		printf("Could not find sensor information!");
-		printf(" Looks like /sys/class/hwmon is empty.\n");
-	}
-
-	return 0;
+	printf("powerdebug version %s\n", VERSION);
+	exit(0);
 }
-
-void read_info_from_dirent(struct dirent *ritem, char *str, int idx)
-{
-	if (!strcmp(ritem->d_name, "name"))
-		strcpy(regulators_info[idx].name, str);
-	if (!strcmp(ritem->d_name, "state"))
-		strcpy(regulators_info[idx].state, str);
-	if (!strcmp(ritem->d_name, "status"))
-		strcpy(regulators_info[idx].status, str);
-
-	if (!strcmp(ritem->d_name, "type"))
-		strcpy(regulators_info[idx].type, str);
-	if (!strcmp(ritem->d_name, "opmode"))
-		strcpy(regulators_info[idx].opmode, str);
-
-	if (!strcmp(ritem->d_name, "microvolts"))
-		regulators_info[idx].microvolts = atoi(str);
-	if (!strcmp(ritem->d_name, "min_microvolts"))
-		regulators_info[idx].min_microvolts = atoi(str);
-	if (!strcmp(ritem->d_name, "max_microvolts"))
-		regulators_info[idx].max_microvolts = atoi(str);
-
-	if (!strcmp(ritem->d_name, "microamps"))
-		regulators_info[idx].microamps = atoi(str);
-	if (!strcmp(ritem->d_name, "min_microamps"))
-		regulators_info[idx].min_microamps = atoi(str);
-	if (!strcmp(ritem->d_name, "max_microamps"))
-		regulators_info[idx].max_microamps = atoi(str);
-	if (!strcmp(ritem->d_name, "requested_microamps"))
-		regulators_info[idx].requested_microamps = atoi(str);
-
-	if (!strcmp(ritem->d_name, "num_users"))
-		regulators_info[idx].num_users = atoi(str);
-}
-
-int read_regulator_info(void)
-{
-	FILE *file = NULL;
-	DIR *regdir, *dir;
-	int len, count = 0, ret = 0;
-	char line[1024], filename[1024], *fptr;
-	struct dirent *item, *ritem;
-
-	regdir = opendir("/sys/class/regulator");
-	if (!regdir)
-		return(1);
-	while((item = readdir(regdir))) {
-		if (strlen(item->d_name) < 3)
-			continue;
-
-		if (strncmp(item->d_name, "regulator", 9))
-			continue;
-
-		len = sprintf(filename, "/sys/class/regulator/%s",
-			      item->d_name);
-
-		dir = opendir(filename);
-		if (!dir)
-			continue;
-		count++;
-
-		if (count > numregulators) {
-			ret = 1;
-			goto exit;
-		}
-
-		strcpy(regulators_info[count-1].name, item->d_name);
-		while((ritem = readdir(dir))) {
-			if (strlen(ritem->d_name) < 3)
-				continue;
-
-			sprintf(filename + len, "/%s", ritem->d_name);
-			file = fopen(filename, "r");
-			if (!file)
-				continue;
-			memset(line, 0, 1024);
-			fptr = fgets(line, 1024, file);
-			fclose(file);
-			if (!fptr)
-				continue;
-			read_info_from_dirent(ritem, fptr, count - 1);
-		}
-exit:
-		closedir(dir);
-		if (ret)
-			break;
-	}	
-	closedir(regdir);
-
-	return ret;
-}
-
 
 int main(int argc, char **argv)
 {
@@ -461,3 +299,4 @@ int main(int argc, char **argv)
 	}
 	exit(0);
 }
+

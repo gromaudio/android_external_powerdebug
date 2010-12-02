@@ -25,25 +25,10 @@
 
 #define VERSION "1.0"
 
-#define VALUE_MAX 16
 #define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
 enum {REGULATOR, CLOCK, SENSOR};
 
-struct regulator_info {
-	char name[NAME_MAX];
-	char state[VALUE_MAX];
-	char status[VALUE_MAX];
-	char type[VALUE_MAX];
-	char opmode[VALUE_MAX];
-	int microvolts;
-	int min_microvolts;
-	int max_microvolts;
-	int microamps;
-	int min_microamps;
-	int max_microamps;
-	int requested_microamps;
-	int num_users;
-} *regulators_info;
+extern struct regulator_info *regulators_info;
 
 extern char *win_names[TOTAL_FEATURE_WINS];
 extern int selectedwindow;
@@ -54,7 +39,12 @@ extern double ticktime;
 
 extern void usage(char **argv);
 extern void version(void);
+
 extern void print_regulator_info(int verbose);
+extern void init_regulator_ds(void);
+extern void read_regulator_info(void);
+extern void print_regulator_info(int verbose);
+
 extern void read_and_dump_clock_info(int verbose);
 extern void read_and_dump_clock_info_one(char *clk);
 extern void read_clock_info(char *clkpath);
@@ -65,13 +55,15 @@ extern void insert_children(struct clock_info **parent, struct clock_info *clk);
 extern void find_parents_for_clock(char *clkname, int complete);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
 extern void print_clock_info(int verbose, int hrow, int selected);
-extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern void print_string_val(char *name, char *val);
 extern int  init_clock_details(void);
 extern void print_clock_header(void);
-extern void print_sensor_header(void);
 extern void print_one_clock(int line, char *str, int bold, int highlight);
 extern char *debugfs_locate_mpoint(void);
+
+extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
+extern int  read_and_print_sensor_info(int verbose);
+extern void print_sensor_header(void);
 
 extern void init_curses(void);
 extern void fini_curses(void);

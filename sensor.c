@@ -99,3 +99,68 @@ exit:
 	free(num);
 	return;
 }
+
+int read_and_print_sensor_info(int verbose)
+{
+	DIR *dir, *subdir;
+	int len, found = 0;
+	char filename[PATH_MAX], devpath[PATH_MAX];
+	char device[PATH_MAX];
+	struct dirent *item, *subitem;
+
+	sprintf(filename, "%s", "/sys/class/hwmon");
+	dir = opendir(filename);
+	if (!dir)
+		return errno;
+
+	while ((item = readdir(dir))) {
+		if (item->d_name[0] == '.')  /* skip the hidden files */
+			continue;
+
+		found = 1;
+
+		sprintf(filename, "/sys/class/hwmon/%s", item->d_name);
+		sprintf(devpath, "%s/device", filename);
+
+		len = readlink(devpath, device, PATH_MAX - 1);
+
+		if (len < 0)
+			strcpy(devpath, filename);
+		else
+			device[len] = '\0';
+
+		subdir = opendir(devpath);
+
+		printf("\nSensor Information for %s :\n", item->d_name);
+		fflush(stdin);
+
+		while ((subitem = readdir(subdir))) {
+			if (subitem->d_name[0] == '.') /* skip hidden files */
+				continue;
+
+			if(!strncmp(subitem->d_name, "in", 2))
+				get_sensor_info(devpath, subitem->d_name, "in",
+						verbose);
+			else if (!strncmp(subitem->d_name, "temp", 4))
+				get_sensor_info(devpath, subitem->d_name,
+						"temp", verbose);
+			else if (!strncmp(subitem->d_name, "fan", 4))
+				get_sensor_info(devpath, subitem->d_name,
+						"fan", verbose);
+			else if (!strncmp(subitem->d_name, "pwm", 4))
+				get_sensor_info(devpath, subitem->d_name,
+						"pwm", verbose);
+
+		}
+
+		closedir(subdir);
+	}
+	closedir(dir);
+
+	if(!found && verbose) {
+		printf("Could not find sensor information!");
+		printf(" Looks like /sys/class/hwmon is empty.\n");
+	}
+
+	return 0;
+}
