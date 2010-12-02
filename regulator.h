@@ -41,15 +41,3 @@ struct regulator_info {
 
 extern int numregulators;
 extern int dump;
-
-/*extern void usage(char **argv);
-extern void print_regulator_info(int verbose);
-
-extern void init_curses(void);
-extern void fini_curses(void);
-extern void killall_windows(int all);
-extern void show_header(void);
-extern void create_windows(void);
-extern void create_selectedwindow(void);
-extern void show_regulator_info(int verbose);
-*/

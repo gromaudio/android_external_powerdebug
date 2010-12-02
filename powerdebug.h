@@ -38,7 +38,6 @@ extern int numregulators;
 extern int dump;
 extern double ticktime;
 
-extern void usage(char **argv);
 extern void version(void);
 
 extern void print_regulator_info(int verbose);

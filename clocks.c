@@ -267,15 +267,17 @@ void read_and_dump_clock_info_one(char *clk)
 	printf("\nParents for \"%s\" Clock :\n\n", clk);
 	read_clock_info(clk_dir_path);
 	dump_all_parents(clk);
+	printf("\n\n");
 }
 
 void read_and_dump_clock_info(int verbose)
 {
 	(void)verbose;
-	printf("Clock Tree :\n");
+	printf("\nClock Tree :\n");
 	printf("**********\n");
 	read_clock_info(clk_dir_path);
 	dump_clock_info(clocks_info, 1, 1);
+	printf("\n\n");
 }
 
 void read_clock_info(char *clkpath)

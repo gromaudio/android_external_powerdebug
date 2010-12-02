@@ -54,6 +54,9 @@ void print_regulator_info(int verbose)
 {
 	int i;
 
+	printf("\nRegulator Information:\n");
+	printf("*********************\n\n");
+
 	for (i=0; i<numregulators; i++) {
 		printf("Regulator %d:\n", i+1);
 			print_string_val("name", regulators_info[i].name);
@@ -103,6 +106,8 @@ void print_regulator_info(int verbose)
 		printf("Could not find regulator information!");
 		printf(" Looks like /sys/class/regulator is empty.\n\n");
 	}
+
+	printf("\n\n");
 }
 
 void read_info_from_dirent(struct dirent *ritem, char *str, int idx)

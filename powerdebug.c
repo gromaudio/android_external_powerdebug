@@ -28,16 +28,22 @@ char *win_names[TOTAL_FEATURE_WINS] = {
 	"Clocks",
 	"Sensors" };
 
-void usage(char **argv)
+void usage(void)
 {
-	printf("Usage: %s [OPTIONS]\n", argv[0]);
+	printf("Usage: powerdebug [OPTIONS]\n");
+	printf("\n");
+	printf("powerdebug -d [ -r ] [ -s ] [ -c [ -p <clock-name> ] ] "
+		"[ -v ]\n");
+	printf("powerdebug [ -r | -s | -c ]\n");
 	printf("  -r, --regulator 	Show regulator information\n");
 	printf("  -s, --sensor		Show sensor information\n");
 	printf("  -c, --clock		Show clock information\n");
-	printf("  -p, --findparents	Show all parents for a particular clock\n");
+	printf("  -p, --findparents	Show all parents for a particular"
+					" clock\n");
 	printf("  -t, --time		Set ticktime in seconds (eg. 10.0)\n");
 	printf("  -d, --dump		Dump information once (no refresh)\n");
-	printf("  -v, --verbose		Verbose mode (use with -r and/or -s)\n");
+	printf("  -v, --verbose		Verbose mode (use with -r and/or"
+					" -s)\n");
 	printf("  -V, --version		Show Version\n");
 	printf("  -h, --help 		Help\n");
 
@@ -124,34 +130,30 @@ int main(int argc, char **argv)
 			version();
 			break;
 		case 'h':
-			usage(argv);
+			usage();
 			break;
 		case '?':
 			fprintf (stderr, "%s: Unknown option %c'.\n",
 				 argv[0], optopt);
 			exit(1);
 		default:
-			usage(argv);
+			usage();
 			break;
 		}
 	}
-/*
-	if (!dump && (regulators || clocks || sensors)) {
-		fprintf(stderr, "Option supported only in dump mode (-d)\n");
-		usage(argv);
-	}
-*/
 
 	if (dump && !(regulators || clocks || sensors)) {
-		fprintf(stderr, "Dump mode (-d) supported only with -c, -r "
-				"or -s ..\n");
-		usage(argv);
+		//fprintf(stderr, "Dump mode (-d) supported only with -c, -r "
+		//		"or -s ..\n");
+		//usage();
+		// By Default lets show everything we have!
+		regulators = clocks = sensors = 1;
 	}
 
 	if (findparent && (!clocks || !dump)) {
 		fprintf(stderr, "-p option passed without -c and -d."
 			" Exiting...\n");
-		usage(argv);
+		usage();
 	}
 
 	if (!dump && selectedwindow == -1)
@@ -172,7 +174,7 @@ int main(int argc, char **argv)
 		}
 
 	
-		if (selectedwindow == REGULATOR) {
+		if (regulators || selectedwindow == REGULATOR) {
 			read_regulator_info();
 			if (!dump) {
 				create_selectedwindow();
@@ -182,7 +184,7 @@ int main(int argc, char **argv)
 				print_regulator_info(verbose);
 		}
 
-		if (selectedwindow == CLOCK) {
+		if (clocks || selectedwindow == CLOCK) {
 			int ret = 0;
 			if (firsttime[CLOCK]) {
 				ret = init_clock_details();
@@ -219,7 +221,7 @@ int main(int argc, char **argv)
 			}
 		}
 
-		if (selectedwindow == SENSOR) {
+		if (sensors || selectedwindow == SENSOR) {
 			if (!dump) {
 				create_selectedwindow();
 				print_sensor_header();

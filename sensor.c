@@ -108,6 +108,9 @@ int read_and_print_sensor_info(int verbose)
 	char device[PATH_MAX];
 	struct dirent *item, *subitem;
 
+	printf("\nSensor Information:\n");
+	printf("******************\n");
+
 	sprintf(filename, "%s", "/sys/class/hwmon");
 	dir = opendir(filename);
 	if (!dir)
@@ -161,6 +164,8 @@ int read_and_print_sensor_info(int verbose)
 		printf("Could not find sensor information!");
 		printf(" Looks like /sys/class/hwmon is empty.\n");
 	}
+
+	printf("\n");
 
 	return 0;
 }
