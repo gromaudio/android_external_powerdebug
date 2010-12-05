@@ -17,7 +17,6 @@
 #include <getopt.h>
 #include "powerdebug.h"
 
-int numregulators;
 int dump;
 int highlighted_row;
 int selectedwindow = -1;

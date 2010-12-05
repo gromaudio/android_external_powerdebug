@@ -23,6 +23,8 @@
 
 #define VALUE_MAX 16
 
+int numregulators;
+
 struct regulator_info {
 	char name[NAME_MAX];
 	char state[VALUE_MAX];
