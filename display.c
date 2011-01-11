@@ -139,12 +139,14 @@ void create_selectedwindow(void)
 void show_header(void)
 {
 	int i, j = 0;
+	int curr_pointer = 0;
 
 	wattrset(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
 	wbkgd(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
 	werase(header_win);
 
-	print(header_win, 0, 0, "PowerDebug %s", VERSION);
+	print(header_win, curr_pointer, 0, "PowerDebug %s", VERSION);
+	curr_pointer += 20;
 
 	for (i = 0; i < TOTAL_FEATURE_WINS; i++) {
 		if (selectedwindow == i)
@@ -152,8 +154,8 @@ void show_header(void)
 		else
 			wattroff(header_win, A_REVERSE);
 
-		print(header_win, i*(maxx / TOTAL_FEATURE_WINS) + 20, 0,
-			" %s ", win_names[i]);
+		print(header_win, curr_pointer, 0, " %s ", win_names[i]);
+		curr_pointer += strlen(win_names[i]) + 2;
 	}
 	wrefresh(header_win);
 	werase(footer_win);
