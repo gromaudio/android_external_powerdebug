@@ -23,9 +23,10 @@ int selectedwindow = -1;
 double ticktime = 10.0;  /* in seconds */
 
 char *win_names[TOTAL_FEATURE_WINS] = {
-	"Regulators",
 	"Clocks",
-	"Sensors" };
+	"Regulators",
+	"Sensors"
+};
 
 void usage(void)
 {
@@ -156,7 +157,7 @@ int main(int argc, char **argv)
 	}
 
 	if (!dump && selectedwindow == -1)
-		selectedwindow = REGULATOR;
+		selectedwindow = CLOCK;
 
 	init_regulator_ds();
 

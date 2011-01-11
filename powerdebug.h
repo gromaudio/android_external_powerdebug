@@ -26,7 +26,7 @@
 #define VERSION "1.0"
 
 #define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
-enum {REGULATOR, CLOCK, SENSOR};
+enum {CLOCK, REGULATOR, SENSOR};
 enum {CLOCK_SELECTED = 1, REFRESH_WINDOW};
 
 extern struct regulator_info *regulators_info;
