@@ -1,0 +1,26 @@
+powerdebug (0.3) natty; urgency=low
+
+  * Fix coding style issues and some more cleanups
+  * Discover debugfs mount point and remove hard coded path
+  * Display clock tree in ncurses mode using in-memory data structures
+  * Read clocks into memory and add dump support
+  * Show all regulators and clocks by default
+  * Discover debugfs mount point at runtime
+  * Show units for clock rate
+  * Add multi-level support for clock tree information
+  * Add dump (-d) option support for displaying the clock tree (-c)
+
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 01 Oct 2010 13:38:21 +0530
+
+powerdebug (0.2) maverick; urgency=low
+
+  * Add support for clock tree information
+  * Add options for ticktime
+
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 08 Sep 2010 16:41:48 +0530
+
+powerdebug (0.1) maverick; urgency=low
+
+  * Initial Release.
+
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 03 Sep 2010 19:18:18 +0530

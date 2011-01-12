@@ -1,0 +1,14 @@
+Source: powerdebug
+Section: utils
+Priority: optional
+Maintainer: Amit Arora <amit.arora@linaro.org>
+Build-Depends: cdbs, debhelper (>= 7), libncurses5-dev
+Standards-Version: 3.9.1
+
+Package: powerdebug
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: tool to display regulator, sensor and clock information
+ PowerDebug is a tool to display regulator, sensor and clock information.
+ Information are refreshed every few seconds. You can also use dump
+ option to display the information just once.
