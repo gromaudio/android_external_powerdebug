@@ -1,4 +1,4 @@
-BINDIR=/usr/bin
+BINDIR=/usr/sbin
 MANDIR=/usr/share/man/man8
 
 WARNFLAGS=-Wall -Wshadow -W -Wformat -Wimplicit-function-declaration -Wimplicit-int
@@ -16,12 +16,9 @@ powerdebug: $(OBJS) powerdebug.h
 	$(CC) ${CFLAGS} $(OBJS) -lncurses -o powerdebug
 
 install: powerdebug powerdebug.8.gz
-	mkdir -p ${DESTDIR}${BINDIR}
-	cp powerdebug ${DESTDIR}${BINDIR}
-	mkdir -p ${DESTDIR}${MANDIR}
-	cp powerdebug.8.gz ${DESTDIR}${MANDIR}
-
-All: install
+	install -d ${DESTDIR}${BINDIR} ${DESTDIR}${MANDIR}
+	install -m 0755 powerdebug ${DESTDIR}${BINDIR}
+	install -m 0644 powerdebug.8.gz ${DESTDIR}${MANDIR}
 
 all: powerdebug powerdebug.8.gz
 
