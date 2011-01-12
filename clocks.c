@@ -32,15 +32,15 @@ int init_clock_details(void)
 		if (!dump) {
 			create_selectedwindow();
 			sprintf(clock_lines[0], "Unable to locate debugfs "
-						"mount point. Mount debugfs "
-						"and try again..\n");
+				"mount point. Mount debugfs "
+				"and try again..\n");
 			print_one_clock(0, clock_lines[0], 1, 0);
 			old_clock_line_no = 1;
 			return(1);
 		} else {
 			fprintf(stderr, "powerdebug: Unable to locate debugfs "
-					"mount point. Mount debugfs and try "
-					"again..\n");
+				"mount point. Mount debugfs and try "
+				"again..\n");
 			exit(1);
 		}
 	}
@@ -97,7 +97,7 @@ void find_parents_for_clock(char *clkname, int complete)
 	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
 	print_one_clock(0, name, 1, 1);
 	dump_all_parents(clkname);
-} 
+}
 
 int read_and_print_clock_info(int verbose, int hrow, int selected)
 {
@@ -147,7 +147,7 @@ void print_clock_info(int verbose, int hrow, int selected)
 	delta = calc_delta_screen_size(hrow);
 
 	while (clock_lines[count + delta] &&
-	       strcmp(clock_lines[count + delta], "")) {
+		strcmp(clock_lines[count + delta], "")) {
 		if (count < delta) {
 			count++;
 			continue;
@@ -318,7 +318,7 @@ void read_clock_info(char *clkpath)
 }
 
 struct clock_info *read_clock_info_recur(char *clkpath, int level,
-			struct clock_info *parent)
+					struct clock_info *parent)
 {
 	int ret = 0;
 	DIR *dir;
@@ -380,16 +380,16 @@ void insert_children(struct clock_info **parent, struct clock_info *clk)
 {
 	if (!(*parent)->num_children || (*parent)->children == NULL) {
 		(*parent)->children = (struct clock_info **)
-				      malloc(sizeof(struct clock_info *)*2);
+			malloc(sizeof(struct clock_info *)*2);
 		(*parent)->num_children = 0;
 	} else
 		(*parent)->children = (struct clock_info **)
-				      realloc((*parent)->children,
-				      sizeof(struct clock_info *) *
-				      ((*parent)->num_children + 2));
+			realloc((*parent)->children,
+				sizeof(struct clock_info *) *
+				((*parent)->num_children + 2));
 	if ((*parent)->num_children > 0)
 		(*parent)->children[(*parent)->num_children - 1]->last_child
-									= 0;
+			= 0;
 	clk->last_child = 1;
 	(*parent)->children[(*parent)->num_children] = clk;
 	(*parent)->children[(*parent)->num_children + 1] = NULL;
@@ -406,7 +406,7 @@ void dump_parent(struct clock_info *clk, int line)
 
 	if (maxline < line)
 		maxline = line;
-		
+
 	if (clk && clk->parent)
 		dump_parent(clk->parent, ++line);
 
@@ -512,7 +512,7 @@ void dump_clock_info(struct clock_info *clk, int level, int bmp)
 	else {
 		char *unit = "Hz";
 		double drate = (double)clk->rate;
-		
+
 		if (drate > 1000 && drate < 1000000) {
 			unit = "KHz";
 			drate /= 1000;
@@ -564,7 +564,7 @@ char *debugfs_locate_mpoint(void)
 	}
 
 	while (fscanf(filep, "%*s %s %s %*s %*d %*d\n",
-		      debugfs_mntpoint, fsname) == 2)
+			debugfs_mntpoint, fsname) == 2)
 		if (!strcmp(fsname, "debugfs"))
 			break;
 	fclose(filep);

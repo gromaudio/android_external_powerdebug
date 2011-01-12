@@ -39,11 +39,11 @@ void usage(void)
 	printf("  -s, --sensor		Show sensor information\n");
 	printf("  -c, --clock		Show clock information\n");
 	printf("  -p, --findparents	Show all parents for a particular"
-					" clock\n");
+		" clock\n");
 	printf("  -t, --time		Set ticktime in seconds (eg. 10.0)\n");
 	printf("  -d, --dump		Dump information once (no refresh)\n");
 	printf("  -v, --verbose		Verbose mode (use with -r and/or"
-					" -s)\n");
+		" -s)\n");
 	printf("  -V, --version		Show Version\n");
 	printf("  -h, --help 		Help\n");
 
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 			break;
 		case '?':
 			fprintf (stderr, "%s: Unknown option %c'.\n",
-				 argv[0], optopt);
+				argv[0], optopt);
 			exit(1);
 		default:
 			usage();
@@ -161,19 +161,18 @@ int main(int argc, char **argv)
 
 	init_regulator_ds();
 
-	while(1) {
+	while (1) {
 		int key = 0;
 		struct timeval tval;
 		fd_set readfds;
 
 		if (!dump) {
-			if(firsttime[0])
+			if (firsttime[0])
 				init_curses();
 			create_windows();
 			show_header();
 		}
 
-	
 		if (regulators || selectedwindow == REGULATOR) {
 			read_regulator_info();
 			if (!dump) {
@@ -204,14 +203,14 @@ int main(int argc, char **argv)
 					if (refreshwin)
 						command = REFRESH_WINDOW;
 					hrow = read_and_print_clock_info(
-								verbose,
-								highlighted_row,
-								command);
+						verbose,
+						highlighted_row,
+						command);
 					highlighted_row = hrow;
 					enter_hit = 0;
 				} else
 					find_parents_for_clock(clkname_str,
-								enter_hit);
+							enter_hit);
 			}
 			if (!ret && dump) {
 				if (findparent)
@@ -268,7 +267,7 @@ int main(int argc, char **argv)
 					findparent_ncurses = 1;
 
 				if ((keystroke == 27 || oldselectedwin !=
-					selectedwindow) && findparent_ncurses) {
+						selectedwindow) && findparent_ncurses) {
 					findparent_ncurses = 0;
 					clkname_str[0] = '\0';
 				}
@@ -285,11 +284,11 @@ int main(int argc, char **argv)
 					} else {
 						if (strlen(clkname_str) ||
 							keystroke != '/') {
-						str[0] = keystroke;
-						str[1] = '\0';
-						if (len < 63)
-							strcat(clkname_str,
-								str);
+							str[0] = keystroke;
+							str[1] = '\0';
+							if (len < 63)
+								strcat(clkname_str,
+									str);
 						}
 					}
 				}
@@ -317,4 +316,3 @@ int main(int argc, char **argv)
 	}
 	exit(0);
 }
-

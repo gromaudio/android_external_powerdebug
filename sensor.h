@@ -22,4 +22,3 @@ char *items_fan[32] = {"min", "max", "input", "label", "div", "target", ""};
 char *suffix_fan[32] = {"RPM", "RPM", "RPM", "", "", "RPM", ""};
 char *items_pwm[32] = {"freq", "enable", "mode", ""};
 char *suffix_pwm[32] = {"Hz", "", "", ""};
-

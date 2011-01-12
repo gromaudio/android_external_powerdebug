@@ -99,7 +99,7 @@ void create_windows(void)
 
 	if (selectedwindow == CLOCK)
 		strcpy(footer_items[2], " Other Keys: 'Left', 'Right', 'Up', 'Down', 'enter', "
-					" '/', 'Esc' ");
+			" '/', 'Esc' ");
 	else
 		strcpy(footer_items[2], " Other Keys: 'Left', 'Right' ");
 
@@ -122,13 +122,13 @@ void create_selectedwindow(void)
 
 	switch (selectedwindow) {
 	case REGULATOR: regulator_win = win;
-			break;
+		break;
 
 	case CLOCK:     clock_win = win;
-			break;
+		break;
 
 	case SENSOR:    sensor_win = win;
-			break;
+		break;
 	}
 
 	selected_win = win;
@@ -160,8 +160,8 @@ void show_header(void)
 	wrefresh(header_win);
 	werase(footer_win);
 
-	for (i=0; i<NUM_FOOTER_ITEMS; i++) {
-		if (strlen(footer_items[i])==0)
+	for (i = 0; i < NUM_FOOTER_ITEMS; i++) {
+		if (strlen(footer_items[i]) == 0)
 			continue;
 		wattron(footer_win, A_REVERSE);
 		print(footer_win, j, 0, "%s", footer_items[i]);
@@ -190,40 +190,40 @@ void show_regulator_info(int verbose)
 	print(regulator_win, 84, 0, "Max u-volts");
 	wattroff(regulator_win, A_BOLD);
 
-	for (i=0; i<numregulators; i++) {
+	for (i = 0; i < numregulators; i++) {
 		int col = 0;
 
-		if((i + 2) > (maxy-2))
+		if ((i + 2) > (maxy-2))
 			break;
 
-		if(regulators_info[i].num_users > 0)
+		if (regulators_info[i].num_users > 0)
 			wattron(regulator_win, WA_BOLD);
 		else
 			wattroff(regulator_win, WA_BOLD);
 
 		print(regulator_win, col, count, "%s",
-		      regulators_info[i].name);
+			regulators_info[i].name);
 		col += 12;
 		print(regulator_win, col, count, "%s",
-		      regulators_info[i].status);
+			regulators_info[i].status);
 		col += 12;
 		print(regulator_win, col, count, "%s",
-		      regulators_info[i].state);
+			regulators_info[i].state);
 		col += 12;
 		print(regulator_win, col, count, "%s",
-		      regulators_info[i].type);
+			regulators_info[i].type);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-		      regulators_info[i].num_users);
+			regulators_info[i].num_users);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-		      regulators_info[i].microvolts);
+			regulators_info[i].microvolts);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-		      regulators_info[i].min_microvolts);
+			regulators_info[i].min_microvolts);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-		      regulators_info[i].max_microvolts);
+			regulators_info[i].max_microvolts);
 
 		count++;
 	}
@@ -253,7 +253,7 @@ void print_sensor_header(void)
 	wattroff(sensor_win, A_BOLD);
 	wattron(sensor_win, A_BLINK);
 	print(sensor_win, 0, 1, "Currently Sensor information available"
-				  " only in Dump mode!");
+		" only in Dump mode!");
 	wattroff(sensor_win, A_BLINK);
 	wrefresh(sensor_win);
 }

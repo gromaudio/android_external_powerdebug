@@ -24,7 +24,7 @@ int init_regulator_ds(void)
 	regdir = opendir("/sys/class/regulator");
 	if (!regdir)
 		return(1);
-	while((item = readdir(regdir))) {
+	while ((item = readdir(regdir))) {
 		if (strncmp(item->d_name, "regulator", 9))
 			continue;
 
@@ -33,20 +33,20 @@ int init_regulator_ds(void)
 	closedir(regdir);
 
 	regulators_info = (struct regulator_info *)malloc(numregulators*
-						sizeof(struct regulator_info));
+							sizeof(struct regulator_info));
 	if (!regulators_info) {
 		fprintf(stderr, "init_regulator_ds: Not enough memory to "
-		"read information for %d regulators!\n", numregulators);
+			"read information for %d regulators!\n", numregulators);
 		return(1);
 	}
 
-	return(0);	
+	return(0);
 }
 
 void print_string_val(char *name, char *val)
 {
 	printf("\t%s=%s", name, val);
-	if(!strchr(val, '\n'))
+	if (!strchr(val, '\n'))
 		printf("\n");
 }
 
@@ -57,9 +57,9 @@ void print_regulator_info(int verbose)
 	printf("\nRegulator Information:\n");
 	printf("*********************\n\n");
 
-	for (i=0; i<numregulators; i++) {
-		printf("Regulator %d:\n", i+1);
-			print_string_val("name", regulators_info[i].name);
+	for (i = 0; i < numregulators; i++) {
+		printf("Regulator %d:\n", i + 1);
+		print_string_val("name", regulators_info[i].name);
 		if (strcmp(regulators_info[i].status, ""))
 			print_string_val("status", regulators_info[i].status);
 		if (strcmp(regulators_info[i].state, ""))
@@ -155,7 +155,7 @@ int read_regulator_info(void)
 	regdir = opendir("/sys/class/regulator");
 	if (!regdir)
 		return(1);
-	while((item = readdir(regdir))) {
+	while ((item = readdir(regdir))) {
 		if (strlen(item->d_name) < 3)
 			continue;
 
@@ -163,7 +163,7 @@ int read_regulator_info(void)
 			continue;
 
 		len = sprintf(filename, "/sys/class/regulator/%s",
-			      item->d_name);
+			item->d_name);
 
 		dir = opendir(filename);
 		if (!dir)
@@ -176,7 +176,7 @@ int read_regulator_info(void)
 		}
 
 		strcpy(regulators_info[count-1].name, item->d_name);
-		while((ritem = readdir(dir))) {
+		while ((ritem = readdir(dir))) {
 			if (strlen(ritem->d_name) < 3)
 				continue;
 
@@ -191,11 +191,11 @@ int read_regulator_info(void)
 				continue;
 			read_info_from_dirent(ritem, fptr, count - 1);
 		}
-exit:
+	exit:
 		closedir(dir);
 		if (ret)
 			break;
-	}	
+	}
 	closedir(regdir);
 
 	return ret;

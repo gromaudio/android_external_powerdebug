@@ -30,7 +30,6 @@ char *get_num(char *fname, char *sensor)
 	str = strdup(tmpstr);
 	return str;
 }
-	
 
 void get_sensor_info(char *path, char *fname, char *sensor, int verbose)
 {
@@ -44,21 +43,21 @@ void get_sensor_info(char *path, char *fname, char *sensor, int verbose)
 
 	sprintf(filename, "%s/%s", path, fname);
 
-	if(!strcmp(sensor, "in")) {
+	if (!strcmp(sensor, "in")) {
 		items = (char **)items_in;
 		suffix = (char **)suffix_in;
 	}
 
-	if(!strcmp(sensor, "temp")) {
+	if (!strcmp(sensor, "temp")) {
 		items = (char **)items_temp;
 		suffix = (char **)suffix_temp;
 	}
 
-	if(!strcmp(sensor, "fan")) {
+	if (!strcmp(sensor, "fan")) {
 		items = (char **)items_fan;
 		suffix = (char **)suffix_fan;
 	}
-	if(!strcmp(sensor, "pwm")) {
+	if (!strcmp(sensor, "pwm")) {
 		items = (char **)items_pwm;
 		suffix = (char **)suffix_pwm;
 	}
@@ -68,28 +67,28 @@ void get_sensor_info(char *path, char *fname, char *sensor, int verbose)
 		return;
 
 	item = strrchr(fname, '_');
-	if(!item)
+	if (!item)
 		return;
 
-	if(item)
+	if (item)
 		item++;
 
-	if(item > (fname + strlen(fname)))
+	if (item > (fname + strlen(fname)))
 		return;
 
 	num = get_num(fname, sensor);
 	filep = fopen(filename, "r");
 
-	if(!filep) 
+	if (!filep)
 		goto exit;
 	ret = fscanf(filep, "%s", result);
 	fclose(filep);
 
-	if(ret != 1)
+	if (ret != 1)
 		goto exit;
 
-	while(strcmp(items[count], "")) {
-		if(!strcmp(items[count], item))
+	while (strcmp(items[count], "")) {
+		if (!strcmp(items[count], item))
 			printf("\'temp\' %s sensor %s\t\t%d%s\n",
 				num, items[count], atoi(result)/1000,
 				suffix[count]);
@@ -141,7 +140,7 @@ int read_and_print_sensor_info(int verbose)
 			if (subitem->d_name[0] == '.') /* skip hidden files */
 				continue;
 
-			if(!strncmp(subitem->d_name, "in", 2))
+			if (!strncmp(subitem->d_name, "in", 2))
 				get_sensor_info(devpath, subitem->d_name, "in",
 						verbose);
 			else if (!strncmp(subitem->d_name, "temp", 4))
@@ -160,7 +159,7 @@ int read_and_print_sensor_info(int verbose)
 	}
 	closedir(dir);
 
-	if(!found && verbose) {
+	if (!found && verbose) {
 		printf("Could not find sensor information!");
 		printf(" Looks like /sys/class/hwmon is empty.\n");
 	}
