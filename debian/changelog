@@ -1,4 +1,4 @@
-powerdebug (0.3) natty; urgency=low
+powerdebug (0.3-0ubuntu1) natty; urgency=low
 
   * Fix coding style issues and some more cleanups
   * Discover debugfs mount point and remove hard coded path
@@ -19,7 +19,7 @@ powerdebug (0.3) natty; urgency=low
   * switched packaging to '3.0 (native)'
   * rules: switched to debhelper 7
 
- -- Amit Kucheria <amit.kucheria@linaro.org>  Thu, 13 Jan 2011 09:10:04 -0600
+ -- Amit Kucheria <amit.kucheria@linaro.org>  Thu, 13 Jan 2011 15:14:38 -0600
 
 powerdebug (0.2) maverick; urgency=low
 
