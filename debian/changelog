@@ -22,6 +22,7 @@ powerdebug (0.3-0ubuntu1) UNRELEASED; urgency=low
   [ Steve Langasek ]
   * clean up grammar in the package description
   * drop empty debian/docs file
+  * document git branch in debian/control
 
  -- Amit Kucheria <amit.kucheria@linaro.org>  Thu, 13 Jan 2011 15:14:38 -0600
 
