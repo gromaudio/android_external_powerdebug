@@ -9,8 +9,12 @@ powerdebug (0.3) natty; urgency=low
   * Show units for clock rate
   * Add multi-level support for clock tree information
   * Add dump (-d) option support for displaying the clock tree (-c)
+  * whitespace cleanups
+  * get rid of colors
+  * make header display more compact
+  * cleanup makefile for debian packaging
 
- -- Amit Arora <amit.arora@linaro.org>  Fri, 01 Oct 2010 13:38:21 +0530
+ -- Amit Kucheria <amit.kucheria@linaro.org>  Thu, 13 Jan 2011 09:10:04 -0600
 
 powerdebug (0.2) maverick; urgency=low
 
