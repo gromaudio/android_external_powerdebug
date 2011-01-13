@@ -23,6 +23,7 @@ powerdebug (0.3-0ubuntu1) UNRELEASED; urgency=low
   * clean up grammar in the package description
   * drop empty debian/docs file
   * document git branch in debian/control
+  * use 3.0 (quilt) format; 3.0 (native) is only for native packages
 
  -- Amit Kucheria <amit.kucheria@linaro.org>  Thu, 13 Jan 2011 15:14:38 -0600
 
