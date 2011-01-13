@@ -3,7 +3,7 @@ Section: utils
 Priority: optional
 Maintainer: Ubuntu developers <ubuntu-devel-discuss@lists.ubuntu.com>
 XSBC-Original-Maintainer: Amit Kucheria <amit.kucheria@linaro.org>
-Build-Depends: cdbs, debhelper (>= 7), libncurses5-dev
+Build-Depends: debhelper (>= 7), libncurses5-dev
 Standards-Version: 3.9.1
 
 Package: powerdebug
