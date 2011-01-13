@@ -12,7 +12,12 @@ powerdebug (0.3) natty; urgency=low
   * whitespace cleanups
   * get rid of colors
   * make header display more compact
+
+  [ Marcin Juszkiewicz ]
   * cleanup makefile for debian packaging
+  * dropped cdbs dependency
+  * switched packaging to '3.0 (native)'
+  * rules: switched to debhelper 7
 
  -- Amit Kucheria <amit.kucheria@linaro.org>  Thu, 13 Jan 2011 09:10:04 -0600
 
