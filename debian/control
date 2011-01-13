@@ -11,5 +11,5 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: tool to display regulator, sensor and clock information
  PowerDebug is a tool to display regulator, sensor and clock information.
- Information are refreshed every few seconds. You can also use dump
- option to display the information just once.
+ Information is refreshed every few seconds.  You can also use dump option
+ to display the information just once.
