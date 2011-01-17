@@ -1,6 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2010, Linaro
- * Copyright (C) 2010, IBM Corporation
+ * Copyright (C) 2010, Linaro Limited.
  *
  * This file is part of PowerDebug.
  *

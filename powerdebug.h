@@ -1,6 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2010, Linaro
- * Copyright (C) 2010, IBM Corporation
+ * Copyright (C) 2010, Linaro Limited.
  *
  * This file is part of PowerDebug.
  *
@@ -23,7 +22,7 @@
 #include <errno.h>
 #include <ncurses.h>
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 
 #define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
 enum {CLOCK, REGULATOR, SENSOR};
