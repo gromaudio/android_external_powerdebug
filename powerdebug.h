@@ -22,7 +22,7 @@
 #include <errno.h>
 #include <ncurses.h>
 
-#define VERSION "0.3"
+#define VERSION "0.4"
 
 #define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
 enum {CLOCK, REGULATOR, SENSOR};
