@@ -1,10 +1,10 @@
-powerdebug (0.4-0ubuntu2) natty; urgency=low
+powerdebug (0.4.1-0ubuntu1) natty; urgency=low
 
   * Added LICENSE file to source
   * Fix debian/copyright to be more machine-readable
   * Remove XSBC-Original-Maintainer
 
- -- Amit Kucheria <amit.kucheria@linaro.org>  Mon, 24 Jan 2011 13:18:35 +0200
+ -- Amit Kucheria <amit.kucheria@linaro.org>  Mon, 24 Jan 2011 17:58:46 +0200
 
 powerdebug (0.4-0ubuntu1) natty; urgency=low
 
