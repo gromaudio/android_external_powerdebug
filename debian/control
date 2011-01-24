@@ -1,8 +1,7 @@
 Source: powerdebug
 Section: utils
 Priority: optional
-Maintainer: Linaro developers <linaro-dev@lists.linaro.org>
-XSBC-Original-Maintainer: Amit Kucheria <amit.kucheria@linaro.org>
+Maintainer: Amit Kucheria <amit.kucheria@linaro.org>
 Build-Depends: debhelper (>= 7), libncurses5-dev
 Vcs-Git: git://git.linaro.org/tools/powerdebug.git release
 Standards-Version: 3.9.1

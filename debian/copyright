@@ -1,20 +1,10 @@
-This work was packaged for Debian by:
+Format: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=166
+Upstream-Name: powerdebug
+Upstream-Contact: Amit Kucheria <amit.kucheria@linaro.org>
+Source: git://git.linaro.org/tools/powerdebug.git
 
-    Amit Arora <amit.arora@linaro.org> on Fri, 03 Sep 2010 19:18:18 +0530
-    Amit Kucheria <amit.kucheria@linaro.org> on Fri, 17 Jan 2011 10:07:18 +0300
-
-It was downloaded from:
-
-    git://git.linaro.org/tools/powerdebug.git
-
-Upstream Author(s):
-
-    Amit Arora <amit.arora@linaro.org>
-
-Copyright:
-
-    Copyright (C) 2010 Linaro
-
+Files: *
+Copyright: 2010, 2011 Linaro Ltd.
 License: EPL-1.0
  Eclipse Public License - v 1.0
  
@@ -234,7 +224,3 @@ commercial
  one year after the cause of action arose. Each party waives its rights to
  a jury trial in any resulting litigation.
 
-The Debian packaging is:
-
-    Copyright (C) 2010 Amit Arora <amit.arora@linaro.org>
-and is licensed under the EPL version 1.0, see above.
