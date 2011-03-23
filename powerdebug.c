@@ -125,7 +125,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 			}
 			break;
 		case 't':
-			options->ticktime = strtod(optarg, NULL);
+			options->ticktime = atoi(optarg);
 			break;
 		case 'd':
 			dump = 1;
