@@ -39,8 +39,8 @@ extern double ticktime;
 
 extern void version(void);
 
+extern int init_regulator_ds(void);
 extern void print_regulator_info(int verbose);
-extern void init_regulator_ds(void);
 extern void read_regulator_info(void);
 extern void print_regulator_info(int verbose);
 

@@ -185,7 +185,8 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	init_regulator_ds();
+	if (init_regulator_ds())
+		return -1;
 
 	while (1) {
 		int key = 0;
