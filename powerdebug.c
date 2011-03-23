@@ -162,6 +162,87 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	return 0;
 }
 
+int keystroke_callback(int *enter_hit, int *findparent_ncurses,
+		       char *clkname_str, int *refreshwin,
+		       struct powerdebug_options *options)
+{
+	char keychar;
+	int keystroke = getch();
+	int oldselectedwin = selectedwindow;
+
+	if (keystroke == EOF)
+		exit(0);
+
+	if (keystroke == KEY_RIGHT || keystroke == 9)
+		selectedwindow++;
+
+	if (keystroke == KEY_LEFT || keystroke == 353)
+		selectedwindow--;
+
+	if (selectedwindow >= TOTAL_FEATURE_WINS)
+		selectedwindow = 0;
+
+	if (selectedwindow < 0)
+		selectedwindow = TOTAL_FEATURE_WINS - 1;
+
+	if (selectedwindow == CLOCK) {
+		if (keystroke == KEY_DOWN)
+			highlighted_row++;
+		if (keystroke == KEY_UP && highlighted_row > 0)
+			highlighted_row--;
+		if (keystroke == 47)
+			*findparent_ncurses = 1;
+
+		if ((keystroke == 27 || oldselectedwin !=
+		     selectedwindow) && *findparent_ncurses) {
+			*findparent_ncurses = 0;
+			clkname_str[0] = '\0';
+		}
+
+		if (*findparent_ncurses && keystroke != 13) {
+			int len = strlen(clkname_str);
+			char str[2];
+
+			if (keystroke == 263) {
+				if (len > 0)
+					len--;
+
+				clkname_str[len] = '\0';
+			} else {
+				if (strlen(clkname_str) ||
+				    keystroke != '/') {
+					str[0] = keystroke;
+					str[1] = '\0';
+					if (len < 63)
+						strcat(clkname_str,
+						       str);
+				}
+			}
+		}
+	}
+
+	keychar = toupper(keystroke);
+//#define DEBUG
+#ifdef DEBUG
+	killall_windows(1); fini_curses();
+	printf("key entered %d:%c\n", keystroke, keychar);
+	exit(1);
+#endif
+
+	if (keystroke == 13)
+		*enter_hit = 1;
+
+	if (keychar == 'Q' && !*findparent_ncurses)
+		return 1;
+	if (keychar == 'R') {
+		*refreshwin = 1;
+		options->ticktime = 3;
+	} else
+		*refreshwin = 0;
+
+	return 0;
+}
+
 int mainloop(struct powerdebug_options *options)
 {
 	int findparent_ncurses = 0, refreshwin = 0;
@@ -249,82 +330,13 @@ int mainloop(struct powerdebug_options *options)
 		tval.tv_usec = (options->ticktime - tval.tv_sec) * 1000000;
 
 		key = select(1, &readfds, NULL, NULL, &tval);
+		if (!key)
+			continue;
 
-		if (key)  {
-			char keychar;
-			int keystroke = getch();
-			int oldselectedwin = selectedwindow;
+		if (keystroke_callback(&enter_hit, &findparent_ncurses,
+				       clkname_str, &refreshwin, options))
+			break;
 
-			if (keystroke == EOF)
-				exit(0);
-
-			if (keystroke == KEY_RIGHT || keystroke == 9)
-				selectedwindow++;
-
-			if (keystroke == KEY_LEFT || keystroke == 353)
-				selectedwindow--;
-
-			if (selectedwindow >= TOTAL_FEATURE_WINS)
-				selectedwindow = 0;
-
-			if (selectedwindow < 0)
-				selectedwindow = TOTAL_FEATURE_WINS - 1;
-
-			if (selectedwindow == CLOCK) {
-				if (keystroke == KEY_DOWN)
-					highlighted_row++;
-				if (keystroke == KEY_UP && highlighted_row > 0)
-					highlighted_row--;
-				if (keystroke == 47)
-					findparent_ncurses = 1;
-
-				if ((keystroke == 27 || oldselectedwin !=
-						selectedwindow) && findparent_ncurses) {
-					findparent_ncurses = 0;
-					clkname_str[0] = '\0';
-				}
-
-				if (findparent_ncurses && keystroke != 13) {
-					int len = strlen(clkname_str);
-					char str[2];
-
-					if (keystroke == 263) {
-						if (len > 0)
-							len--;
-
-						clkname_str[len] = '\0';
-					} else {
-						if (strlen(clkname_str) ||
-							keystroke != '/') {
-							str[0] = keystroke;
-							str[1] = '\0';
-							if (len < 63)
-								strcat(clkname_str,
-									str);
-						}
-					}
-				}
-			}
-
-			keychar = toupper(keystroke);
-//#define DEBUG
-#ifdef DEBUG
-			killall_windows(1); fini_curses();
-			printf("key entered %d:%c\n", keystroke, keychar);
-			exit(1);
-#endif
-
-			if (keystroke == 13)
-				enter_hit = 1;
-
-			if (keychar == 'Q' && !findparent_ncurses)
-				break;
-			if (keychar == 'R') {
-				refreshwin = 1;
-				options->ticktime = 3;
-			} else
-				refreshwin = 0;
-		}
 	}
 
 	return 0;
