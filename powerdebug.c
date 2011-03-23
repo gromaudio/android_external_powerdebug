@@ -162,31 +162,16 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	return 0;
 }
 
-int main(int argc, char **argv)
+int mainloop(struct powerdebug_options *options)
 {
-	int i;
 	int findparent_ncurses = 0, refreshwin = 0;
 	int enter_hit = 0;
 	int firsttime[TOTAL_FEATURE_WINS];
+	int i;
 	char clkname_str[64];
-	struct powerdebug_options *options;
 
 	for (i = 0; i < TOTAL_FEATURE_WINS; i++)
 		firsttime[i] = 1;
-
-	options = malloc(sizeof(*options));
-	if (!options) {
-		fprintf(stderr, "failed to allocated memory\n");
-		return -1;
-	}
-
-	if (getoptions(argc, argv, options)) {
-		usage();
-		return 1;
-	}
-
-	if (init_regulator_ds())
-		return -1;
 
 	while (1) {
 		int key = 0;
@@ -333,7 +318,7 @@ int main(int argc, char **argv)
 				enter_hit = 1;
 
 			if (keychar == 'Q' && !findparent_ncurses)
-				exit(0);
+				break;
 			if (keychar == 'R') {
 				refreshwin = 1;
 				options->ticktime = 3;
@@ -341,5 +326,30 @@ int main(int argc, char **argv)
 				refreshwin = 0;
 		}
 	}
-	exit(0);
+
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	struct powerdebug_options *options;
+
+	options = malloc(sizeof(*options));
+	if (!options) {
+		fprintf(stderr, "failed to allocated memory\n");
+		return -1;
+	}
+
+	if (getoptions(argc, argv, options)) {
+		usage();
+		return 1;
+	}
+
+	if (init_regulator_ds())
+		return 1;
+
+	if (mainloop(options))
+		return 1;
+
+	return 0;
 }
