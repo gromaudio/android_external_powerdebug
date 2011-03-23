@@ -30,8 +30,6 @@ enum {CLOCK_SELECTED = 1, REFRESH_WINDOW};
 
 extern struct regulator_info *regulators_info;
 
-extern int selectedwindow;
-
 extern int numregulators;
 
 extern int init_regulator_ds(void);
@@ -50,7 +48,7 @@ extern void find_parents_for_clock(char *clkname, int complete, bool dump);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
 extern void print_clock_info(int verbose, int hrow, int selected);
 extern void print_string_val(char *name, char *val);
-extern int  init_clock_details(bool dump);
+extern int  init_clock_details(bool dump, int selectedwindow);
 extern void print_clock_header(void);
 extern void print_one_clock(int line, char *str, int bold, int highlight);
 extern char *debugfs_locate_mpoint(void);
@@ -62,7 +60,7 @@ extern void print_sensor_header(void);
 extern void init_curses(void);
 extern void fini_curses(void);
 extern void killall_windows(int all);
-extern void show_header(void);
-extern void create_windows(void);
-extern void create_selectedwindow(void);
+extern void show_header(int selectedwindow);
+extern void create_windows(int selectedwindow);
+extern void create_selectedwindow(int selectedwindow);
 extern void show_regulator_info(int verbose);

@@ -20,7 +20,7 @@ static char clk_dir_path[PATH_MAX];
 static char clk_name[NAME_MAX];
 static int  bold[MAX_LINES];
 
-int init_clock_details(bool dump)
+int init_clock_details(bool dump, int selectedwindow)
 {
 	char *path = debugfs_locate_mpoint();
 	struct stat buf;
@@ -29,7 +29,7 @@ int init_clock_details(bool dump)
 		strcpy(clk_dir_path, path);
 	else {
 		if (!dump) {
-			create_selectedwindow();
+			create_selectedwindow(selectedwindow);
 			sprintf(clock_lines[0], "Unable to locate debugfs "
 				"mount point. Mount debugfs "
 				"and try again..\n");
@@ -47,7 +47,7 @@ int init_clock_details(bool dump)
 	//strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
 	if (stat(clk_dir_path, &buf)) {
 		if (!dump) {
-			create_selectedwindow();
+			create_selectedwindow(selectedwindow);
 			sprintf(clock_lines[0], "Unable to find clock tree"
 				" information at %s.\n", clk_dir_path);
 			print_one_clock(0, clock_lines[0], 1, 0);

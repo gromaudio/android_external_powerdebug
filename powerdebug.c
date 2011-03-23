@@ -18,7 +18,6 @@
 #include "powerdebug.h"
 
 int highlighted_row;
-int selectedwindow = -1;
 
 void usage(void)
 {
@@ -80,6 +79,7 @@ struct powerdebug_options {
 	bool clocks;
 	bool dump;
 	unsigned int ticktime;
+	int selectedwindow;
 	char *clkarg;
 };
 
@@ -89,6 +89,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 
 	memset(options, 0, sizeof(*options));
 	options->ticktime = 10;
+	options->selectedwindow = -1;
 
 	while (1) {
 		int optindex = 0;
@@ -101,15 +102,15 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 		switch (c) {
 		case 'r':
 			options->regulators = true;
-			selectedwindow = REGULATOR;
+			options->selectedwindow = REGULATOR;
 			break;
 		case 's':
 			options->sensors = true;
-			selectedwindow = SENSOR;
+			options->selectedwindow = SENSOR;
 			break;
 		case 'c':
 			options->clocks = true;
-			selectedwindow = CLOCK;
+			options->selectedwindow = CLOCK;
 			break;
 		case 'p':
 			options->findparent = true;
@@ -151,8 +152,8 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 		return -1;
 	}
 
-	if (!options->dump && selectedwindow == -1)
-		selectedwindow = CLOCK;
+	if (!options->dump && options->selectedwindow == -1)
+		options->selectedwindow = CLOCK;
 
 	return 0;
 }
@@ -163,24 +164,24 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 {
 	char keychar;
 	int keystroke = getch();
-	int oldselectedwin = selectedwindow;
+	int oldselectedwin = options->selectedwindow;
 
 	if (keystroke == EOF)
 		exit(0);
 
 	if (keystroke == KEY_RIGHT || keystroke == 9)
-		selectedwindow++;
+		options->selectedwindow++;
 
 	if (keystroke == KEY_LEFT || keystroke == 353)
-		selectedwindow--;
+		options->selectedwindow--;
 
-	if (selectedwindow >= TOTAL_FEATURE_WINS)
-		selectedwindow = 0;
+	if (options->selectedwindow >= TOTAL_FEATURE_WINS)
+		options->selectedwindow = 0;
 
-	if (selectedwindow < 0)
-		selectedwindow = TOTAL_FEATURE_WINS - 1;
+	if (options->selectedwindow < 0)
+		options->selectedwindow = TOTAL_FEATURE_WINS - 1;
 
-	if (selectedwindow == CLOCK) {
+	if (options->selectedwindow == CLOCK) {
 		if (keystroke == KEY_DOWN)
 			highlighted_row++;
 		if (keystroke == KEY_UP && highlighted_row > 0)
@@ -189,7 +190,7 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 			*findparent_ncurses = true;
 
 		if ((keystroke == 27 || oldselectedwin !=
-		     selectedwindow) && *findparent_ncurses) {
+		     options->selectedwindow) && *findparent_ncurses) {
 			*findparent_ncurses = false;
 			clkname_str[0] = '\0';
 		}
@@ -258,24 +259,25 @@ int mainloop(struct powerdebug_options *options)
 		if (!options->dump) {
 			if (firsttime[0])
 				init_curses();
-			create_windows();
-			show_header();
+			create_windows(options->selectedwindow);
+			show_header(options->selectedwindow);
 		}
 
-		if (options->regulators || selectedwindow == REGULATOR) {
+		if (options->regulators || options->selectedwindow == REGULATOR) {
 			read_regulator_info();
 			if (!options->dump) {
-				create_selectedwindow();
+				create_selectedwindow(options->selectedwindow);
 				show_regulator_info(options->verbose);
 			}
 			else
 				print_regulator_info(options->verbose);
 		}
 
-		if (options->clocks || selectedwindow == CLOCK) {
+		if (options->clocks || options->selectedwindow == CLOCK) {
 			int ret = 0;
 			if (firsttime[CLOCK]) {
-				ret = init_clock_details(options->dump);
+				ret = init_clock_details(options->dump,
+							 options->selectedwindow);
 				if (!ret)
 					firsttime[CLOCK] = 0;
 				strcpy(clkname_str, "");
@@ -283,7 +285,7 @@ int mainloop(struct powerdebug_options *options)
 			if (!ret && !options->dump) {
 				int hrow;
 
-				create_selectedwindow();
+				create_selectedwindow(options->selectedwindow);
 				if (!findparent_ncurses) {
 					int command = 0;
 
@@ -310,9 +312,9 @@ int mainloop(struct powerdebug_options *options)
 			}
 		}
 
-		if (options->sensors || selectedwindow == SENSOR) {
+		if (options->sensors || options->selectedwindow == SENSOR) {
 			if (!options->dump) {
-				create_selectedwindow();
+				create_selectedwindow(options->selectedwindow);
 				print_sensor_header();
 			} else
 				read_and_print_sensor_info(options->verbose);

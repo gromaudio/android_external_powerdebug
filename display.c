@@ -89,7 +89,7 @@ void init_curses(void)
 }
 
 
-void create_windows(void)
+void create_windows(int selectedwindow)
 {
 
 	getmaxyx(stdscr, maxy, maxx);
@@ -114,7 +114,7 @@ void create_windows(void)
 
 }
 
-void create_selectedwindow(void)
+void create_selectedwindow(int selectedwindow)
 {
 	WINDOW *win;
 
@@ -140,7 +140,7 @@ void create_selectedwindow(void)
 	refresh();
 }
 
-void show_header(void)
+void show_header(int selectedwindow)
 {
 	int i, j = 0;
 	int curr_pointer = 0;
