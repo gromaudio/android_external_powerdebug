@@ -85,7 +85,7 @@ struct powerdebug_options {
 	int sensors;
 	int clocks;
 	int ticktime;
-	char clkarg[64];
+	char *clkarg;
 };
 
 int getoptions(int argc, char *argv[], struct powerdebug_options *options)
@@ -118,7 +118,11 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 			break;
 		case 'p':
 			options->findparent = 1;
-			strcpy(options->clkarg, optarg);
+			options->clkarg = strdup(optarg);
+			if (!options->clkarg) {
+				fprintf(stderr, "failed to allocate memory");
+				return -1;
+			}
 			break;
 		case 't':
 			options->ticktime = strtod(optarg, NULL);
