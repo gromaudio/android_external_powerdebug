@@ -21,12 +21,6 @@ bool dump = false;
 int highlighted_row;
 int selectedwindow = -1;
 
-char *win_names[TOTAL_FEATURE_WINS] = {
-	"Clocks",
-	"Regulators",
-	"Sensors"
-};
-
 void usage(void)
 {
 	printf("Usage: powerdebug [OPTIONS]\n");

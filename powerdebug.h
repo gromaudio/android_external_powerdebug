@@ -30,7 +30,6 @@ enum {CLOCK_SELECTED = 1, REFRESH_WINDOW};
 
 extern struct regulator_info *regulators_info;
 
-extern char *win_names[TOTAL_FEATURE_WINS];
 extern int selectedwindow;
 
 extern int numregulators;

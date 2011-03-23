@@ -30,6 +30,11 @@ static WINDOW *footer_win;
 int maxx, maxy;
 char footer_items[NUM_FOOTER_ITEMS][64];
 
+static char *win_names[TOTAL_FEATURE_WINS] = {
+	"Clocks",
+	"Regulators",
+	"Sensors"
+};
 
 void fini_curses(void) {
 	endwin();
