@@ -17,7 +17,6 @@
 #include <stdbool.h>
 #include "powerdebug.h"
 
-static bool dump = false;
 int highlighted_row;
 int selectedwindow = -1;
 
@@ -79,6 +78,7 @@ struct powerdebug_options {
 	bool regulators;
 	bool sensors;
 	bool clocks;
+	bool dump;
 	unsigned int ticktime;
 	char *clkarg;
 };
@@ -123,7 +123,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 			options->ticktime = atoi(optarg);
 			break;
 		case 'd':
-			dump = true;
+			options->dump = true;
 			break;
 		case 'v':
 			options->verbose = true;
@@ -139,19 +139,19 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 		}
 	}
 
-	if (dump && !(options->regulators ||
+	if (options->dump && !(options->regulators ||
 		      options->clocks || options->sensors)) {
 		/* By Default lets show everything we have */
 		options->regulators = options->clocks = options->sensors = true;
 	}
 
-	if (options->findparent && (!options->clocks || !dump)) {
+	if (options->findparent && (!options->clocks || !options->dump)) {
 		fprintf(stderr, "-p option passed without -c and -d."
 			" Exiting...\n");
 		return -1;
 	}
 
-	if (!dump && selectedwindow == -1)
+	if (!options->dump && selectedwindow == -1)
 		selectedwindow = CLOCK;
 
 	return 0;
@@ -255,7 +255,7 @@ int mainloop(struct powerdebug_options *options)
 		struct timeval tval;
 		fd_set readfds;
 
-		if (!dump) {
+		if (!options->dump) {
 			if (firsttime[0])
 				init_curses();
 			create_windows();
@@ -264,7 +264,7 @@ int mainloop(struct powerdebug_options *options)
 
 		if (options->regulators || selectedwindow == REGULATOR) {
 			read_regulator_info();
-			if (!dump) {
+			if (!options->dump) {
 				create_selectedwindow();
 				show_regulator_info(options->verbose);
 			}
@@ -275,12 +275,12 @@ int mainloop(struct powerdebug_options *options)
 		if (options->clocks || selectedwindow == CLOCK) {
 			int ret = 0;
 			if (firsttime[CLOCK]) {
-				ret = init_clock_details(dump);
+				ret = init_clock_details(options->dump);
 				if (!ret)
 					firsttime[CLOCK] = 0;
 				strcpy(clkname_str, "");
 			}
-			if (!ret && !dump) {
+			if (!ret && !options->dump) {
 				int hrow;
 
 				create_selectedwindow();
@@ -299,25 +299,26 @@ int mainloop(struct powerdebug_options *options)
 					enter_hit = false;
 				} else
 					find_parents_for_clock(clkname_str,
-							       enter_hit, dump);
+							       enter_hit,
+							       options->dump);
 			}
-			if (!ret && dump) {
+			if (!ret && options->dump) {
 				if (options->findparent)
-					read_and_dump_clock_info_one(options->clkarg, dump);
+					read_and_dump_clock_info_one(options->clkarg, options->dump);
 				else
 					read_and_dump_clock_info(options->verbose);
 			}
 		}
 
 		if (options->sensors || selectedwindow == SENSOR) {
-			if (!dump) {
+			if (!options->dump) {
 				create_selectedwindow();
 				print_sensor_header();
 			} else
 				read_and_print_sensor_info(options->verbose);
 		}
 
-		if (dump)
+		if (options->dump)
 			break;
 
 		FD_ZERO(&readfds);
