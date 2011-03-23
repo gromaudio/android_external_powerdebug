@@ -19,7 +19,6 @@
 int dump;
 int highlighted_row;
 int selectedwindow = -1;
-double ticktime = 10.0;  /* in seconds */
 
 char *win_names[TOTAL_FEATURE_WINS] = {
 	"Clocks",
@@ -45,118 +44,142 @@ void usage(void)
 		" -s)\n");
 	printf("  -V, --version		Show Version\n");
 	printf("  -h, --help 		Help\n");
-
-	exit(0);
 }
 
 void version()
 {
 	printf("powerdebug version %s\n", VERSION);
-	exit(0);
 }
 
-int main(int argc, char **argv)
+/*
+ * Options:
+ * -r, --regulator      : regulator
+ * -s, --sensor	 	: sensors
+ * -c, --clock	  	: clocks
+ * -p, --findparents    : clockname whose parents have to be found
+ * -t, --time		: ticktime
+ * -d, --dump		: dump
+ * -v, --verbose	: verbose
+ * -V, --version	: version
+ * -h, --help		: help
+ * no option / default : show usage!
+ */
+
+static struct option long_options[] = {
+	{ "regulator", 0, 0, 'r' },
+	{ "sensor", 0, 0, 's' },
+	{ "clock",  0, 0, 'c' },
+	{ "findparents", 1, 0, 'p' },
+	{ "time", 1, 0, 't' },
+	{ "dump", 0, 0, 'd' },
+	{ "verbose", 0, 0, 'v' },
+	{ "version", 0, 0, 'V' },
+	{ "help", 0, 0, 'h' },
+	{ 0, 0, 0, 0 }
+};
+
+struct powerdebug_options {
+	int findparent;
+	int verbose;
+	int regulators;
+	int sensors;
+	int clocks;
+	int ticktime;
+	char clkarg[64];
+};
+
+int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 {
-	int c, i;
-	int firsttime[TOTAL_FEATURE_WINS];
-	int enter_hit = 0, verbose = 0, findparent_ncurses = 0, refreshwin = 0;
-	int regulators = 0, sensors = 0, clocks = 0, findparent = 0;
-	char clkarg[64], clkname_str[64];
+	int c;
 
-	for (i = 0; i < TOTAL_FEATURE_WINS; i++)
-		firsttime[i] = 1;
-
-	/*
-	 * Options:
-	 * -r, --regulator      : regulator
-	 * -s, --sensor	 	: sensors
-	 * -c, --clock	  	: clocks
-	 * -p, --findparents    : clockname whose parents have to be found
-	 * -t, --time		: ticktime
-	 * -d, --dump		: dump
-	 * -v, --verbose	: verbose
-	 * -V, --version	: version
-	 * -h, --help		: help
-	 * no option / default : show usage!
-	 */
+	memset(options, 0, sizeof(*options));
+	options->ticktime = 10;
 
 	while (1) {
 		int optindex = 0;
-		static struct option long_options[] = {
-			{"regulator", 0, 0, 'r'},
-			{"sensor", 0, 0, 's'},
-			{"clock", 0, 0, 'c'},
-			{"findparents", 1, 0, 'p'},
-			{"time", 1, 0, 't'},
-			{"dump", 0, 0, 'd'},
-			{"verbose", 0, 0, 'v'},
-			{"version", 0, 0, 'V'},
-			{"help", 0, 0, 'h'},
-			{0, 0, 0, 0}
-		};
 
-		c = getopt_long(argc, argv, "rscp:t:dvVh", long_options, &optindex);
+		c = getopt_long(argc, argv, "rscp:t:dvVh",
+				long_options, &optindex);
 		if (c == -1)
 			break;
 
 		switch (c) {
 		case 'r':
-			regulators = 1;
+			options->regulators = 1;
 			selectedwindow = REGULATOR;
 			break;
 		case 's':
-			sensors = 1;
+			options->sensors = 1;
 			selectedwindow = SENSOR;
 			break;
 		case 'c':
-			clocks = 1;
+			options->clocks = 1;
 			selectedwindow = CLOCK;
 			break;
 		case 'p':
-			findparent = 1;
-			strcpy(clkarg, optarg);
+			options->findparent = 1;
+			strcpy(options->clkarg, optarg);
 			break;
 		case 't':
-			ticktime = strtod(optarg, NULL);
+			options->ticktime = strtod(optarg, NULL);
 			break;
 		case 'd':
 			dump = 1;
 			break;
 		case 'v':
-			verbose = 1;
+			options->verbose = 1;
 			break;
 		case 'V':
 			version();
 			break;
-		case 'h':
-			usage();
-			break;
 		case '?':
-			fprintf (stderr, "%s: Unknown option %c'.\n",
+			fprintf(stderr, "%s: Unknown option %c'.\n",
 				argv[0], optopt);
-			exit(1);
 		default:
-			usage();
-			break;
+			return -1;
 		}
 	}
 
-	if (dump && !(regulators || clocks || sensors)) {
-		//fprintf(stderr, "Dump mode (-d) supported only with -c, -r "
-		//		"or -s ..\n");
-		//usage();
-		// By Default lets show everything we have!
-		regulators = clocks = sensors = 1;
+	if (dump && !(options->regulators ||
+		      options->clocks || options->sensors)) {
+		/* By Default lets show everything we have */
+		options->regulators = options->clocks = options->sensors = 1;
 	}
 
-	if (findparent && (!clocks || !dump)) {
+	if (options->findparent && (!options->clocks || !dump)) {
 		fprintf(stderr, "-p option passed without -c and -d."
 			" Exiting...\n");
-		usage();
+		return -1;
 	}
 
 	if (!dump && selectedwindow == -1)
 		selectedwindow = CLOCK;
+
+	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	int i;
+	int findparent_ncurses = 0, refreshwin = 0;
+	int enter_hit = 0;
+	int firsttime[TOTAL_FEATURE_WINS];
+	char clkname_str[64];
+	struct powerdebug_options *options;
+
+	for (i = 0; i < TOTAL_FEATURE_WINS; i++)
+		firsttime[i] = 1;
+
+	options = malloc(sizeof(*options));
+	if (!options) {
+		fprintf(stderr, "failed to allocated memory\n");
+		return -1;
+	}
+
+	if (getoptions(argc, argv, options)) {
+		usage();
+		return 1;
+	}
 
 	init_regulator_ds();
 
@@ -172,17 +195,17 @@ int main(int argc, char **argv)
 			show_header();
 		}
 
-		if (regulators || selectedwindow == REGULATOR) {
+		if (options->regulators || selectedwindow == REGULATOR) {
 			read_regulator_info();
 			if (!dump) {
 				create_selectedwindow();
-				show_regulator_info(verbose);
+				show_regulator_info(options->verbose);
 			}
 			else
-				print_regulator_info(verbose);
+				print_regulator_info(options->verbose);
 		}
 
-		if (clocks || selectedwindow == CLOCK) {
+		if (options->clocks || selectedwindow == CLOCK) {
 			int ret = 0;
 			if (firsttime[CLOCK]) {
 				ret = init_clock_details();
@@ -202,7 +225,7 @@ int main(int argc, char **argv)
 					if (refreshwin)
 						command = REFRESH_WINDOW;
 					hrow = read_and_print_clock_info(
-						verbose,
+						options->verbose,
 						highlighted_row,
 						command);
 					highlighted_row = hrow;
@@ -212,19 +235,19 @@ int main(int argc, char **argv)
 							enter_hit);
 			}
 			if (!ret && dump) {
-				if (findparent)
-					read_and_dump_clock_info_one(clkarg);
+				if (options->findparent)
+					read_and_dump_clock_info_one(options->clkarg);
 				else
-					read_and_dump_clock_info(verbose);
+					read_and_dump_clock_info(options->verbose);
 			}
 		}
 
-		if (sensors || selectedwindow == SENSOR) {
+		if (options->sensors || selectedwindow == SENSOR) {
 			if (!dump) {
 				create_selectedwindow();
 				print_sensor_header();
 			} else
-				read_and_print_sensor_info(verbose);
+				read_and_print_sensor_info(options->verbose);
 		}
 
 		if (dump)
@@ -232,8 +255,8 @@ int main(int argc, char **argv)
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);
-		tval.tv_sec = ticktime;
-		tval.tv_usec = (ticktime - tval.tv_sec) * 1000000;
+		tval.tv_sec = options->ticktime;
+		tval.tv_usec = (options->ticktime - tval.tv_sec) * 1000000;
 
 		key = select(1, &readfds, NULL, NULL, &tval);
 
@@ -308,7 +331,7 @@ int main(int argc, char **argv)
 				exit(0);
 			if (keychar == 'R') {
 				refreshwin = 1;
-				ticktime = 3;
+				options->ticktime = 3;
 			} else
 				refreshwin = 0;
 		}
