@@ -35,9 +35,6 @@ extern int selectedwindow;
 
 extern int numregulators;
 extern bool dump;
-extern double ticktime;
-
-extern void version(void);
 
 extern int init_regulator_ds(void);
 extern void print_regulator_info(int verbose);
