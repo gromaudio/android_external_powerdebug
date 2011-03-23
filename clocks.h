@@ -20,7 +20,6 @@
 #include <linux/magic.h>
 
 extern int maxy;
-extern int dump;
 
 #define MAX_LINES 120
 

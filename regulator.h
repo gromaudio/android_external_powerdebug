@@ -41,4 +41,3 @@ struct regulator_info {
 } *regulators_info;
 
 extern int numregulators;
-extern int dump;

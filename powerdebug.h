@@ -34,7 +34,7 @@ extern char *win_names[TOTAL_FEATURE_WINS];
 extern int selectedwindow;
 
 extern int numregulators;
-extern int dump;
+extern bool dump;
 extern double ticktime;
 
 extern void version(void);

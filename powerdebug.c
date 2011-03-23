@@ -14,9 +14,10 @@
  *******************************************************************************/
 
 #include <getopt.h>
+#include <stdbool.h>
 #include "powerdebug.h"
 
-int dump;
+bool dump = false;
 int highlighted_row;
 int selectedwindow = -1;
 
@@ -79,12 +80,12 @@ static struct option long_options[] = {
 };
 
 struct powerdebug_options {
-	int findparent;
-	int verbose;
-	int regulators;
-	int sensors;
-	int clocks;
-	int ticktime;
+	bool verbose;
+	bool findparent;
+	bool regulators;
+	bool sensors;
+	bool clocks;
+	unsigned int ticktime;
 	char *clkarg;
 };
 
@@ -105,19 +106,19 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 
 		switch (c) {
 		case 'r':
-			options->regulators = 1;
+			options->regulators = true;
 			selectedwindow = REGULATOR;
 			break;
 		case 's':
-			options->sensors = 1;
+			options->sensors = true;
 			selectedwindow = SENSOR;
 			break;
 		case 'c':
-			options->clocks = 1;
+			options->clocks = true;
 			selectedwindow = CLOCK;
 			break;
 		case 'p':
-			options->findparent = 1;
+			options->findparent = true;
 			options->clkarg = strdup(optarg);
 			if (!options->clkarg) {
 				fprintf(stderr, "failed to allocate memory");
@@ -128,10 +129,10 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 			options->ticktime = atoi(optarg);
 			break;
 		case 'd':
-			dump = 1;
+			dump = true;
 			break;
 		case 'v':
-			options->verbose = 1;
+			options->verbose = true;
 			break;
 		case 'V':
 			version();
@@ -147,7 +148,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	if (dump && !(options->regulators ||
 		      options->clocks || options->sensors)) {
 		/* By Default lets show everything we have */
-		options->regulators = options->clocks = options->sensors = 1;
+		options->regulators = options->clocks = options->sensors = true;
 	}
 
 	if (options->findparent && (!options->clocks || !dump)) {
@@ -162,8 +163,8 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	return 0;
 }
 
-int keystroke_callback(int *enter_hit, int *findparent_ncurses,
-		       char *clkname_str, int *refreshwin,
+int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
+		       char *clkname_str, bool *refreshwin,
 		       struct powerdebug_options *options)
 {
 	char keychar;
@@ -191,11 +192,11 @@ int keystroke_callback(int *enter_hit, int *findparent_ncurses,
 		if (keystroke == KEY_UP && highlighted_row > 0)
 			highlighted_row--;
 		if (keystroke == 47)
-			*findparent_ncurses = 1;
+			*findparent_ncurses = true;
 
 		if ((keystroke == 27 || oldselectedwin !=
 		     selectedwindow) && *findparent_ncurses) {
-			*findparent_ncurses = 0;
+			*findparent_ncurses = false;
 			clkname_str[0] = '\0';
 		}
 
@@ -230,23 +231,24 @@ int keystroke_callback(int *enter_hit, int *findparent_ncurses,
 #endif
 
 	if (keystroke == 13)
-		*enter_hit = 1;
+		*enter_hit = true;
 
 	if (keychar == 'Q' && !*findparent_ncurses)
 		return 1;
 	if (keychar == 'R') {
-		*refreshwin = 1;
+		*refreshwin = true;
 		options->ticktime = 3;
 	} else
-		*refreshwin = 0;
+		*refreshwin = false;
 
 	return 0;
 }
 
 int mainloop(struct powerdebug_options *options)
 {
-	int findparent_ncurses = 0, refreshwin = 0;
-	int enter_hit = 0;
+	bool findparent_ncurses = false;
+	bool refreshwin = false;
+	bool enter_hit = false;
 	int firsttime[TOTAL_FEATURE_WINS];
 	int i;
 	char clkname_str[64];
@@ -300,7 +302,7 @@ int mainloop(struct powerdebug_options *options)
 						highlighted_row,
 						command);
 					highlighted_row = hrow;
-					enter_hit = 0;
+					enter_hit = false;
 				} else
 					find_parents_for_clock(clkname_str,
 							enter_hit);
