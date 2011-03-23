@@ -33,7 +33,6 @@ extern struct regulator_info *regulators_info;
 extern int selectedwindow;
 
 extern int numregulators;
-extern bool dump;
 
 extern int init_regulator_ds(void);
 extern void print_regulator_info(int verbose);
@@ -41,17 +40,17 @@ extern void read_regulator_info(void);
 extern void print_regulator_info(int verbose);
 
 extern void read_and_dump_clock_info(int verbose);
-extern void read_and_dump_clock_info_one(char *clk);
+extern void read_and_dump_clock_info_one(char *clk, bool dump);
 extern void read_clock_info(char *clkpath);
 extern struct clock_info *read_clock_info_recur(char *clkpath, int level,
 						struct clock_info *parent);
 extern void dump_clock_info(struct clock_info *clk, int level, int bmp);
 extern void insert_children(struct clock_info **parent, struct clock_info *clk);
-extern void find_parents_for_clock(char *clkname, int complete);
+extern void find_parents_for_clock(char *clkname, int complete, bool dump);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
 extern void print_clock_info(int verbose, int hrow, int selected);
 extern void print_string_val(char *name, char *val);
-extern int  init_clock_details(void);
+extern int  init_clock_details(bool dump);
 extern void print_clock_header(void);
 extern void print_one_clock(int line, char *str, int bold, int highlight);
 extern char *debugfs_locate_mpoint(void);

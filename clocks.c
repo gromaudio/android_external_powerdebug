@@ -20,7 +20,7 @@ static char clk_dir_path[PATH_MAX];
 static char clk_name[NAME_MAX];
 static int  bold[MAX_LINES];
 
-int init_clock_details(void)
+int init_clock_details(bool dump)
 {
 	char *path = debugfs_locate_mpoint();
 	struct stat buf;
@@ -80,7 +80,73 @@ int get_int_from(char *file)
 	return atoi(result);
 }
 
-void find_parents_for_clock(char *clkname, int complete)
+static void dump_parent(struct clock_info *clk, int line, bool dump)
+{
+	char *unit = "Hz";
+	double drate;
+	static char spaces[64];
+	char str[256];
+	static int maxline;
+
+	if (maxline < line)
+		maxline = line;
+
+	if (clk && clk->parent)
+		dump_parent(clk->parent, ++line, dump);
+
+	drate = (double)clk->rate;
+	if (drate > 1000 && drate < 1000000) {
+		unit = "KHz";
+		drate /= 1000;
+	}
+	if (drate > 1000000) {
+		unit = "MHz";
+		drate /= 1000000;
+	}
+	if (clk == clocks_info) {
+		line++;
+		strcpy(spaces, "");
+		sprintf(str, "%s%s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+			spaces, clk->name, clk->flags, clk->usecount, drate,
+			unit);
+	} else {
+		if (!(clk->parent == clocks_info))
+			strcat(spaces, "  ");
+		sprintf(str, "%s`- %s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+			spaces, clk->name, clk->flags, clk->usecount, drate,
+			unit);
+	}
+	if (dump)
+		//printf("line=%d:m%d:l%d %s", maxline - line + 2, maxline, line, str);
+		printf("%s", str);
+	else
+		print_one_clock(maxline - line + 2, str, 1, 0);
+}
+
+static void dump_all_parents(char *clkarg, bool dump)
+{
+	struct clock_info *clk;
+	char spaces[1024];
+
+	strcpy(spaces, "");
+
+	clk = find_clock(clocks_info, clkarg);
+
+	if (!clk)
+		printf("Clock NOT found!\n");
+	else {
+		/* while(clk && clk != clocks_info) { */
+		/* 	printf("%s\n", clk->name); */
+		/* 	strcat(spaces, "  "); */
+		/* 	clk = clk->parent; */
+		/* 	printf("%s <-- ", spaces); */
+		/* } */
+		/* printf("  /\n"); */
+		dump_parent(clk, 1, dump);
+	}
+}
+
+void find_parents_for_clock(char *clkname, int complete, bool dump)
 {
 	char name[256];
 
@@ -95,7 +161,7 @@ void find_parents_for_clock(char *clkname, int complete)
 	}
 	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
 	print_one_clock(0, name, 1, 1);
-	dump_all_parents(clkname);
+	dump_all_parents(clkname, dump);
 }
 
 int read_and_print_clock_info(int verbose, int hrow, int selected)
@@ -261,11 +327,11 @@ void destroy_clocks_info_recur(struct clock_info *clock)
 	}
 }
 
-void read_and_dump_clock_info_one(char *clk)
+void read_and_dump_clock_info_one(char *clk, bool dump)
 {
 	printf("\nParents for \"%s\" Clock :\n\n", clk);
 	read_clock_info(clk_dir_path);
-	dump_all_parents(clk);
+	dump_all_parents(clk, dump);
 	printf("\n\n");
 }
 
@@ -393,72 +459,6 @@ void insert_children(struct clock_info **parent, struct clock_info *clk)
 	(*parent)->children[(*parent)->num_children] = clk;
 	(*parent)->children[(*parent)->num_children + 1] = NULL;
 	(*parent)->num_children++;
-}
-
-void dump_parent(struct clock_info *clk, int line)
-{
-	char *unit = "Hz";
-	double drate;
-	static char spaces[64];
-	char str[256];
-	static int maxline;
-
-	if (maxline < line)
-		maxline = line;
-
-	if (clk && clk->parent)
-		dump_parent(clk->parent, ++line);
-
- 	drate = (double)clk->rate;
-	if (drate > 1000 && drate < 1000000) {
-		unit = "KHz";
-		drate /= 1000;
-	}
-	if (drate > 1000000) {
-		unit = "MHz";
-		drate /= 1000000;
-	}
-	if (clk == clocks_info) {
-		line++;
-		strcpy(spaces, "");
-		sprintf(str, "%s%s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
-			spaces, clk->name, clk->flags, clk->usecount, drate,
-			unit);
-	} else {
-		if (!(clk->parent == clocks_info))
-			strcat(spaces, "  ");
-		sprintf(str, "%s`- %s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
-			spaces, clk->name, clk->flags, clk->usecount, drate,
-			unit);
-	}
-	if (dump)
-		//printf("line=%d:m%d:l%d %s", maxline - line + 2, maxline, line, str);
-		printf("%s", str);
-	else
-		print_one_clock(maxline - line + 2, str, 1, 0);
-}
-
-void dump_all_parents(char *clkarg)
-{
-	struct clock_info *clk;
-	char spaces[1024];
-
-	strcpy(spaces, "");
-
-	clk = find_clock(clocks_info, clkarg);
-
-	if (!clk)
-		printf("Clock NOT found!\n");
-	else {
-//		while(clk && clk != clocks_info) {
-//			printf("%s\n", clk->name);
-//			strcat(spaces, "  ");
-//			clk = clk->parent;
-//			printf("%s <-- ", spaces);
-//		}
-//		printf("  /\n");
-		dump_parent(clk, 1);
-	}
 }
 
 struct clock_info *find_clock(struct clock_info *clk, char *clkarg)

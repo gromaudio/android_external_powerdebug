@@ -17,7 +17,7 @@
 #include <stdbool.h>
 #include "powerdebug.h"
 
-bool dump = false;
+static bool dump = false;
 int highlighted_row;
 int selectedwindow = -1;
 
@@ -275,7 +275,7 @@ int mainloop(struct powerdebug_options *options)
 		if (options->clocks || selectedwindow == CLOCK) {
 			int ret = 0;
 			if (firsttime[CLOCK]) {
-				ret = init_clock_details();
+				ret = init_clock_details(dump);
 				if (!ret)
 					firsttime[CLOCK] = 0;
 				strcpy(clkname_str, "");
@@ -299,11 +299,11 @@ int mainloop(struct powerdebug_options *options)
 					enter_hit = false;
 				} else
 					find_parents_for_clock(clkname_str,
-							enter_hit);
+							       enter_hit, dump);
 			}
 			if (!ret && dump) {
 				if (options->findparent)
-					read_and_dump_clock_info_one(options->clkarg);
+					read_and_dump_clock_info_one(options->clkarg, dump);
 				else
 					read_and_dump_clock_info(options->verbose);
 			}

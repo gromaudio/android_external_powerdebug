@@ -51,5 +51,4 @@ void add_clock_details_recur(struct clock_info *clk, int hrow, int selected);
 void destroy_clocks_info(void);
 void destroy_clocks_info_recur(struct clock_info *clock);
 void collapse_all_subclocks(struct clock_info *clock);
-void dump_all_parents(char *clkarg);
 struct clock_info *find_clock(struct clock_info *clk, char *clkarg);
