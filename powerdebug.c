@@ -119,6 +119,8 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 				fprintf(stderr, "failed to allocate memory");
 				return -1;
 			}
+			options->dump = true;   /* Assume -dc in case of -p */
+			options->clocks = true;
 			break;
 		case 't':
 			options->ticktime = atoi(optarg);
@@ -144,12 +146,6 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 		      options->clocks || options->sensors)) {
 		/* By Default lets show everything we have */
 		options->regulators = options->clocks = options->sensors = true;
-	}
-
-	if (options->findparent && (!options->clocks || !options->dump)) {
-		fprintf(stderr, "-p option passed without -c and -d."
-			" Exiting...\n");
-		return -1;
 	}
 
 	if (!options->dump && options->selectedwindow == -1)
