@@ -142,19 +142,9 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 		}
 	}
 
-	if (options->dump) {
-
-		/* No system specified to be dump, let's default to all */
-		if (!options->regulators &&
-		    !options->clocks &&
-		    !options->sensors) {
-			options->regulators = options->clocks =
-				options->sensors = true;
-
-			return 0;
-		}
-
-	}
+	/* No system specified to be dump, let's default to all */
+	if (!options->regulators && !options->clocks && !options->sensors)
+		options->regulators = options->clocks = options->sensors = true;
 
 	if (options->selectedwindow == -1)
 		options->selectedwindow = CLOCK;
@@ -249,20 +239,14 @@ int mainloop(struct powerdebug_options *options,
 	bool findparent_ncurses = false;
 	bool refreshwin = false;
 	bool enter_hit = false;
-	int firsttime[TOTAL_FEATURE_WINS];
-	int i;
 	char clkname_str[64];
 
-	for (i = 0; i < TOTAL_FEATURE_WINS; i++)
-		firsttime[i] = 1;
+	strcpy(clkname_str, "");
 
 	while (1) {
 		int key = 0;
 		struct timeval tval;
 		fd_set readfds;
-
-		if (firsttime[0] && display_init())
-			return -1;
 
 		create_windows(options->selectedwindow);
 		show_header(options->selectedwindow);
@@ -274,16 +258,9 @@ int mainloop(struct powerdebug_options *options,
 					    options->verbose);
 		}
 
-		if (options->clocks || options->selectedwindow == CLOCK) {
-			int ret = 0;
-			if (firsttime[CLOCK]) {
-				ret = init_clock_details(options->dump,
-							 options->selectedwindow);
-				if (!ret)
-					firsttime[CLOCK] = 0;
-				strcpy(clkname_str, "");
-			}
-			if (!ret) {
+		if (options->selectedwindow == CLOCK) {
+
+			if (options->clocks) {
 				int hrow;
 
 				create_selectedwindow(options->selectedwindow);
@@ -399,6 +376,11 @@ int main(int argc, char **argv)
 	if (display_init()) {
 		printf("failed to initialize display\n");
 		return 1;
+	}
+
+	if (init_clock_details(options->dump, options->selectedwindow)) {
+		printf("failed initialize clock details\n");
+		options->clocks = false;
 	}
 
 	if (mainloop(options, regulators_info, numregulators))
