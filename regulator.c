@@ -113,38 +113,39 @@ void regulator_print_info(struct regulator_info *reg_info, int verbose)
 	printf("\n\n");
 }
 
-static void read_info_from_dirent(struct dirent *ritem, char *str, int idx)
+static void read_info_from_dirent(struct regulator_info *reg_info,
+				  struct dirent *ritem, char *str, int idx)
 {
 	if (!strcmp(ritem->d_name, "name"))
-		strcpy(regulators_info[idx].name, str);
+		strcpy(reg_info[idx].name, str);
 	if (!strcmp(ritem->d_name, "state"))
-		strcpy(regulators_info[idx].state, str);
+		strcpy(reg_info[idx].state, str);
 	if (!strcmp(ritem->d_name, "status"))
-		strcpy(regulators_info[idx].status, str);
+		strcpy(reg_info[idx].status, str);
 
 	if (!strcmp(ritem->d_name, "type"))
-		strcpy(regulators_info[idx].type, str);
+		strcpy(reg_info[idx].type, str);
 	if (!strcmp(ritem->d_name, "opmode"))
-		strcpy(regulators_info[idx].opmode, str);
+		strcpy(reg_info[idx].opmode, str);
 
 	if (!strcmp(ritem->d_name, "microvolts"))
-		regulators_info[idx].microvolts = atoi(str);
+		reg_info[idx].microvolts = atoi(str);
 	if (!strcmp(ritem->d_name, "min_microvolts"))
-		regulators_info[idx].min_microvolts = atoi(str);
+		reg_info[idx].min_microvolts = atoi(str);
 	if (!strcmp(ritem->d_name, "max_microvolts"))
-		regulators_info[idx].max_microvolts = atoi(str);
+		reg_info[idx].max_microvolts = atoi(str);
 
 	if (!strcmp(ritem->d_name, "microamps"))
-		regulators_info[idx].microamps = atoi(str);
+		reg_info[idx].microamps = atoi(str);
 	if (!strcmp(ritem->d_name, "min_microamps"))
-		regulators_info[idx].min_microamps = atoi(str);
+		reg_info[idx].min_microamps = atoi(str);
 	if (!strcmp(ritem->d_name, "max_microamps"))
-		regulators_info[idx].max_microamps = atoi(str);
+		reg_info[idx].max_microamps = atoi(str);
 	if (!strcmp(ritem->d_name, "requested_microamps"))
-		regulators_info[idx].requested_microamps = atoi(str);
+		reg_info[idx].requested_microamps = atoi(str);
 
 	if (!strcmp(ritem->d_name, "num_users"))
-		regulators_info[idx].num_users = atoi(str);
+		reg_info[idx].num_users = atoi(str);
 }
 
 int regulator_read_info(void)
@@ -192,7 +193,9 @@ int regulator_read_info(void)
 			fclose(file);
 			if (!fptr)
 				continue;
-			read_info_from_dirent(ritem, fptr, count - 1);
+
+			read_info_from_dirent(regulators_info, ritem,
+					      fptr, count - 1);
 		}
 	exit:
 		closedir(dir);
