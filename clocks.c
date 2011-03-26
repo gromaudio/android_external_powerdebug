@@ -15,12 +15,18 @@
 
 #include <stdio.h>
 #include <mntent.h>
+#include <sys/stat.h>
 
 #include "powerdebug.h"
 #include "clocks.h"
 
+#define MAX_LINES 120
+
 static char clk_dir_path[PATH_MAX];
 static int  bold[MAX_LINES];
+static char clock_lines[MAX_LINES][128];
+static int clock_line_no;
+static int old_clock_line_no;
 
 static int locate_debugfs(char *clk_path)
 {
@@ -124,6 +130,29 @@ static void dump_parent(struct clock_info *clk, int line, bool dump)
 		print_one_clock(maxline - line + 2, str, 1, 0);
 }
 
+static struct clock_info *find_clock(struct clock_info *clk, char *clkarg)
+{
+	int i;
+	struct clock_info *ret = clk;
+
+	if (!strcmp(clk->name, clkarg))
+		return ret;
+
+	if (clk->children) {
+		for (i = 0; i < clk->num_children; i++) {
+			if (!strcmp(clk->children[i]->name, clkarg))
+				return clk->children[i];
+		}
+		for (i = 0; i < clk->num_children; i++) {
+			ret = find_clock(clk->children[i], clkarg);
+			if (ret)
+				return ret;
+		}
+	}
+
+	return NULL;
+}
+
 static void dump_all_parents(char *clkarg, bool dump)
 {
 	struct clock_info *clk;
@@ -165,6 +194,45 @@ void find_parents_for_clock(char *clkname, int complete)
 	dump_all_parents(clkname, false);
 }
 
+static void destroy_clocks_info_recur(struct clock_info *clock)
+{
+	int i;
+
+	if (clock && clock->num_children) {
+		for (i = (clock->num_children - 1); i >= 0; i--) {
+			fflush(stdin);
+			destroy_clocks_info_recur(clock->children[i]);
+			if (!i) {
+				free(clock->children);
+				clock->children = NULL;
+				clock->num_children = 0;
+			}
+		}
+	}
+}
+
+static void destroy_clocks_info(void)
+{
+	int i;
+
+	if (!clocks_info)
+		return;
+
+	if (clocks_info->num_children) {
+		for (i = (clocks_info->num_children - 1); i >= 0 ; i--) {
+			destroy_clocks_info_recur(clocks_info->children[i]);
+			if (!i) {
+				free(clocks_info->children);
+				clocks_info->children = NULL;
+			}
+		}
+	}
+	clocks_info->num_children = 0;
+	free(clocks_info);
+	clocks_info = NULL;
+}
+
+
 int read_and_print_clock_info(int verbose, int hrow, int selected)
 {
 	print_one_clock(0, "Reading Clock Tree ...", 1, 1);
@@ -190,7 +258,7 @@ int read_and_print_clock_info(int verbose, int hrow, int selected)
 	return hrow;
 }
 
-int calc_delta_screen_size(int hrow)
+static int calc_delta_screen_size(int hrow)
 {
 	if (hrow >= (maxy - 3))
 		return hrow - (maxy - 4);
@@ -198,36 +266,7 @@ int calc_delta_screen_size(int hrow)
 	return 0;
 }
 
-void print_clock_info(int verbose, int hrow, int selected)
-{
-	int i, count = 0, delta;
-
-	(void)verbose;
-
-	print_clock_header();
-
-	for (i = 0; i < clocks_info->num_children; i++)
-		add_clock_details_recur(clocks_info->children[i],
-					hrow, selected);
-
-	delta = calc_delta_screen_size(hrow);
-
-	while (clock_lines[count + delta] &&
-		strcmp(clock_lines[count + delta], "")) {
-		if (count < delta) {
-			count++;
-			continue;
-		}
-		print_one_clock(count - delta, clock_lines[count + delta],
-				bold[count + delta], (hrow == (count + delta)));
-		count++;
-	}
-
-	old_clock_line_no = clock_line_no;
-	clock_line_no = 0;
-}
-
-void prepare_name_str(char *namestr, struct clock_info *clock)
+static void prepare_name_str(char *namestr, struct clock_info *clock)
 {
 	int i;
 
@@ -238,7 +277,18 @@ void prepare_name_str(char *namestr, struct clock_info *clock)
 	strcat(namestr, clock->name);
 }
 
-void add_clock_details_recur(struct clock_info *clock, int hrow, int selected)
+static void collapse_all_subclocks(struct clock_info *clock)
+{
+	int i;
+
+	clock->expanded = 0;
+	if (clock->num_children)
+		for (i = 0; i < clock->num_children; i++)
+			collapse_all_subclocks(clock->children[i]);
+}
+
+static void add_clock_details_recur(struct clock_info *clock,
+				    int hrow, int selected)
 {
 	int i;
 	char *unit = " Hz";
@@ -280,52 +330,33 @@ void add_clock_details_recur(struct clock_info *clock, int hrow, int selected)
 	strcpy(clock_lines[clock_line_no], "");
 }
 
-void collapse_all_subclocks(struct clock_info *clock)
+void print_clock_info(int verbose, int hrow, int selected)
 {
-	int i;
+	int i, count = 0, delta;
 
-	clock->expanded = 0;
-	if (clock->num_children)
-		for (i = 0; i < clock->num_children; i++)
-			collapse_all_subclocks(clock->children[i]);
-}
+	(void)verbose;
 
-void destroy_clocks_info(void)
-{
-	int i;
+	print_clock_header();
 
-	if (!clocks_info)
-		return;
+	for (i = 0; i < clocks_info->num_children; i++)
+		add_clock_details_recur(clocks_info->children[i],
+					hrow, selected);
 
-	if (clocks_info->num_children) {
-		for (i = (clocks_info->num_children - 1); i >= 0 ; i--) {
-			destroy_clocks_info_recur(clocks_info->children[i]);
-			if (!i) {
-				free(clocks_info->children);
-				clocks_info->children = NULL;
-			}
+	delta = calc_delta_screen_size(hrow);
+
+	while (clock_lines[count + delta] &&
+		strcmp(clock_lines[count + delta], "")) {
+		if (count < delta) {
+			count++;
+			continue;
 		}
+		print_one_clock(count - delta, clock_lines[count + delta],
+				bold[count + delta], (hrow == (count + delta)));
+		count++;
 	}
-	clocks_info->num_children = 0;
-	free(clocks_info);
-	clocks_info = NULL;
-}
 
-void destroy_clocks_info_recur(struct clock_info *clock)
-{
-	int i;
-
-	if (clock && clock->num_children) {
-		for (i = (clock->num_children - 1); i >= 0; i--) {
-			fflush(stdin);
-			destroy_clocks_info_recur(clock->children[i]);
-			if (!i) {
-				free(clock->children);
-				clock->children = NULL;
-				clock->num_children = 0;
-			}
-		}
-	}
+	old_clock_line_no = clock_line_no;
+	clock_line_no = 0;
 }
 
 void read_and_dump_clock_info_one(char *clk, bool dump)
@@ -461,30 +492,6 @@ void insert_children(struct clock_info **parent, struct clock_info *clk)
 	(*parent)->children[(*parent)->num_children + 1] = NULL;
 	(*parent)->num_children++;
 }
-
-struct clock_info *find_clock(struct clock_info *clk, char *clkarg)
-{
-	int i;
-	struct clock_info *ret = clk;
-
-	if (!strcmp(clk->name, clkarg))
-		return ret;
-
-	if (clk->children) {
-		for (i = 0; i < clk->num_children; i++) {
-			if (!strcmp(clk->children[i]->name, clkarg))
-				return clk->children[i];
-		}
-		for (i = 0; i < clk->num_children; i++) {
-			ret = find_clock(clk->children[i], clkarg);
-			if (ret)
-				return ret;
-		}
-	}
-
-	return NULL;
-}
-
 
 void dump_clock_info(struct clock_info *clk, int level, int bmp)
 {

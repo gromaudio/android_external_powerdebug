@@ -13,15 +13,7 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-#include <sys/stat.h>
-#include <sys/vfs.h>
-#include <errno.h>
-#include <sys/stat.h>
-#include <linux/magic.h>
-
 extern int maxy;
-
-#define MAX_LINES 120
 
 struct clock_info {
 	char name[NAME_MAX];
@@ -36,14 +28,4 @@ struct clock_info {
 	struct clock_info **children;
 } *clocks_info;
 
-char clock_lines[MAX_LINES][128];
-int  clock_line_no;
-int  old_clock_line_no;
-
 extern int clock_init(void);
-
-void add_clock_details_recur(struct clock_info *clk, int hrow, int selected);
-void destroy_clocks_info(void);
-void destroy_clocks_info_recur(struct clock_info *clock);
-void collapse_all_subclocks(struct clock_info *clock);
-struct clock_info *find_clock(struct clock_info *clk, char *clkarg);
