@@ -47,45 +47,14 @@ static int locate_debugfs(char *clk_path)
 	return ret;
 }
 
-int init_clock_details(bool dump, int selectedwindow)
+int clock_init(void)
 {
-	struct stat buf;
-
-	if (locate_debugfs(clk_dir_path)) {
-		if (!dump) {
-			create_selectedwindow(selectedwindow);
-			sprintf(clock_lines[0], "Unable to locate debugfs "
-				"mount point. Mount debugfs "
-				"and try again..\n");
-			print_one_clock(0, clock_lines[0], 1, 0);
-			old_clock_line_no = 1;
-			return(1);
-		} else {
-			fprintf(stderr, "powerdebug: Unable to locate debugfs "
-				"mount point. Mount debugfs and try "
-				"again..\n");
-			return -1;
-		}
-	}
+	if (locate_debugfs(clk_dir_path))
+		return -1;
 
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
-	//strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
-	if (stat(clk_dir_path, &buf)) {
-		if (!dump) {
-			create_selectedwindow(selectedwindow);
-			sprintf(clock_lines[0], "Unable to find clock tree"
-				" information at %s.\n", clk_dir_path);
-			print_one_clock(0, clock_lines[0], 1, 0);
-			old_clock_line_no = 1;
-			return(1);
-		} else {
-			fprintf(stderr, "powerdebug: Unable to find clock tree"
-				" information at %s.\n", clk_dir_path);
-			return -1;
-		}
-	}
 
-	return 0;
+	return access(clk_dir_path, F_OK);
 }
 
 static int file_read_from_format(char *file, int *value, const char *format)

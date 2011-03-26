@@ -40,6 +40,8 @@ char clock_lines[MAX_LINES][128];
 int  clock_line_no;
 int  old_clock_line_no;
 
+extern int clock_init(void);
+
 void add_clock_details_recur(struct clock_info *clk, int hrow, int selected);
 void destroy_clocks_info(void);
 void destroy_clocks_info_recur(struct clock_info *clock);

@@ -17,6 +17,7 @@
 #include <stdbool.h>
 #include "regulator.h"
 #include "display.h"
+#include "clocks.h"
 #include "powerdebug.h"
 
 static int highlighted_row;
@@ -315,7 +316,6 @@ static int powerdebug_dump(struct powerdebug_options *options,
 	}
 
 	if (options->clocks) {
-		init_clock_details(options->dump, options->selectedwindow);
 
 		if (options->clkname)
 			read_and_dump_clock_info_one(options->clkname,
@@ -366,6 +366,11 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+	if (clock_init()) {
+		printf("failed to initialize clock details (check debugfs)\n");
+		options->clocks = false;
+	}
+
 	/* we just dump the informations */
 	if (options->dump) {
 		if (powerdebug_dump(options, regulators_info, numregulators))
@@ -376,11 +381,6 @@ int main(int argc, char **argv)
 	if (display_init()) {
 		printf("failed to initialize display\n");
 		return 1;
-	}
-
-	if (init_clock_details(options->dump, options->selectedwindow)) {
-		printf("failed initialize clock details\n");
-		options->clocks = false;
 	}
 
 	if (mainloop(options, regulators_info, numregulators))

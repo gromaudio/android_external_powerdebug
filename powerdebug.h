@@ -39,7 +39,6 @@ extern void find_parents_for_clock(char *clkname, int complete);
 extern int  read_and_print_clock_info(int verbose, int hrow, int selected);
 extern void print_clock_info(int verbose, int hrow, int selected);
 extern void print_string_val(char *name, char *val);
-extern int  init_clock_details(bool dump, int selectedwindow);
 extern void print_clock_header(void);
 extern void print_one_clock(int line, char *str, int bold, int highlight);
 
