@@ -146,7 +146,7 @@ static void dump_all_parents(char *clkarg, bool dump)
 	}
 }
 
-void find_parents_for_clock(char *clkname, int complete, bool dump)
+void find_parents_for_clock(char *clkname, int complete)
 {
 	char name[256];
 
@@ -161,7 +161,7 @@ void find_parents_for_clock(char *clkname, int complete, bool dump)
 	}
 	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
 	print_one_clock(0, name, 1, 1);
-	dump_all_parents(clkname, dump);
+	dump_all_parents(clkname, false);
 }
 
 int read_and_print_clock_info(int verbose, int hrow, int selected)

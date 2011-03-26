@@ -294,8 +294,7 @@ int mainloop(struct powerdebug_options *options,
 					enter_hit = false;
 				} else
 					find_parents_for_clock(clkname_str,
-							       enter_hit,
-							       options->dump);
+							       enter_hit);
 			}
 		}
 
