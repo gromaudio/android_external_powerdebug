@@ -42,14 +42,14 @@ int regulator_init(void)
 	return(0);
 }
 
-void print_string_val(char *name, char *val)
+static void print_string_val(char *name, char *val)
 {
 	printf("\t%s=%s", name, val);
 	if (!strchr(val, '\n'))
 		printf("\n");
 }
 
-void print_regulator_info(int verbose)
+void regulator_print_info(int verbose)
 {
 	int i;
 
@@ -109,7 +109,7 @@ void print_regulator_info(int verbose)
 	printf("\n\n");
 }
 
-void read_info_from_dirent(struct dirent *ritem, char *str, int idx)
+static void read_info_from_dirent(struct dirent *ritem, char *str, int idx)
 {
 	if (!strcmp(ritem->d_name, "name"))
 		strcpy(regulators_info[idx].name, str);
@@ -143,7 +143,7 @@ void read_info_from_dirent(struct dirent *ritem, char *str, int idx)
 		regulators_info[idx].num_users = atoi(str);
 }
 
-int read_regulator_info(void)
+int regulator_read_info(void)
 {
 	FILE *file = NULL;
 	DIR *regdir, *dir;

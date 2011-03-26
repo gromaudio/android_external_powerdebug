@@ -41,3 +41,5 @@ struct regulator_info {
 } *regulators_info;
 
 extern int regulator_init(void);
+extern int regulator_read_info(void);
+extern void regulator_print_info(int verbose);

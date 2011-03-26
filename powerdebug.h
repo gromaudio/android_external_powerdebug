@@ -32,10 +32,6 @@ extern struct regulator_info *regulators_info;
 
 extern int numregulators;
 
-extern void print_regulator_info(int verbose);
-extern void read_regulator_info(void);
-extern void print_regulator_info(int verbose);
-
 extern void read_and_dump_clock_info(int verbose);
 extern void read_and_dump_clock_info_one(char *clk, bool dump);
 extern void read_clock_info(char *clkpath);

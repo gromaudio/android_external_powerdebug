@@ -261,13 +261,13 @@ int mainloop(struct powerdebug_options *options)
 		}
 
 		if (options->regulators || options->selectedwindow == REGULATOR) {
-			read_regulator_info();
+			regulator_read_info();
 			if (!options->dump) {
 				create_selectedwindow(options->selectedwindow);
 				show_regulator_info(options->verbose);
 			}
 			else
-				print_regulator_info(options->verbose);
+				regulator_print_info(options->verbose);
 		}
 
 		if (options->clocks || options->selectedwindow == CLOCK) {
