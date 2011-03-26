@@ -141,13 +141,21 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 		}
 	}
 
-	if (options->dump && !(options->regulators ||
-		      options->clocks || options->sensors)) {
-		/* By Default lets show everything we have */
-		options->regulators = options->clocks = options->sensors = true;
+	if (options->dump) {
+
+		/* No system specified to be dump, let's default to all */
+		if (!options->regulators &&
+		    !options->clocks &&
+		    !options->sensors) {
+			options->regulators = options->clocks =
+				options->sensors = true;
+
+			return 0;
+		}
+
 	}
 
-	if (!options->dump && options->selectedwindow == -1)
+	if (options->selectedwindow == -1)
 		options->selectedwindow = CLOCK;
 
 	return 0;
