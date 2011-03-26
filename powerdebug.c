@@ -341,6 +341,12 @@ int mainloop(struct powerdebug_options *options,
 	return 0;
 }
 
+static int powerdebug_dump(struct powerdebug_options *options,
+			   struct regulator_info *reg_info, int nr_reg)
+{
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	struct powerdebug_options *options;
@@ -362,6 +368,13 @@ int main(int argc, char **argv)
 	if (!regulators_info) {
 		printf("not enough memory to allocate regulators info\n");
 		return 1;
+	}
+
+	/* we just dump the informations */
+	if (options->dump) {
+		if (powerdebug_dump(options, regulators_info, numregulators))
+			return 1;
+		return 0;
 	}
 
 	if (mainloop(options, regulators_info, numregulators))
