@@ -13,10 +13,6 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-#define VALUE_MAX 16
-
-WINDOW windows[TOTAL_FEATURE_WINS];
-
 #define PT_COLOR_DEFAULT    1
 #define PT_COLOR_HEADER_BAR 2
 #define PT_COLOR_ERROR      3
