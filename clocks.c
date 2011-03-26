@@ -20,7 +20,6 @@
 #include "clocks.h"
 
 static char clk_dir_path[PATH_MAX];
-static char clk_name[NAME_MAX];
 static int  bold[MAX_LINES];
 
 static int locate_debugfs(char *clk_path)
@@ -85,8 +84,8 @@ int init_clock_details(bool dump, int selectedwindow)
 			exit(1);
 		}
 	}
-	strcpy(clk_name, "");
-	return(0);
+
+	return 0;
 }
 
 static int file_read_from_format(char *file, int *value, const char *format)
