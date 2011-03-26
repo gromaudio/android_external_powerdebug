@@ -53,14 +53,14 @@ static void print_string_val(char *name, char *val)
 		printf("\n");
 }
 
-void regulator_print_info(struct regulator_info *reg_info, int verbose)
+void regulator_print_info(struct regulator_info *reg_info, int nr_reg, int verbose)
 {
 	int i;
 
 	printf("\nRegulator Information:\n");
 	printf("*********************\n\n");
 
-	for (i = 0; i < numregulators; i++) {
+	for (i = 0; i < nr_reg; i++) {
 		printf("Regulator %d:\n", i + 1);
 		print_string_val("name", reg_info[i].name);
 		if (strcmp(reg_info[i].status, ""))
@@ -105,7 +105,7 @@ void regulator_print_info(struct regulator_info *reg_info, int verbose)
 		printf("\n");
 	}
 
-	if (!numregulators && verbose) {
+	if (!nr_reg && verbose) {
 		printf("Could not find regulator information!");
 		printf(" Looks like %s is empty.\n\n", SYSFS_REGULATOR);
 	}
