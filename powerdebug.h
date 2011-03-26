@@ -28,8 +28,6 @@
 enum {CLOCK, REGULATOR, SENSOR};
 enum {CLOCK_SELECTED = 1, REFRESH_WINDOW};
 
-extern struct regulator_info *regulators_info;
-
 extern int numregulators;
 
 extern void read_and_dump_clock_info(int verbose);
@@ -58,4 +56,6 @@ extern void killall_windows(int all);
 extern void show_header(int selectedwindow);
 extern void create_windows(int selectedwindow);
 extern void create_selectedwindow(int selectedwindow);
+
+struct regulator_info;
 extern void show_regulator_info(struct regulator_info *reg_info, int verbose);

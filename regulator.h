@@ -38,7 +38,7 @@ struct regulator_info {
 	int max_microamps;
 	int requested_microamps;
 	int num_users;
-} *regulators_info;
+};
 
 extern struct regulator_info *regulator_init(int *nr_regulators);
 extern int regulator_read_info(struct regulator_info *reg_info);

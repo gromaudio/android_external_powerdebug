@@ -20,6 +20,8 @@
 
 int highlighted_row;
 
+static struct regulator_info *regulators_info;
+
 void usage(void)
 {
 	printf("Usage: powerdebug [OPTIONS]\n");
