@@ -107,7 +107,7 @@ void regulator_print_info(struct regulator_info *reg_info, int verbose)
 
 	if (!numregulators && verbose) {
 		printf("Could not find regulator information!");
-		printf(" Looks like /sys/class/regulator is empty.\n\n");
+		printf(" Looks like %s is empty.\n\n", SYSFS_REGULATOR);
 	}
 
 	printf("\n\n");
@@ -148,7 +148,7 @@ static void read_info_from_dirent(struct regulator_info *reg_info,
 		reg_info[idx].num_users = atoi(str);
 }
 
-int regulator_read_info(void)
+int regulator_read_info(struct regulator_info *reg_info)
 {
 	FILE *file = NULL;
 	DIR *regdir, *dir;
@@ -156,7 +156,7 @@ int regulator_read_info(void)
 	char line[1024], filename[1024], *fptr;
 	struct dirent *item, *ritem;
 
-	regdir = opendir("/sys/class/regulator");
+	regdir = opendir(SYSFS_REGULATOR);
 	if (!regdir)
 		return(1);
 	while ((item = readdir(regdir))) {
@@ -166,8 +166,7 @@ int regulator_read_info(void)
 		if (strncmp(item->d_name, "regulator", 9))
 			continue;
 
-		len = sprintf(filename, "/sys/class/regulator/%s",
-			item->d_name);
+		len = sprintf(filename, "%s/%s", SYSFS_REGULATOR, item->d_name);
 
 		dir = opendir(filename);
 		if (!dir)
@@ -179,7 +178,7 @@ int regulator_read_info(void)
 			goto exit;
 		}
 
-		strcpy(regulators_info[count-1].name, item->d_name);
+		strcpy(reg_info[count-1].name, item->d_name);
 		while ((ritem = readdir(dir))) {
 			if (strlen(ritem->d_name) < 3)
 				continue;
@@ -194,7 +193,7 @@ int regulator_read_info(void)
 			if (!fptr)
 				continue;
 
-			read_info_from_dirent(regulators_info, ritem,
+			read_info_from_dirent(reg_info, ritem,
 					      fptr, count - 1);
 		}
 	exit:

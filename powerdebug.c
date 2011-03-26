@@ -261,7 +261,7 @@ int mainloop(struct powerdebug_options *options)
 		}
 
 		if (options->regulators || options->selectedwindow == REGULATOR) {
-			regulator_read_info();
+			regulator_read_info(regulators_info);
 			if (!options->dump) {
 				create_selectedwindow(options->selectedwindow);
 				show_regulator_info(options->verbose);
