@@ -58,4 +58,5 @@ extern void create_windows(int selectedwindow);
 extern void create_selectedwindow(int selectedwindow);
 
 struct regulator_info;
-extern void show_regulator_info(struct regulator_info *reg_info, int verbose);
+extern void show_regulator_info(struct regulator_info *reg_info,
+				int nr_reg, int verbose);

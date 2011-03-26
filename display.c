@@ -176,7 +176,7 @@ void show_header(int selectedwindow)
 }
 
 
-void show_regulator_info(struct regulator_info *reg_info, int verbose)
+void show_regulator_info(struct regulator_info *reg_info, int nr_reg, int verbose)
 {
 	int i, count = 1;
 
@@ -194,7 +194,7 @@ void show_regulator_info(struct regulator_info *reg_info, int verbose)
 	print(regulator_win, 84, 0, "Max u-volts");
 	wattroff(regulator_win, A_BOLD);
 
-	for (i = 0; i < numregulators; i++) {
+	for (i = 0; i < nr_reg; i++) {
 		int col = 0;
 
 		if ((i + 2) > (maxy-2))
