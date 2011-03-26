@@ -20,9 +20,6 @@
 
 int highlighted_row;
 
-static struct regulator_info *regulators_info;
-static int numregulators;
-
 void usage(void)
 {
 	printf("Usage: powerdebug [OPTIONS]\n");
@@ -239,7 +236,8 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	return 0;
 }
 
-int mainloop(struct powerdebug_options *options)
+int mainloop(struct powerdebug_options *options,
+	     struct regulator_info *reg_info, int nr_reg)
 {
 	bool findparent_ncurses = false;
 	bool refreshwin = false;
@@ -264,14 +262,14 @@ int mainloop(struct powerdebug_options *options)
 		}
 
 		if (options->regulators || options->selectedwindow == REGULATOR) {
-			regulator_read_info(regulators_info, numregulators);
+			regulator_read_info(reg_info, nr_reg);
 			if (!options->dump) {
 				create_selectedwindow(options->selectedwindow);
-				show_regulator_info(regulators_info, numregulators,
+				show_regulator_info(reg_info, nr_reg,
 						    options->verbose);
 			}
 			else
-				regulator_print_info(regulators_info, numregulators,
+				regulator_print_info(reg_info, nr_reg,
 						     options->verbose);
 		}
 
@@ -346,6 +344,8 @@ int mainloop(struct powerdebug_options *options)
 int main(int argc, char **argv)
 {
 	struct powerdebug_options *options;
+	struct regulator_info *regulators_info;
+	int numregulators;
 
 	options = malloc(sizeof(*options));
 	if (!options) {
@@ -364,7 +364,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	if (mainloop(options))
+	if (mainloop(options, regulators_info, numregulators))
 		return 1;
 
 	return 0;
