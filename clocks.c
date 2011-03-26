@@ -89,21 +89,28 @@ int init_clock_details(bool dump, int selectedwindow)
 	return(0);
 }
 
-int get_int_from(char *file)
+static int file_read_from_format(char *file, int *value, const char *format)
 {
-	FILE *filep;
-	char result[NAME_MAX];
+	FILE *f;
 	int ret;
 
-	filep = fopen(file, "r");
+	f = fopen(file, "r");
+	if (!f)
+		return -1;
+	ret = fscanf(f, format, value);
+	fclose(f);
 
-	if (!filep)
-		return -1;  //TBD : What should we return on failure, here ?
+	return !ret ? -1 : 0;
+}
 
-	ret = fscanf(filep, "%s", result);
-	fclose(filep);
+static inline int file_read_int(char *file, int *value)
+{
+	return file_read_from_format(file, value, "%d");
+}
 
-	return atoi(result);
+static inline int file_read_hex(char *file, int *value)
+{
+	return file_read_from_format(file, value, "%x");
 }
 
 static void dump_parent(struct clock_info *clk, int line, bool dump)
@@ -132,13 +139,13 @@ static void dump_parent(struct clock_info *clk, int line, bool dump)
 	if (clk == clocks_info) {
 		line++;
 		strcpy(spaces, "");
-		sprintf(str, "%s%s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+		sprintf(str, "%s%s (flags:0x%x,usecount:%d,rate:%5.2f %s)\n",
 			spaces, clk->name, clk->flags, clk->usecount, drate,
 			unit);
 	} else {
 		if (!(clk->parent == clocks_info))
 			strcat(spaces, "  ");
-		sprintf(str, "%s`- %s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+		sprintf(str, "%s`- %s (flags:0x%x,usecount:%d,rate:%5.2f %s)\n",
 			spaces, clk->name, clk->flags, clk->usecount, drate,
 			unit);
 	}
@@ -439,11 +446,11 @@ struct clock_info *read_clock_info_recur(char *clkpath, int level,
 
 		if (S_ISREG(buf.st_mode)) {
 			if (!strcmp(item->d_name, "flags"))
-				parent->flags = get_int_from(filename);
+				file_read_hex(filename, &parent->flags);
 			if (!strcmp(item->d_name, "rate"))
-				parent->rate = get_int_from(filename);
+				file_read_int(filename, &parent->rate);
 			if (!strcmp(item->d_name, "usecount"))
-				parent->usecount = get_int_from(filename);
+				file_read_int(filename, &parent->usecount);
 			continue;
 		}
 
@@ -546,7 +553,7 @@ void dump_clock_info(struct clock_info *clk, int level, int bmp)
 			unit = "MHz";
 			drate /= 1000000;
 		}
-		printf("%s (flags:%d,usecount:%d,rate:%5.2f %s)\n",
+		printf("%s (flags:0x%x,usecount:%d,rate:%5.2f %s)\n",
 			clk->name, clk->flags, clk->usecount, drate, unit);
 	}
 	if (clk->children) {
