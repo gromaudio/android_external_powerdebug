@@ -64,7 +64,7 @@ int init_clock_details(bool dump, int selectedwindow)
 			fprintf(stderr, "powerdebug: Unable to locate debugfs "
 				"mount point. Mount debugfs and try "
 				"again..\n");
-			exit(1);
+			return -1;
 		}
 	}
 
@@ -81,7 +81,7 @@ int init_clock_details(bool dump, int selectedwindow)
 		} else {
 			fprintf(stderr, "powerdebug: Unable to find clock tree"
 				" information at %s.\n", clk_dir_path);
-			exit(1);
+			return -1;
 		}
 	}
 
