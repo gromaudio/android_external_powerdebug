@@ -16,6 +16,15 @@
 #include "powerdebug.h"
 #include "sensor.h"
 
+static char *items_temp[32] = {"min", "max", "input", "label", ""};
+static char *suffix_temp[32] = {"°C", "°C", "°C", "", ""};
+static char *items_in[32] = {"min", "max", "input", "label", ""};
+static char *suffix_in[32] = {"Volts", "Volts", "Volts", "", ""};
+static char *items_fan[32] = {"min", "max", "input", "label", "div", "target", ""};
+static char *suffix_fan[32] = {"RPM", "RPM", "RPM", "", "", "RPM", ""};
+static char *items_pwm[32] = {"freq", "enable", "mode", ""};
+static char *suffix_pwm[32] = {"Hz", "", "", ""};
+
 char *get_num(char *fname, char *sensor)
 {
 	char tmpstr[NAME_MAX];
