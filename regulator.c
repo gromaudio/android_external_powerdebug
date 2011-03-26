@@ -59,7 +59,7 @@ static void print_string_val(char *name, char *val)
 		printf("\n");
 }
 
-void regulator_print_info(int verbose)
+void regulator_print_info(struct regulator_info *reg_info, int verbose)
 {
 	int i;
 
@@ -68,46 +68,46 @@ void regulator_print_info(int verbose)
 
 	for (i = 0; i < numregulators; i++) {
 		printf("Regulator %d:\n", i + 1);
-		print_string_val("name", regulators_info[i].name);
-		if (strcmp(regulators_info[i].status, ""))
-			print_string_val("status", regulators_info[i].status);
-		if (strcmp(regulators_info[i].state, ""))
-			print_string_val("state", regulators_info[i].state);
+		print_string_val("name", reg_info[i].name);
+		if (strcmp(reg_info[i].status, ""))
+			print_string_val("status", reg_info[i].status);
+		if (strcmp(reg_info[i].state, ""))
+			print_string_val("state", reg_info[i].state);
 
 		if (!verbose)
 			continue;
 
-		if (strcmp(regulators_info[i].type, ""))
-			print_string_val("type", regulators_info[i].type);
-		if (strcmp(regulators_info[i].opmode, ""))
-			print_string_val("opmode", regulators_info[i].opmode);
+		if (strcmp(reg_info[i].type, ""))
+			print_string_val("type", reg_info[i].type);
+		if (strcmp(reg_info[i].opmode, ""))
+			print_string_val("opmode", reg_info[i].opmode);
 
-		if (regulators_info[i].microvolts)
+		if (reg_info[i].microvolts)
 			printf("\tmicrovolts=%d\n",
-				regulators_info[i].microvolts);
-		if (regulators_info[i].min_microvolts)
+				reg_info[i].microvolts);
+		if (reg_info[i].min_microvolts)
 			printf("\tmin_microvolts=%d\n",
-				regulators_info[i].min_microvolts);
-		if (regulators_info[i].max_microvolts)
+				reg_info[i].min_microvolts);
+		if (reg_info[i].max_microvolts)
 			printf("\tmax_microvolts=%d\n",
-				regulators_info[i].max_microvolts);
+				reg_info[i].max_microvolts);
 
-		if (regulators_info[i].microamps)
+		if (reg_info[i].microamps)
 			printf("\tmicroamps=%d\n",
-				regulators_info[i].microamps);
-		if (regulators_info[i].min_microamps)
+				reg_info[i].microamps);
+		if (reg_info[i].min_microamps)
 			printf("\tmin_microamps=%d\n",
-				regulators_info[i].min_microamps);
-		if (regulators_info[i].max_microamps)
+				reg_info[i].min_microamps);
+		if (reg_info[i].max_microamps)
 			printf("\tmax_microamps=%d\n",
-				regulators_info[i].max_microamps);
-		if (regulators_info[i].requested_microamps)
+				reg_info[i].max_microamps);
+		if (reg_info[i].requested_microamps)
 			printf("\trequested_microamps=%d\n",
-				regulators_info[i].requested_microamps);
+				reg_info[i].requested_microamps);
 
-		if (regulators_info[i].num_users)
+		if (reg_info[i].num_users)
 			printf("\tnum_users=%d\n",
-				regulators_info[i].num_users);
+				reg_info[i].num_users);
 		printf("\n");
 	}
 

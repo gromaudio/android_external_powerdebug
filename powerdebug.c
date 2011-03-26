@@ -267,7 +267,7 @@ int mainloop(struct powerdebug_options *options)
 				show_regulator_info(options->verbose);
 			}
 			else
-				regulator_print_info(options->verbose);
+				regulator_print_info(regulators_info, options->verbose);
 		}
 
 		if (options->clocks || options->selectedwindow == CLOCK) {
