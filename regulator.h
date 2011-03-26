@@ -40,4 +40,4 @@ struct regulator_info {
 	int num_users;
 } *regulators_info;
 
-extern int numregulators;
+extern int regulator_init(void);

@@ -15,7 +15,7 @@
 
 #include "regulator.h"
 
-int init_regulator_ds(void)
+int regulator_init(void)
 {
 	DIR *regdir;
 	struct dirent *item;

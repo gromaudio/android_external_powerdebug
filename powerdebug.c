@@ -15,6 +15,7 @@
 
 #include <getopt.h>
 #include <stdbool.h>
+#include "regulator.h"
 #include "powerdebug.h"
 
 int highlighted_row;
@@ -352,7 +353,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	if (init_regulator_ds())
+	if (regulator_init())
 		return 1;
 
 	if (mainloop(options))

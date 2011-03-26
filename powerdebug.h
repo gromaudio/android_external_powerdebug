@@ -32,7 +32,6 @@ extern struct regulator_info *regulators_info;
 
 extern int numregulators;
 
-extern int init_regulator_ds(void);
 extern void print_regulator_info(int verbose);
 extern void read_regulator_info(void);
 extern void print_regulator_info(int verbose);
