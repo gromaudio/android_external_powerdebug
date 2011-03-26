@@ -13,6 +13,9 @@
  *       - initial API and implementation
  *******************************************************************************/
 
+#include <stdio.h>
+#include <mntent.h>
+
 #include "powerdebug.h"
 #include "clocks.h"
 
@@ -20,14 +23,36 @@ static char clk_dir_path[PATH_MAX];
 static char clk_name[NAME_MAX];
 static int  bold[MAX_LINES];
 
+static int locate_debugfs(char *clk_path)
+{
+	const char *mtab = "/proc/mounts";
+	struct mntent *mntent;
+	int ret = -1;
+	FILE *file = NULL;
+
+	file = setmntent(mtab, "r");
+	if (!file)
+		return -1;
+
+	while ((mntent = getmntent(file))) {
+
+		if (strcmp(mntent->mnt_type, "debugfs"))
+			continue;
+
+		strcpy(clk_path, mntent->mnt_dir);
+		ret = 0;
+		break;
+	}
+
+	fclose(file);
+	return ret;
+}
+
 int init_clock_details(bool dump, int selectedwindow)
 {
-	char *path = debugfs_locate_mpoint();
 	struct stat buf;
 
-	if (path)
-		strcpy(clk_dir_path, path);
-	else {
+	if (locate_debugfs(clk_dir_path)) {
 		if (!dump) {
 			create_selectedwindow(selectedwindow);
 			sprintf(clock_lines[0], "Unable to locate debugfs "
@@ -43,6 +68,7 @@ int init_clock_details(bool dump, int selectedwindow)
 			exit(1);
 		}
 	}
+
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
 	//strcpy(clk_dir_path, "/debug/clock"); // Hardcoded for testing..
 	if (stat(clk_dir_path, &buf)) {
@@ -538,38 +564,4 @@ void dump_clock_info(struct clock_info *clk, int level, int bmp)
 			dump_clock_info(clk->children[i], level + 1, tbmp);
 		}
 	}
-}
-
-char *debugfs_locate_mpoint(void)
-{
-	int ret;
-	FILE *filep;
-	char **path;
-	char fsname[64];
-	struct statfs sfs;
-
-	path = likely_mpoints;
-	while (*path) {
-		ret = statfs(*path, &sfs);
-		if (ret >= 0 && sfs.f_type == (long)DEBUGFS_MAGIC)
-			return *path;
-		path++;
-	}
-
-	filep = fopen("/proc/mounts", "r");
-	if (filep == NULL) {
-		fprintf(stderr, "powerdebug: Error opening /proc/mounts.");
-		exit(1);
-	}
-
-	while (fscanf(filep, "%*s %s %s %*s %*d %*d\n",
-			debugfs_mntpoint, fsname) == 2)
-		if (!strcmp(fsname, "debugfs"))
-			break;
-	fclose(filep);
-
-	if (strcmp(fsname, "debugfs"))
-		return NULL;
-
-	return debugfs_mntpoint;
 }

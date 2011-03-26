@@ -36,16 +36,9 @@ struct clock_info {
 	struct clock_info **children;
 } *clocks_info;
 
-char debugfs_mntpoint[1024];
 char clock_lines[MAX_LINES][128];
 int  clock_line_no;
 int  old_clock_line_no;
-
-char *likely_mpoints[] = {
-	"/sys/kernel/debug",
-	"/debug",
-	NULL
-};
 
 void add_clock_details_recur(struct clock_info *clk, int hrow, int selected);
 void destroy_clocks_info(void);

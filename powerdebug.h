@@ -42,7 +42,6 @@ extern void print_string_val(char *name, char *val);
 extern int  init_clock_details(bool dump, int selectedwindow);
 extern void print_clock_header(void);
 extern void print_one_clock(int line, char *str, int bold, int highlight);
-extern char *debugfs_locate_mpoint(void);
 
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern int  read_and_print_sensor_info(int verbose);
