@@ -330,6 +330,20 @@ static int powerdebug_dump(struct powerdebug_options *options,
 	return 0;
 }
 
+static int powerdebug_display(struct powerdebug_options *options,
+			      struct regulator_info *reg_info, int nr_reg)
+{
+	if (display_init()) {
+		printf("failed to initialize display\n");
+		return -1;
+	}
+
+	if (mainloop(options, reg_info, nr_reg))
+		return -1;
+
+	return 0;
+}
+
 static struct powerdebug_options *powerdebug_init(void)
 {
 	struct powerdebug_options *options;
@@ -347,11 +361,16 @@ int main(int argc, char **argv)
 {
 	struct powerdebug_options *options;
 	struct regulator_info *regulators_info;
-	int numregulators;
+	int numregulators, ret;
 
 	options = powerdebug_init();
 	if (!options) {
 		fprintf(stderr, "not enough memory to allocate options\n");
+		return 1;
+	}
+
+	if (getoptions(argc, argv, options)) {
+		usage();
 		return 1;
 	}
 
@@ -361,30 +380,14 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	if (getoptions(argc, argv, options)) {
-		usage();
-		return 1;
-	}
-
 	if (clock_init()) {
 		printf("failed to initialize clock details (check debugfs)\n");
 		options->clocks = false;
 	}
 
-	/* we just dump the informations */
-	if (options->dump) {
-		if (powerdebug_dump(options, regulators_info, numregulators))
-			return 1;
-		return 0;
-	}
+	ret = options->dump ?
+		powerdebug_dump(options, regulators_info, numregulators) :
+		powerdebug_display(options, regulators_info, numregulators);
 
-	if (display_init()) {
-		printf("failed to initialize display\n");
-		return 1;
-	}
-
-	if (mainloop(options, regulators_info, numregulators))
-		return 1;
-
-	return 0;
+	return ret < 0;
 }
