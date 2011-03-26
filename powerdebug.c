@@ -21,6 +21,7 @@
 int highlighted_row;
 
 static struct regulator_info *regulators_info;
+static int numregulators;
 
 void usage(void)
 {

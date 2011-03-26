@@ -28,8 +28,6 @@
 enum {CLOCK, REGULATOR, SENSOR};
 enum {CLOCK_SELECTED = 1, REFRESH_WINDOW};
 
-extern int numregulators;
-
 extern void read_and_dump_clock_info(int verbose);
 extern void read_and_dump_clock_info_one(char *clk, bool dump);
 extern void read_clock_info(char *clkpath);
