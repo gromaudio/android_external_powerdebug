@@ -21,3 +21,5 @@
 #define PT_COLOR_GREEN      6
 #define PT_COLOR_BRIGHT     7
 #define PT_COLOR_BLUE       8
+
+extern void display_init(void);

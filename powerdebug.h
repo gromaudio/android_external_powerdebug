@@ -47,7 +47,6 @@ extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern int  read_and_print_sensor_info(int verbose);
 extern void print_sensor_header(void);
 
-extern void init_curses(void);
 extern void fini_curses(void);
 extern void killall_windows(int all);
 extern void show_header(int selectedwindow);

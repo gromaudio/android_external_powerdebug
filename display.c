@@ -65,7 +65,7 @@ void killall_windows(int all)
 	}
 }
 
-void init_curses(void)
+void display_init(void)
 {
 	initscr();
 	start_color();

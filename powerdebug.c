@@ -16,6 +16,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include "regulator.h"
+#include "display.h"
 #include "powerdebug.h"
 
 static int highlighted_row;
@@ -261,7 +262,7 @@ int mainloop(struct powerdebug_options *options,
 		fd_set readfds;
 
 		if (firsttime[0])
-			init_curses();
+			display_init();
 		create_windows(options->selectedwindow);
 		show_header(options->selectedwindow);
 
