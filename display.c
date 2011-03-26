@@ -20,6 +20,16 @@
 #define print(w, x, y, fmt, args...) do { mvwprintw(w, y, x, fmt, ##args); } while (0)
 #define NUM_FOOTER_ITEMS 5
 
+enum { PT_COLOR_DEFAULT = 1,
+       PT_COLOR_HEADER_BAR,
+       PT_COLOR_ERROR,
+       PT_COLOR_RED,
+       PT_COLOR_YELLOW,
+       PT_COLOR_GREEN,
+       PT_COLOR_BRIGHT,
+       PT_COLOR_BLUE,
+};
+
 static WINDOW *header_win;
 static WINDOW *regulator_win;
 static WINDOW *clock_win;

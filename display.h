@@ -13,13 +13,4 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-#define PT_COLOR_DEFAULT    1
-#define PT_COLOR_HEADER_BAR 2
-#define PT_COLOR_ERROR      3
-#define PT_COLOR_RED        4
-#define PT_COLOR_YELLOW     5
-#define PT_COLOR_GREEN      6
-#define PT_COLOR_BRIGHT     7
-#define PT_COLOR_BLUE       8
-
 extern int display_init(void);
