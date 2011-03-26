@@ -18,7 +18,7 @@
 #include "regulator.h"
 #include "powerdebug.h"
 
-int highlighted_row;
+static int highlighted_row;
 
 void usage(void)
 {
