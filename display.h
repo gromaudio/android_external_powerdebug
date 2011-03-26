@@ -22,4 +22,4 @@
 #define PT_COLOR_BRIGHT     7
 #define PT_COLOR_BLUE       8
 
-extern void display_init(void);
+extern int display_init(void);

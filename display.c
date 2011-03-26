@@ -66,27 +66,31 @@ static void display_fini(void)
 	endwin();
 }
 
-void display_init(void)
+int display_init(void)
 {
-	initscr();
+	if (!initscr())
+		return -1;
+
 	start_color();
+	use_default_colors();
+
 	keypad(stdscr, TRUE);
 	noecho();
 	cbreak();
 	curs_set(0);
 	nonl();
-	use_default_colors();
 
-	init_pair(PT_COLOR_DEFAULT, COLOR_WHITE, COLOR_BLACK);
-	init_pair(PT_COLOR_ERROR, COLOR_BLACK, COLOR_RED);
-	init_pair(PT_COLOR_HEADER_BAR, COLOR_WHITE, COLOR_BLACK);
-	init_pair(PT_COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW);
-	init_pair(PT_COLOR_GREEN, COLOR_WHITE, COLOR_GREEN);
-	init_pair(PT_COLOR_BRIGHT, COLOR_WHITE, COLOR_BLACK);
-	init_pair(PT_COLOR_BLUE, COLOR_WHITE, COLOR_BLUE);
-	init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED);
+	if (init_pair(PT_COLOR_DEFAULT, COLOR_WHITE, COLOR_BLACK) ||
+	    init_pair(PT_COLOR_ERROR, COLOR_BLACK, COLOR_RED) ||
+	    init_pair(PT_COLOR_HEADER_BAR, COLOR_WHITE, COLOR_BLACK) ||
+	    init_pair(PT_COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW) ||
+	    init_pair(PT_COLOR_GREEN, COLOR_WHITE, COLOR_GREEN) ||
+	    init_pair(PT_COLOR_BRIGHT, COLOR_WHITE, COLOR_BLACK) ||
+	    init_pair(PT_COLOR_BLUE, COLOR_WHITE, COLOR_BLUE) ||
+	    init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED))
+		return -1;
 
-	atexit(display_fini);
+	return atexit(display_fini);
 }
 
 void create_windows(int selectedwindow)

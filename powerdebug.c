@@ -261,8 +261,9 @@ int mainloop(struct powerdebug_options *options,
 		struct timeval tval;
 		fd_set readfds;
 
-		if (firsttime[0])
-			display_init();
+		if (firsttime[0] && display_init())
+			return -1;
+
 		create_windows(options->selectedwindow);
 		show_header(options->selectedwindow);
 
@@ -393,6 +394,11 @@ int main(int argc, char **argv)
 		if (powerdebug_dump(options, regulators_info, numregulators))
 			return 1;
 		return 0;
+	}
+
+	if (display_init()) {
+		printf("failed to initialize display\n");
+		return 1;
 	}
 
 	if (mainloop(options, regulators_info, numregulators))
