@@ -74,14 +74,13 @@ static struct option long_options[] = {
 
 struct powerdebug_options {
 	bool verbose;
-	bool findparent;
 	bool regulators;
 	bool sensors;
 	bool clocks;
 	bool dump;
 	unsigned int ticktime;
 	int selectedwindow;
-	char *clkarg;
+	char *clkname;
 };
 
 int getoptions(int argc, char *argv[], struct powerdebug_options *options)
@@ -114,9 +113,8 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 			options->selectedwindow = CLOCK;
 			break;
 		case 'p':
-			options->findparent = true;
-			options->clkarg = strdup(optarg);
-			if (!options->clkarg) {
+			options->clkname = strdup(optarg);
+			if (!options->clkname) {
 				fprintf(stderr, "failed to allocate memory");
 				return -1;
 			}
@@ -332,8 +330,8 @@ static int powerdebug_dump(struct powerdebug_options *options,
 	if (options->clocks) {
 		init_clock_details(options->dump, options->selectedwindow);
 
-		if (options->findparent)
-			read_and_dump_clock_info_one(options->clkarg,
+		if (options->clkname)
+			read_and_dump_clock_info_one(options->clkname,
 						     options->dump);
 		else
 			read_and_dump_clock_info(options->verbose);
@@ -345,26 +343,39 @@ static int powerdebug_dump(struct powerdebug_options *options,
 	return 0;
 }
 
+static struct powerdebug_options *powerdebug_init(void)
+{
+	struct powerdebug_options *options;
+
+	options = malloc(sizeof(*options));
+	if (!options)
+		return NULL;
+
+	memset(options, 0, sizeof(*options));
+
+	return options;
+}
+
 int main(int argc, char **argv)
 {
 	struct powerdebug_options *options;
 	struct regulator_info *regulators_info;
 	int numregulators;
 
-	options = malloc(sizeof(*options));
+	options = powerdebug_init();
 	if (!options) {
-		fprintf(stderr, "failed to allocated memory\n");
-		return -1;
-	}
-
-	if (getoptions(argc, argv, options)) {
-		usage();
+		fprintf(stderr, "not enough memory to allocate options\n");
 		return 1;
 	}
 
 	regulators_info = regulator_init(&numregulators);
 	if (!regulators_info) {
 		printf("not enough memory to allocate regulators info\n");
+		return 1;
+	}
+
+	if (getoptions(argc, argv, options)) {
+		usage();
 		return 1;
 	}
 
