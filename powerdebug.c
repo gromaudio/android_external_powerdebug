@@ -377,7 +377,7 @@ int main(int argc, char **argv)
 	regulators_info = regulator_init(&numregulators);
 	if (!regulators_info) {
 		printf("not enough memory to allocate regulators info\n");
-		return 1;
+		options->regulators = false;
 	}
 
 	if (clock_init()) {
