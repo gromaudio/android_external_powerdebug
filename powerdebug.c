@@ -264,7 +264,7 @@ int mainloop(struct powerdebug_options *options)
 			regulator_read_info(regulators_info);
 			if (!options->dump) {
 				create_selectedwindow(options->selectedwindow);
-				show_regulator_info(options->verbose);
+				show_regulator_info(regulators_info, options->verbose);
 			}
 			else
 				regulator_print_info(regulators_info, options->verbose);

@@ -176,7 +176,7 @@ void show_header(int selectedwindow)
 }
 
 
-void show_regulator_info(int verbose)
+void show_regulator_info(struct regulator_info *reg_info, int verbose)
 {
 	int i, count = 1;
 
@@ -200,34 +200,34 @@ void show_regulator_info(int verbose)
 		if ((i + 2) > (maxy-2))
 			break;
 
-		if (regulators_info[i].num_users > 0)
+		if (reg_info[i].num_users > 0)
 			wattron(regulator_win, WA_BOLD);
 		else
 			wattroff(regulator_win, WA_BOLD);
 
 		print(regulator_win, col, count, "%s",
-			regulators_info[i].name);
+			reg_info[i].name);
 		col += 12;
 		print(regulator_win, col, count, "%s",
-			regulators_info[i].status);
+			reg_info[i].status);
 		col += 12;
 		print(regulator_win, col, count, "%s",
-			regulators_info[i].state);
+			reg_info[i].state);
 		col += 12;
 		print(regulator_win, col, count, "%s",
-			regulators_info[i].type);
+			reg_info[i].type);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-			regulators_info[i].num_users);
+			reg_info[i].num_users);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-			regulators_info[i].microvolts);
+			reg_info[i].microvolts);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-			regulators_info[i].min_microvolts);
+			reg_info[i].min_microvolts);
 		col += 12;
 		print(regulator_win, col, count, "%d",
-			regulators_info[i].max_microvolts);
+			reg_info[i].max_microvolts);
 
 		count++;
 	}

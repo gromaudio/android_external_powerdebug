@@ -58,4 +58,4 @@ extern void killall_windows(int all);
 extern void show_header(int selectedwindow);
 extern void create_windows(int selectedwindow);
 extern void create_selectedwindow(int selectedwindow);
-extern void show_regulator_info(int verbose);
+extern void show_regulator_info(struct regulator_info *reg_info, int verbose);
