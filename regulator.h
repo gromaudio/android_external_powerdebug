@@ -41,6 +41,6 @@ struct regulator_info {
 };
 
 extern struct regulator_info *regulator_init(int *nr_regulators);
-extern int regulator_read_info(struct regulator_info *reg_info);
+extern int regulator_read_info(struct regulator_info *reg_info, int nr_reg);
 extern void regulator_print_info(struct regulator_info *reg_info,
 				 int nr_reg, int verbose);

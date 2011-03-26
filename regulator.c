@@ -148,7 +148,7 @@ static void read_info_from_dirent(struct regulator_info *reg_info,
 		reg_info[idx].num_users = atoi(str);
 }
 
-int regulator_read_info(struct regulator_info *reg_info)
+int regulator_read_info(struct regulator_info *reg_info, int nr_reg)
 {
 	FILE *file = NULL;
 	DIR *regdir, *dir;
@@ -173,7 +173,7 @@ int regulator_read_info(struct regulator_info *reg_info)
 			continue;
 		count++;
 
-		if (count > numregulators) {
+		if (count > nr_reg) {
 			ret = 1;
 			goto exit;
 		}
