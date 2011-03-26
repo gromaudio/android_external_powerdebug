@@ -353,8 +353,11 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	if (regulator_init())
+	regulators_info = regulator_init(&numregulators);
+	if (!regulators_info) {
+		printf("not enough memory to allocate regulators info\n");
 		return 1;
+	}
 
 	if (mainloop(options))
 		return 1;

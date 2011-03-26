@@ -17,15 +17,17 @@
 
 #define SYSFS_REGULATOR "/sys/class/regulator"
 
-int regulator_init(void)
+struct regulator_info *regulator_init(int *nr_regulators)
 {
 	DIR *regdir;
 	struct dirent *item;
 
+	*nr_regulators = 0;
+
 	regdir = opendir(SYSFS_REGULATOR);
 	if (!regdir) {
 		fprintf(stderr, "failed to open '%s': %m\n", SYSFS_REGULATOR);
-		return -1;
+		return NULL;
 	}
 
 	while ((item = readdir(regdir))) {
@@ -36,20 +38,12 @@ int regulator_init(void)
 		if (!strcmp(item->d_name, ".."))
 			continue;
 
-		numregulators++;
+		(*nr_regulators)++;
 	}
 
 	closedir(regdir);
 
-	regulators_info = (struct regulator_info *)malloc(numregulators*
-							sizeof(struct regulator_info));
-	if (!regulators_info) {
-		fprintf(stderr, "init_regulator_ds: Not enough memory to "
-			"read information for %d regulators!\n", numregulators);
-		return(1);
-	}
-
-	return(0);
+	return malloc(*nr_regulators * sizeof(struct regulator_info));
 }
 
 static void print_string_val(char *name, char *val)
