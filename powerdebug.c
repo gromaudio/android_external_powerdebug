@@ -254,23 +254,16 @@ int mainloop(struct powerdebug_options *options,
 		struct timeval tval;
 		fd_set readfds;
 
-		if (!options->dump) {
-			if (firsttime[0])
-				init_curses();
-			create_windows(options->selectedwindow);
-			show_header(options->selectedwindow);
-		}
+		if (firsttime[0])
+			init_curses();
+		create_windows(options->selectedwindow);
+		show_header(options->selectedwindow);
 
 		if (options->regulators || options->selectedwindow == REGULATOR) {
 			regulator_read_info(reg_info, nr_reg);
-			if (!options->dump) {
-				create_selectedwindow(options->selectedwindow);
-				show_regulator_info(reg_info, nr_reg,
-						    options->verbose);
-			}
-			else
-				regulator_print_info(reg_info, nr_reg,
-						     options->verbose);
+			create_selectedwindow(options->selectedwindow);
+			show_regulator_info(reg_info, nr_reg,
+					    options->verbose);
 		}
 
 		if (options->clocks || options->selectedwindow == CLOCK) {
@@ -282,7 +275,7 @@ int mainloop(struct powerdebug_options *options,
 					firsttime[CLOCK] = 0;
 				strcpy(clkname_str, "");
 			}
-			if (!ret && !options->dump) {
+			if (!ret) {
 				int hrow;
 
 				create_selectedwindow(options->selectedwindow);
@@ -304,24 +297,12 @@ int mainloop(struct powerdebug_options *options,
 							       enter_hit,
 							       options->dump);
 			}
-			if (!ret && options->dump) {
-				if (options->findparent)
-					read_and_dump_clock_info_one(options->clkarg, options->dump);
-				else
-					read_and_dump_clock_info(options->verbose);
-			}
 		}
 
 		if (options->sensors || options->selectedwindow == SENSOR) {
-			if (!options->dump) {
-				create_selectedwindow(options->selectedwindow);
-				print_sensor_header();
-			} else
-				read_and_print_sensor_info(options->verbose);
+			create_selectedwindow(options->selectedwindow);
+			print_sensor_header();
 		}
-
-		if (options->dump)
-			break;
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);
@@ -344,6 +325,24 @@ int mainloop(struct powerdebug_options *options,
 static int powerdebug_dump(struct powerdebug_options *options,
 			   struct regulator_info *reg_info, int nr_reg)
 {
+	if (options->regulators) {
+		regulator_read_info(reg_info, nr_reg);
+		regulator_print_info(reg_info, nr_reg, options->verbose);
+	}
+
+	if (options->clocks) {
+		init_clock_details(options->dump, options->selectedwindow);
+
+		if (options->findparent)
+			read_and_dump_clock_info_one(options->clkarg,
+						     options->dump);
+		else
+			read_and_dump_clock_info(options->verbose);
+	}
+
+	if (options->sensors)
+		read_and_print_sensor_info(options->verbose);
+
 	return 0;
 }
 
