@@ -36,10 +36,6 @@ static char *win_names[TOTAL_FEATURE_WINS] = {
 	"Sensors"
 };
 
-void fini_curses(void) {
-	endwin();
-}
-
 /* "all" : Kill header and footer windows too ? */
 void killall_windows(int all)
 {
@@ -65,6 +61,11 @@ void killall_windows(int all)
 	}
 }
 
+static void display_fini(void)
+{
+	endwin();
+}
+
 void display_init(void)
 {
 	initscr();
@@ -85,9 +86,8 @@ void display_init(void)
 	init_pair(PT_COLOR_BLUE, COLOR_WHITE, COLOR_BLUE);
 	init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED);
 
-	atexit(fini_curses);
+	atexit(display_fini);
 }
-
 
 void create_windows(int selectedwindow)
 {
