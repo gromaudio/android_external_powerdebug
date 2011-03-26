@@ -15,20 +15,30 @@
 
 #include "regulator.h"
 
+#define SYSFS_REGULATOR "/sys/class/regulator"
+
 int regulator_init(void)
 {
 	DIR *regdir;
 	struct dirent *item;
 
-	regdir = opendir("/sys/class/regulator");
-	if (!regdir)
-		return(1);
+	regdir = opendir(SYSFS_REGULATOR);
+	if (!regdir) {
+		fprintf(stderr, "failed to open '%s': %m\n", SYSFS_REGULATOR);
+		return -1;
+	}
+
 	while ((item = readdir(regdir))) {
-		if (strncmp(item->d_name, "regulator", 9))
+
+		if (!strcmp(item->d_name, "."))
+			continue;
+
+		if (!strcmp(item->d_name, ".."))
 			continue;
 
 		numregulators++;
 	}
+
 	closedir(regdir);
 
 	regulators_info = (struct regulator_info *)malloc(numregulators*
