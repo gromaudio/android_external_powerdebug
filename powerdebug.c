@@ -259,29 +259,27 @@ int mainloop(struct powerdebug_options *options,
 					    options->verbose);
 		}
 
-		if (options->selectedwindow == CLOCK) {
+		if (options->clocks || options->selectedwindow == CLOCK) {
 
-			if (options->clocks) {
-				int hrow;
+			int hrow;
 
-				create_selectedwindow(options->selectedwindow);
-				if (!findparent_ncurses) {
-					int command = 0;
+			create_selectedwindow(options->selectedwindow);
+			if (!findparent_ncurses) {
+				int command = 0;
 
-					if (enter_hit)
-						command = CLOCK_SELECTED;
-					if (refreshwin)
-						command = REFRESH_WINDOW;
-					hrow = read_and_print_clock_info(
-						options->verbose,
-						highlighted_row,
-						command);
-					highlighted_row = hrow;
-					enter_hit = false;
-				} else
-					find_parents_for_clock(clkname_str,
-							       enter_hit);
-			}
+				if (enter_hit)
+					command = CLOCK_SELECTED;
+				if (refreshwin)
+					command = REFRESH_WINDOW;
+				hrow = read_and_print_clock_info(
+					options->verbose,
+					highlighted_row,
+					command);
+				highlighted_row = hrow;
+				enter_hit = false;
+			} else
+				find_parents_for_clock(clkname_str,
+						       enter_hit);
 		}
 
 		if (options->sensors || options->selectedwindow == SENSOR) {
