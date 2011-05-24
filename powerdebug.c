@@ -15,6 +15,7 @@
 
 #include <getopt.h>
 #include <stdbool.h>
+#include <math.h>
 #include "regulator.h"
 #include "display.h"
 #include "clocks.h"
@@ -164,17 +165,16 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	if (keystroke == EOF)
 		exit(0);
 
-	if (keystroke == KEY_RIGHT || keystroke == '\t')
+	if (keystroke == KEY_RIGHT || keystroke == '\t') {
 		options->selectedwindow++;
+		options->selectedwindow %= TOTAL_FEATURE_WINS;
+	}
 
-	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB)
+	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB) {
 		options->selectedwindow--;
-
-	if (options->selectedwindow >= TOTAL_FEATURE_WINS)
-		options->selectedwindow = 0;
-
-	if (options->selectedwindow < 0)
-		options->selectedwindow = TOTAL_FEATURE_WINS - 1;
+		if (options->selectedwindow < 0)
+			options->selectedwindow = TOTAL_FEATURE_WINS - 1;
+	}
 
 	if (options->selectedwindow == CLOCK) {
 		if (keystroke == KEY_DOWN)
