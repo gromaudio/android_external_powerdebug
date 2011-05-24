@@ -1,8 +1,7 @@
 BINDIR=/usr/sbin
 MANDIR=/usr/share/man/man8
 
-WARNFLAGS=-Wall -Wshadow -W -Wformat -Wimplicit-function-declaration -Wimplicit-int
-CFLAGS?=-O1 -g ${WARNFLAGS}
+CFLAGS?=-O1 -g -Wall -Wshadow
 CC?=gcc
 
 OBJS = powerdebug.o sensor.o clocks.o regulator.o display.o
@@ -23,4 +22,4 @@ install: powerdebug powerdebug.8.gz
 all: powerdebug powerdebug.8.gz
 
 clean:
-	rm -f powerdebug *.o powerdebug.8.gz
+	rm -f powerdebug ${OBJS} powerdebug.8.gz
