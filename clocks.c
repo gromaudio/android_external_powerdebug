@@ -311,7 +311,7 @@ static void add_clock_details_recur(struct clock_info *clock,
 
 	sprintf(rate_str, "%.2f %s", drate, unit);
 	prepare_name_str(name_str, clock);
-	sprintf(clock_lines[clock_line_no++], "%-55s %-4d  %-12s %-12d %-12d",
+	sprintf(clock_lines[clock_line_no++], "%-55s 0x%-4x  %-12s %-12d %-12d",
 		name_str, clock->flags, rate_str, clock->usecount,
 		clock->num_children);
 
