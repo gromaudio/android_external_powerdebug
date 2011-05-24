@@ -164,10 +164,10 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	if (keystroke == EOF)
 		exit(0);
 
-	if (keystroke == KEY_RIGHT || keystroke == 9)
+	if (keystroke == KEY_RIGHT || keystroke == '\t')
 		options->selectedwindow++;
 
-	if (keystroke == KEY_LEFT || keystroke == 353)
+	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB)
 		options->selectedwindow--;
 
 	if (options->selectedwindow >= TOTAL_FEATURE_WINS)
@@ -181,20 +181,20 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 			highlighted_row++;
 		if (keystroke == KEY_UP && highlighted_row > 0)
 			highlighted_row--;
-		if (keystroke == 47)
+		if (keystroke == '/')
 			*findparent_ncurses = true;
 
-		if ((keystroke == 27 || oldselectedwin !=
+		if ((keystroke == '\e' || oldselectedwin !=
 		     options->selectedwindow) && *findparent_ncurses) {
 			*findparent_ncurses = false;
 			clkname_str[0] = '\0';
 		}
 
-		if (*findparent_ncurses && keystroke != 13) {
+		if (*findparent_ncurses && keystroke != '\r') {
 			int len = strlen(clkname_str);
 			char str[2];
 
-			if (keystroke == 263) {
+			if (keystroke == KEY_BACKSPACE) {
 				if (len > 0)
 					len--;
 
@@ -220,7 +220,7 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	exit(1);
 #endif
 
-	if (keystroke == 13)
+	if (keystroke == '\r')
 		*enter_hit = true;
 
 	if (keychar == 'Q' && !*findparent_ncurses)
