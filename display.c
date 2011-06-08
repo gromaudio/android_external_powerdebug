@@ -45,31 +45,6 @@ static char *win_names[TOTAL_FEATURE_WINS] = {
 	"Sensors"
 };
 
-/* "all" : Kill header and footer windows too ? */
-void killall_windows(int all)
-{
-	if (all && header_win) {
-		delwin(header_win);
-		header_win = NULL;
-	}
-	if (regulator_win) {
-		delwin(regulator_win);
-		regulator_win = NULL;
-	}
-	if (clock_win) {
-		delwin(clock_win);
-		clock_win = NULL;
-	}
-	if (sensor_win) {
-		delwin(sensor_win);
-		sensor_win = NULL;
-	}
-	if (all && footer_win) {
-		delwin(footer_win);
-		footer_win = NULL;
-	}
-}
-
 static void display_fini(void)
 {
 	endwin();
@@ -99,18 +74,36 @@ int display_init(void)
 	    init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED))
 		return -1;
 
-	return atexit(display_fini);
+	if (atexit(display_fini))
+		return -1;
+
+	getmaxyx(stdscr, maxy, maxx);
+
+	regulator_win = subwin(stdscr, maxy - 2, maxx, 1, 0);
+	if (!regulator_win)
+		return -1;
+
+	clock_win = subwin(stdscr, maxy - 2, maxx, 1, 0);
+	if (!clock_win)
+		return -1;
+
+	sensor_win = subwin(stdscr, maxy - 2, maxx, 1, 0);
+	if (!sensor_win)
+		return -1;
+
+	header_win = subwin(stdscr, 1, maxx, 0, 0);
+	if (!header_win)
+		return -1;
+
+	footer_win = subwin(stdscr, 1, maxx, maxy-1, 0);
+	if (!footer_win)
+		return -1;
+
+	return 0;
 }
 
 void create_windows(int selectedwindow)
 {
-
-	getmaxyx(stdscr, maxy, maxx);
-	killall_windows(1);
-
-	header_win = subwin(stdscr, 1, maxx, 0, 0);
-	footer_win = subwin(stdscr, 1, maxx, maxy-1, 0);
-
 	strcpy(footer_items[0], " Q (Quit) ");
 	strcpy(footer_items[1], " R (Refresh) ");
 
@@ -129,26 +122,19 @@ void create_windows(int selectedwindow)
 
 void create_selectedwindow(int selectedwindow)
 {
-	WINDOW *win;
-
-	killall_windows(0);
-
-	getmaxyx(stdscr, maxy, maxx);
-
-	win = subwin(stdscr, maxy - 2, maxx, 1, 0);
-
 	switch (selectedwindow) {
-	case REGULATOR: regulator_win = win;
+	case REGULATOR:
+		wrefresh(regulator_win);
 		break;
 
-	case CLOCK:     clock_win = win;
+	case CLOCK:
+		wrefresh(clock_win);
 		break;
 
-	case SENSOR:    sensor_win = win;
+	case SENSOR:
+		wrefresh(sensor_win);
 		break;
 	}
-
-	refresh();
 }
 
 void show_header(int selectedwindow)

@@ -215,7 +215,7 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	keychar = toupper(keystroke);
 //#define DEBUG
 #ifdef DEBUG
-	killall_windows(1); fini_curses();
+	fini_curses();
 	printf("key entered %d:%c\n", keystroke, keychar);
 	exit(1);
 #endif
