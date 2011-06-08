@@ -313,8 +313,7 @@ static int powerdebug_dump(struct powerdebug_options *options,
 	if (options->clocks) {
 
 		if (options->clkname)
-			read_and_dump_clock_info_one(options->clkname,
-						     options->dump);
+			read_and_dump_clock_info_one(options->clkname);
 		else
 			read_and_dump_clock_info(options->verbose);
 	}

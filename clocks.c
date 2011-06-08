@@ -567,7 +567,7 @@ out:
 	return ret;
 }
 
-void read_and_dump_clock_info_one(char *clk, bool dump)
+void read_and_dump_clock_info_one(char *clk)
 {
 	printf("\nParents for \"%s\" Clock :\n\n", clk);
 	read_clock_info(clk_dir_path);
