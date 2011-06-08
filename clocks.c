@@ -646,59 +646,9 @@ static int dump_clock_cb(struct tree *t, void *data)
 	return 0;
 }
 
-void dump_clock_info(struct clock_info *clk, int level, int bmp)
+int dump_clock_info(void)
 {
-	int i, j;
-
-	if (!clk)
-		return;
-
-	for (i = 1, j = 0; i < level; i++, j = (i - 1)) {
-		if (i == (level - 1)) {
-			if (clk->last_child)
-				printf("`-- ");
-			else
-				printf("|-- ");
-		} else {
-			if ((1<<j) & bmp)
-				printf("|   ");
-			else
-				printf("    ");
-		}
-	}
-
-	if (clk == clocks_info)
-		printf("%s\n", clk->name);
-	else {
-		char *unit = "Hz";
-		double drate = (double)clk->rate;
-
-		if (drate > 1000 && drate < 1000000) {
-			unit = "KHz";
-			drate /= 1000;
-		}
-		if (drate > 1000000) {
-			unit = "MHz";
-			drate /= 1000000;
-		}
-		printf("%s (flags:0x%x,usecount:%d,rate:%5.2f %s)\n",
-			clk->name, clk->flags, clk->usecount, drate, unit);
-	}
-	if (clk->children) {
-		int tbmp = bmp;
-		int xbmp = -1;
-
-		if (clk->last_child) {
-			xbmp ^= 1 << (level - 2);
-
-			xbmp = tbmp & xbmp;
-		} else
-			xbmp = bmp;
-		for (i = 0; i < clk->num_children; i++) {
-			tbmp = xbmp | (1 << level);
-			dump_clock_info(clk->children[i], level + 1, tbmp);
-		}
-	}
+	return tree_for_each(clock_tree, dump_clock_cb, NULL);
 }
 
 void read_and_dump_clock_info(int verbose)
@@ -707,6 +657,6 @@ void read_and_dump_clock_info(int verbose)
 	printf("\nClock Tree :\n");
 	printf("**********\n");
 	read_clock_info(clk_dir_path);
-	dump_clock_info(clocks_info, 1, 1);
+	dump_clock_info();
 	printf("\n\n");
 }
