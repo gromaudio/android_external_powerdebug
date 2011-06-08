@@ -271,7 +271,6 @@ int mainloop(struct powerdebug_options *options,
 				if (refreshwin)
 					command = REFRESH_WINDOW;
 				hrow = read_and_print_clock_info(
-					options->verbose,
 					highlighted_row,
 					command);
 				highlighted_row = hrow;

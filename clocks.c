@@ -283,7 +283,7 @@ static void destroy_clocks_info(void)
 }
 
 
-int read_and_print_clock_info(int verbose, int hrow, int selected)
+int read_and_print_clock_info(int hrow, int selected)
 {
 	print_one_clock(0, "Reading Clock Tree ...", 1, 1);
 
@@ -302,7 +302,7 @@ int read_and_print_clock_info(int verbose, int hrow, int selected)
 	else
 		selected = 0;
 
-	print_clock_info(verbose, hrow, selected);
+	print_clock_info(hrow, selected);
 	hrow = (hrow < old_clock_line_no) ? hrow : old_clock_line_no - 1;
 
 	return hrow;
@@ -380,11 +380,9 @@ static void add_clock_details_recur(struct clock_info *clock,
 	strcpy(clock_lines[clock_line_no], "");
 }
 
-void print_clock_info(int verbose, int hrow, int selected)
+void print_clock_info(int hrow, int selected)
 {
 	int i, count = 0, delta;
-
-	(void)verbose;
 
 	print_clock_header();
 
