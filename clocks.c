@@ -567,20 +567,18 @@ out:
 	return ret;
 }
 
-void read_and_dump_clock_info_one(char *clk)
+void read_and_dump_clock_info(char *clk)
 {
-	printf("\nParents for \"%s\" Clock :\n\n", clk);
 	read_clock_info(clk_dir_path);
-	dump_all_parents(clk);
-	printf("\n\n");
-}
 
-void read_and_dump_clock_info(int verbose)
-{
-	(void)verbose;
-	printf("\nClock Tree :\n");
-	printf("**********\n");
-	read_clock_info(clk_dir_path);
-	dump_clock_info();
-	printf("\n\n");
+	if (clk) {
+		printf("\nParents for \"%s\" Clock :\n\n", clk);
+		dump_all_parents(clk);
+		printf("\n\n");
+	} else {
+		printf("\nClock Tree :\n");
+		printf("**********\n");
+		dump_clock_info();
+		printf("\n\n");
+	}
 }

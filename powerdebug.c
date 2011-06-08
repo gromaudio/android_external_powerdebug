@@ -310,13 +310,8 @@ static int powerdebug_dump(struct powerdebug_options *options,
 		regulator_print_info(reg_info, nr_reg, options->verbose);
 	}
 
-	if (options->clocks) {
-
-		if (options->clkname)
-			read_and_dump_clock_info_one(options->clkname);
-		else
-			read_and_dump_clock_info(options->verbose);
-	}
+	if (options->clocks)
+		read_and_dump_clock_info(options->clkname);
 
 	if (options->sensors)
 		read_and_print_sensor_info(options->verbose);
