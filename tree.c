@@ -223,3 +223,20 @@ int tree_for_each(struct tree *tree, tree_cb_t cb, void *data)
 
 	return tree_for_each(tree->next, cb, data);
 }
+
+struct tree *tree_find(struct tree *tree, const char *name)
+{
+	struct tree *t;
+
+	if (!tree)
+		return NULL;
+
+	if (!strcmp(tree->name, name))
+		return tree;
+
+	t = tree_find(tree->child, name);
+	if (t)
+		return t;
+
+	return tree_find(tree->next, name);
+}

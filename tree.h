@@ -42,4 +42,6 @@ typedef int (*tree_filter_t)(const char *name);
 
 extern struct tree *tree_load(const char *path, tree_filter_t filter);
 
+extern struct tree *tree_find(struct tree *tree, const char *name);
+
 extern int tree_for_each(struct tree *tree, tree_cb_t cb, void *data);
