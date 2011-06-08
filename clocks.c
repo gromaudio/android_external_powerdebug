@@ -392,7 +392,7 @@ int clock_init(void)
  * found in the files. Then print the result to the text based interface
  * Return 0 on success, < 0 otherwise
  */
-int read_and_print_clock_info(int hrow, int selected)
+int read_and_print_clock_info(void)
 {
 	if (read_clock_info())
 		return -1;

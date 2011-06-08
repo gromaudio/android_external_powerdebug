@@ -30,7 +30,7 @@ enum {CLOCK_SELECTED = 1, REFRESH_WINDOW};
 
 extern int read_and_dump_clock_info(char *clk);
 extern void find_parents_for_clock(char *clkname, int complete);
-extern int  read_and_print_clock_info(int hrow, int selected);
+extern int read_and_print_clock_info(void);
 extern int print_clock_info(int hrow, int selected);
 extern void print_string_val(char *name, char *val);
 extern void print_clock_header(void);

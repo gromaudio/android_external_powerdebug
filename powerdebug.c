@@ -21,8 +21,6 @@
 #include "clocks.h"
 #include "powerdebug.h"
 
-static int highlighted_row;
-
 void usage(void)
 {
 	printf("Usage: powerdebug [OPTIONS]\n");
@@ -274,23 +272,14 @@ int mainloop(struct powerdebug_options *options,
 
 		if (options->selectedwindow == CLOCK) {
 
-			int hrow;
-
 			if (!cont) {
 
 				if (!findparent_ncurses) {
-					int command = 0;
 
-					if (enter_hit) {
+					if (enter_hit)
 						clock_toggle_expanded();
-						command = CLOCK_SELECTED;
-					}
-					if (refreshwin)
-						command = REFRESH_WINDOW;
-					hrow = read_and_print_clock_info(
-						highlighted_row,
-						command);
-					highlighted_row = hrow;
+
+					read_and_print_clock_info();
 					enter_hit = false;
 				} else
 					find_parents_for_clock(clkname_str,
