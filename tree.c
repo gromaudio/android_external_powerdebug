@@ -224,6 +224,17 @@ int tree_for_each(struct tree *tree, tree_cb_t cb, void *data)
 	return tree_for_each(tree->next, cb, data);
 }
 
+int tree_for_each_parent(struct tree *tree, tree_cb_t cb, void *data)
+{
+	if (!tree)
+		return 0;
+
+	if (tree_for_each_parent(tree->parent, cb, data))
+		return -1;
+
+	return cb(tree, data);
+}
+
 struct tree *tree_find(struct tree *tree, const char *name)
 {
 	struct tree *t;

@@ -149,93 +149,81 @@ static inline int file_read_hex(const char *file, int *value)
 	return file_read_from_format(file, value, "%x");
 }
 
-static void dump_parent(struct clock_info *clk, int line, bool dump)
+static inline const char *clock_rate(int *rate)
 {
-	char *unit = "Hz";
-	double drate;
-	static char spaces[64];
-	char str[256];
-	static int maxline;
+        int r;
 
-	if (maxline < line)
-		maxline = line;
+        /* GHZ */
+        r = *rate >> 30;
+        if (r) {
+                *rate = r;
+                return "GHZ";
+        }
 
-	if (clk && clk->parent)
-		dump_parent(clk->parent, ++line, dump);
+        /* MHZ */
+        r = *rate >> 20;
+        if (r) {
+                *rate = r;
+                return "MHZ";
+        }
 
-	drate = (double)clk->rate;
-	if (drate > 1000 && drate < 1000000) {
-		unit = "KHz";
-		drate /= 1000;
-	}
-	if (drate > 1000000) {
-		unit = "MHz";
-		drate /= 1000000;
-	}
-	if (clk == clocks_info) {
-		line++;
-		strcpy(spaces, "");
-		sprintf(str, "%s%s (flags:0x%x,usecount:%d,rate:%5.2f %s)\n",
-			spaces, clk->name, clk->flags, clk->usecount, drate,
-			unit);
-	} else {
-		if (!(clk->parent == clocks_info))
-			strcat(spaces, "  ");
-		sprintf(str, "%s`- %s (flags:0x%x,usecount:%d,rate:%5.2f %s)\n",
-			spaces, clk->name, clk->flags, clk->usecount, drate,
-			unit);
-	}
-	if (dump)
-		//printf("line=%d:m%d:l%d %s", maxline - line + 2, maxline, line, str);
-		printf("%s", str);
-	else
-		print_one_clock(maxline - line + 2, str, 1, 0);
+        /* KHZ */
+        r = *rate >> 10;
+        if (r) {
+                *rate = r;
+                return "KHZ";
+        }
+
+        return "";
 }
 
-static struct clock_info *find_clock(struct clock_info *clk, char *clkarg)
+static int dump_clock_cb(struct tree *t, void *data)
 {
-	int i;
-	struct clock_info *ret = clk;
+	struct clock_info *clk = t->private;
+	struct clock_info *pclk;
+	const char *unit;
+	int ret = 0;
+	int rate = clk->rate;
 
-	if (!strcmp(clk->name, clkarg))
-		return ret;
-
-	if (clk->children) {
-		for (i = 0; i < clk->num_children; i++) {
-			if (!strcmp(clk->children[i]->name, clkarg))
-				return clk->children[i];
-		}
-		for (i = 0; i < clk->num_children; i++) {
-			ret = find_clock(clk->children[i], clkarg);
-			if (ret)
-				return ret;
-		}
+	if (!t->parent) {
+		printf("/\n");
+		clk->prefix = "";
+		return 0;
 	}
 
-	return NULL;
+	pclk = t->parent->private;
+
+	if (!clk->prefix)
+		ret = asprintf(&clk->prefix, "%s%s%s", pclk->prefix,
+			       t->depth > 1 ? "   ": "", t->next ? "|" : " ");
+	if (ret < 0)
+		return -1;
+
+	unit = clock_rate(&rate);
+
+	printf("%s%s-- %s (flags:0x%x, usecount:%d, rate: %d %s)\n",
+	       clk->prefix,  !t->next ? "`" : "", t->name, clk->flags,
+	       clk->usecount, rate, unit);
+
+	return 0;
 }
 
-static void dump_all_parents(char *clkarg, bool dump)
+int dump_clock_info(void)
 {
-	struct clock_info *clk;
-	char spaces[1024];
+	return tree_for_each(clock_tree, dump_clock_cb, NULL);
+}
 
-	strcpy(spaces, "");
+static int dump_all_parents(char *clkarg, bool dump)
+{
+	struct tree *tree;
 
-	clk = find_clock(clocks_info, clkarg);
-
-	if (!clk)
+	tree = tree_find(clock_tree, clkarg);
+	if (!tree) {
 		printf("Clock NOT found!\n");
-	else {
-		/* while(clk && clk != clocks_info) { */
-		/* 	printf("%s\n", clk->name); */
-		/* 	strcat(spaces, "  "); */
-		/* 	clk = clk->parent; */
-		/* 	printf("%s <-- ", spaces); */
-		/* } */
-		/* printf("  /\n"); */
-		dump_parent(clk, 1, dump);
+		return -1;
 	}
+
+	return tree_for_each_parent(tree, dump_clock_cb, NULL);
 }
 
 void find_parents_for_clock(char *clkname, int complete)
@@ -585,70 +573,6 @@ void read_and_dump_clock_info_one(char *clk, bool dump)
 	read_clock_info(clk_dir_path);
 	dump_all_parents(clk, dump);
 	printf("\n\n");
-}
-
-static inline const char *clock_rate(int *rate)
-{
-        int r;
-
-        /* GHZ */
-        r = *rate >> 30;
-        if (r) {
-                *rate = r;
-                return "GHZ";
-        }
-
-        /* MHZ */
-        r = *rate >> 20;
-        if (r) {
-                *rate = r;
-                return "MHZ";
-        }
-
-        /* KHZ */
-        r = *rate >> 10;
-        if (r) {
-                *rate = r;
-                return "KHZ";
-        }
-
-        return "";
-}
-
-static int dump_clock_cb(struct tree *t, void *data)
-{
-	struct clock_info *clk = t->private;
-	struct clock_info *pclk;
-	const char *unit;
-	int ret = 0;
-	int rate = clk->rate;
-
-	if (!t->parent) {
-		printf("/\n");
-		clk->prefix = "";
-		return 0;
-	}
-
-	pclk = t->parent->private;
-
-	if (!clk->prefix)
-		ret = asprintf(&clk->prefix, "%s%s%s", pclk->prefix,
-			       t->depth > 1 ? "   ": "", t->next ? "|" : " ");
-	if (ret < 0)
-		return -1;
-
-	unit = clock_rate(&rate);
-
-	printf("%s%s-- %s (flags:0x%x, usecount:%d, rate: %d %s)\n",
-	       clk->prefix,  !t->next ? "`" : "", t->name, clk->flags,
-	       clk->usecount, rate, unit);
-
-	return 0;
-}
-
-int dump_clock_info(void)
-{
-	return tree_for_each(clock_tree, dump_clock_cb, NULL);
 }
 
 void read_and_dump_clock_info(int verbose)
