@@ -4,7 +4,7 @@ MANDIR=/usr/share/man/man8
 CFLAGS?=-O1 -g -Wall -Wshadow
 CC?=gcc
 
-OBJS = powerdebug.o sensor.o clocks.o regulator.o display.o
+OBJS = powerdebug.o sensor.o clocks.o regulator.o display.o tree.o
 
 default: powerdebug
 

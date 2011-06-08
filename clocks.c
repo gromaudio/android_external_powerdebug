@@ -19,6 +19,7 @@
 
 #include "powerdebug.h"
 #include "clocks.h"
+#include "tree.h"
 
 #define MAX_LINES 120
 
@@ -40,6 +41,8 @@ struct clock_info {
 	struct clock_info *parent;
 	struct clock_info **children;
 } *clocks_info;
+
+static struct tree *clock_tree;
 
 static int locate_debugfs(char *clk_path)
 {
@@ -72,6 +75,10 @@ int clock_init(void)
 		return -1;
 
 	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
+
+	clock_tree = tree_load(clk_dir_path, NULL);
+	if (!clock_tree)
+		return -1;
 
 	return access(clk_dir_path, F_OK);
 }
