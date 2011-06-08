@@ -13,7 +13,11 @@
  *       - initial API and implementation
  *******************************************************************************/
 
+#ifndef _GNU_SOURCE
+#define _GNU_SOURCE
 #include <stdio.h>
+#undef _GNU_SOURCE
+#endif
 #include <mntent.h>
 #include <sys/stat.h>
 
@@ -81,6 +85,42 @@ int clock_init(void)
 		return -1;
 
 	return access(clk_dir_path, F_OK);
+}
+
+/*
+ * This functions is a helper to read a specific file content and store
+ * the content inside a variable pointer passed as parameter, the format
+ * parameter gives the variable type to be read from the file.
+ *
+ * @path : directory path containing the file
+ * @name : name of the file to be read
+ * @format : the format of the format
+ * @value : a pointer to a variable to store the content of the file
+ * Returns 0 on success, -1 otherwise
+ */
+int file_read_value(const char *path, const char *name,
+                    const char *format, void *value)
+{
+        FILE *file;
+        char *rpath;
+        int ret;
+
+        ret = asprintf(&rpath, "%s/%s", path, name);
+        if (ret < 0)
+                return ret;
+
+        file = fopen(rpath, "r");
+        if (!file) {
+                ret = -1;
+                goto out_free;
+        }
+
+        ret = fscanf(file, format, value) == EOF ? -1 : 0;
+
+        fclose(file);
+out_free:
+        free(rpath);
+        return ret;
 }
 
 static int file_read_from_format(char *file, int *value, const char *format)
