@@ -227,6 +227,15 @@ int tree_for_each(struct tree *tree, tree_cb_t cb, void *data)
 	return tree_for_each(tree->next, cb, data);
 }
 
+/*
+ * This function will go over the tree passed as parameter at the reverse
+ * order and will call the callback passed as parameter for each.
+ * @tree : the lower node where we begin to browse the tree at the reverse
+ * order
+ * cb : a callback for each node the function will go over
+ * data : some private data to be passed across the callbacks
+ * Returns 0 on success, < 0 otherwise
+ */
 int tree_for_each_reverse(struct tree *tree, tree_cb_t cb, void *data)
 {
 	if (!tree)
@@ -241,6 +250,15 @@ int tree_for_each_reverse(struct tree *tree, tree_cb_t cb, void *data)
 	return tree_for_each_reverse(tree->parent, cb, data);
 }
 
+
+/*
+ * The function will go over all the parent of the specified node passed
+ * as parameter.
+ * @tree : the child node from where we back path to the parent
+ * cb : a callback for each node the function will go over
+ * data : some private data to be passed across the callbacks
+ * Returns 0 on success, < 0 otherwise
+ */
 int tree_for_each_parent(struct tree *tree, tree_cb_t cb, void *data)
 {
 	if (!tree)
@@ -252,6 +270,13 @@ int tree_for_each_parent(struct tree *tree, tree_cb_t cb, void *data)
 	return cb(tree, data);
 }
 
+/*
+ * The function will return the first node which match with the name as
+ * parameter.
+ * @tree : the tree where we begin to find
+ * @name : the name of the node the function must look for.
+ * Returns a pointer to the tree structure if found, NULL otherwise.
+ */
 struct tree *tree_find(struct tree *tree, const char *name)
 {
 	struct tree *t;
@@ -290,6 +315,16 @@ static int tree_finds_cb(struct tree *tree, void *data)
 	return 0;
 }
 
+/*
+ * This function will search for all the nodes where the name begin
+ * with the name passed as parameter. *Note* the function allocates
+ * the array, it is up to the caller to free this array.
+ * @tree : the topmost node of the tree where we being to search
+ * @name : the name to find in the tree
+ * @ptr  : a pointer to a pointer of pointer of tree structure :)
+ * Returns the number of elements found in the tree, < 0 if something
+ * went wrong.
+ */
 int tree_finds(struct tree *tree, const char *name, struct tree ***ptr)
 {
 	struct struct_find sf = { .nr = 0, .ptree = NULL, .name = name };
