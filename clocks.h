@@ -15,17 +15,4 @@
 
 extern int maxy;
 
-struct clock_info {
-	char name[NAME_MAX];
-	int flags;
-	int rate;
-	int usecount;
-	int num_children;
-	int last_child;
-	int expanded;
-	int level;
-	struct clock_info *parent;
-	struct clock_info **children;
-} *clocks_info;
-
 extern int clock_init(void);

@@ -28,6 +28,19 @@ static char clock_lines[MAX_LINES][128];
 static int clock_line_no;
 static int old_clock_line_no;
 
+struct clock_info {
+	char name[NAME_MAX];
+	int flags;
+	int rate;
+	int usecount;
+	int num_children;
+	int last_child;
+	int expanded;
+	int level;
+	struct clock_info *parent;
+	struct clock_info **children;
+} *clocks_info;
+
 static int locate_debugfs(char *clk_path)
 {
 	const char *mtab = "/proc/mounts";
