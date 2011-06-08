@@ -288,9 +288,16 @@ int mainloop(struct powerdebug_options *options,
 		tval.tv_sec = options->ticktime;
 		tval.tv_usec = (options->ticktime - tval.tv_sec) * 1000000;
 
+	again:
 		key = select(1, &readfds, NULL, NULL, &tval);
 		if (!key)
 			continue;
+
+		if (key < 0) {
+			if (errno == EINTR)
+				goto again;
+			break;
+		}
 
 		if (keystroke_callback(&enter_hit, &findparent_ncurses,
 				       clkname_str, &refreshwin, options))
