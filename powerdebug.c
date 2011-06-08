@@ -155,7 +155,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 }
 
 int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
-		       char *clkname_str, bool *refreshwin,
+		       char *clkname_str, bool *refreshwin, bool *cont,
 		       struct powerdebug_options *options)
 {
 	char keychar;
@@ -177,12 +177,22 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	}
 
 	if (options->selectedwindow == CLOCK) {
-		if (keystroke == KEY_DOWN)
-			highlighted_row++;
-		if (keystroke == KEY_UP && highlighted_row > 0)
-			highlighted_row--;
+
+		if (keystroke == KEY_DOWN) {
+			display_next_line();
+			*cont = true;
+		}
+
+		if (keystroke == KEY_UP) {
+			display_prev_line();
+			*cont = true;
+		}
+
+#if 0
+		/* TODO : fix with a new panel applicable for all subsystems */
 		if (keystroke == '/')
 			*findparent_ncurses = true;
+#endif
 
 		if ((keystroke == '\e' || oldselectedwin !=
 		     options->selectedwindow) && *findparent_ncurses) {
@@ -240,6 +250,7 @@ int mainloop(struct powerdebug_options *options,
 	bool findparent_ncurses = false;
 	bool refreshwin = false;
 	bool enter_hit = false;
+	bool cont = false;
 	char clkname_str[64];
 
 	strcpy(clkname_str, "");
@@ -249,9 +260,11 @@ int mainloop(struct powerdebug_options *options,
 		struct timeval tval;
 		fd_set readfds;
 
-		create_windows(options->selectedwindow);
-		show_header(options->selectedwindow);
-		create_selectedwindow(options->selectedwindow);
+		if (options->selectedwindow != CLOCK || !cont) {
+			create_windows(options->selectedwindow);
+			show_header(options->selectedwindow);
+			create_selectedwindow(options->selectedwindow);
+		}
 
 		if (options->selectedwindow == REGULATOR) {
 			regulator_read_info(reg_info, nr_reg);
@@ -263,21 +276,26 @@ int mainloop(struct powerdebug_options *options,
 
 			int hrow;
 
-			if (!findparent_ncurses) {
-				int command = 0;
+			if (!cont) {
 
-				if (enter_hit)
-					command = CLOCK_SELECTED;
-				if (refreshwin)
-					command = REFRESH_WINDOW;
-				hrow = read_and_print_clock_info(
-					highlighted_row,
-					command);
-				highlighted_row = hrow;
-				enter_hit = false;
-			} else
-				find_parents_for_clock(clkname_str,
-						       enter_hit);
+				if (!findparent_ncurses) {
+					int command = 0;
+
+					if (enter_hit) {
+						clock_toggle_expanded();
+						command = CLOCK_SELECTED;
+					}
+					if (refreshwin)
+						command = REFRESH_WINDOW;
+					hrow = read_and_print_clock_info(
+						highlighted_row,
+						command);
+					highlighted_row = hrow;
+					enter_hit = false;
+				} else
+					find_parents_for_clock(clkname_str,
+							       enter_hit);
+			} else cont = false;
 		}
 
 		if (options->selectedwindow == SENSOR)
@@ -300,7 +318,7 @@ int mainloop(struct powerdebug_options *options,
 		}
 
 		if (keystroke_callback(&enter_hit, &findparent_ncurses,
-				       clkname_str, &refreshwin, options))
+				       clkname_str, &refreshwin, &cont, options))
 			break;
 
 	}

@@ -32,11 +32,16 @@ enum { PT_COLOR_DEFAULT = 1,
 
 static WINDOW *header_win;
 static WINDOW *regulator_win;
-static WINDOW *clock_win;
+static WINDOW *clock_pad;
+static WINDOW *clock_labels;
 static WINDOW *sensor_win;
 static WINDOW *footer_win;
 
 int maxx, maxy;
+
+/* Number of lines in the virtual window */
+static const int maxrows = 1024;
+
 static char footer_items[NUM_FOOTER_ITEMS][64];
 
 static char *win_names[TOTAL_FEATURE_WINS] = {
@@ -44,6 +49,16 @@ static char *win_names[TOTAL_FEATURE_WINS] = {
 	"Regulators",
 	"Sensors"
 };
+
+struct rowdata {
+	int attr;
+	void *data;
+};
+
+static struct rowdata *rowdata;
+static int nrdata;
+static int scrolling;
+static int cursor;
 
 static void display_fini(void)
 {
@@ -83,8 +98,12 @@ int display_init(void)
 	if (!regulator_win)
 		return -1;
 
-	clock_win = subwin(stdscr, maxy - 2, maxx, 1, 0);
-	if (!clock_win)
+	clock_labels = subwin(stdscr, maxy - 2, maxx, 1, 0);
+	if (!clock_labels)
+		return -1;
+
+	clock_pad = newpad(maxrows, maxx);
+	if (!clock_pad)
 		return -1;
 
 	sensor_win = subwin(stdscr, maxy - 2, maxx, 1, 0);
@@ -125,10 +144,6 @@ void create_selectedwindow(int selectedwindow)
 	switch (selectedwindow) {
 	case REGULATOR:
 		wrefresh(regulator_win);
-		break;
-
-	case CLOCK:
-		wrefresh(clock_win);
 		break;
 
 	case SENSOR:
@@ -234,15 +249,15 @@ void show_regulator_info(struct regulator_info *reg_info, int nr_reg, int verbos
 
 void print_clock_header(void)
 {
-	werase(clock_win);
-	wattron(clock_win, A_BOLD);
-	print(clock_win, 0, 0, "Name");
-	print(clock_win, 54, 0, "Flags");
-	print(clock_win, 64, 0, "Rate");
-	print(clock_win, 72, 0, "Usecount");
-	print(clock_win, 84, 0, "Children");
-	wattroff(clock_win, A_BOLD);
-	wrefresh(clock_win);
+	werase(clock_labels);
+	wattron(clock_labels, A_BOLD);
+	print(clock_labels, 0, 0, "Name");
+	print(clock_labels, 56, 0, "Flags");
+	print(clock_labels, 75, 0, "Rate");
+	print(clock_labels, 88, 0, "Usecount");
+	print(clock_labels, 98, 0, "Children");
+	wattroff(clock_labels, A_BOLD);
+	wrefresh(clock_labels);
 }
 
 void print_sensor_header(void)
@@ -259,17 +274,110 @@ void print_sensor_header(void)
 	wrefresh(sensor_win);
 }
 
-void print_one_clock(int line, char *str, int bold, int highlight)
+int display_refresh_pad(void)
 {
-	if (bold)
-		wattron(clock_win, WA_BOLD);
-	if (highlight)
-		wattron(clock_win, WA_STANDOUT);
+	return prefresh(clock_pad, scrolling, 0, 2, 0, maxy - 2, maxx);
+}
 
-	print(clock_win, 0, line + 1, "%s", str);
+static int inline display_clock_un_select(int line, bool highlight, bool bold)
+{
+	if (mvwchgat(clock_pad, line, 0, -1,
+		     highlight ? WA_STANDOUT :
+		     bold ? WA_BOLD: WA_NORMAL, 0, NULL) < 0)
+		return -1;
+
+	return display_refresh_pad();
+}
+
+int display_clock_select(int line)
+{
+	return display_clock_un_select(line, true, false);
+}
+
+int display_clock_unselect(int line, bool bold)
+{
+	return display_clock_un_select(line, false, bold);
+}
+
+void *display_get_row_data(void)
+{
+	return rowdata[cursor].data;
+}
+
+int display_set_row_data(int line, void *data, int attr)
+{
+	if (line >= nrdata) {
+		rowdata = realloc(rowdata, sizeof(struct rowdata) * (line + 1));
+		if (!rowdata)
+			return -1;
+		nrdata = line + 1;
+	}
+
+	rowdata[line].data = data;
+	rowdata[line].attr = attr;
+
+	return 0;
+}
+
+int display_reset_cursor(void)
+{
+	nrdata = 0;
+	werase(clock_pad);
+	return wmove(clock_pad, 0, 0);
+}
+
+int display_print_line(int line, char *str, int bold, void *data)
+{
+	int attr = 0;
+
 	if (bold)
-		wattroff(clock_win, WA_BOLD);
-	if (highlight)
-		wattroff(clock_win, WA_STANDOUT);
-	wrefresh(clock_win);
+		attr |= WA_BOLD;
+
+	if (line == cursor)
+		attr |= WA_STANDOUT;
+
+	if (display_set_row_data(line, data, attr))
+		return -1;
+
+	if (attr)
+		wattron(clock_pad, attr);
+
+	wprintw(clock_pad, "%s\n", str);
+
+	if (attr)
+		wattroff(clock_pad, attr);
+
+	return 0;
+}
+
+int display_next_line(void)
+{
+	if (cursor >= nrdata)
+		return cursor;
+
+	display_clock_unselect(cursor, rowdata[cursor].attr);
+	if (cursor < nrdata - 1) {
+		if (cursor >= (maxy - 4 + scrolling))
+			scrolling++;
+		cursor++;
+	}
+	display_clock_select(cursor);
+
+	return cursor;
+}
+
+int display_prev_line(void)
+{
+	if (cursor >= nrdata)
+		return cursor;
+
+	display_clock_unselect(cursor, rowdata[cursor].attr);
+	if (cursor > 0) {
+		if (cursor <= scrolling)
+			scrolling--;
+		cursor--;
+	}
+	display_clock_select(cursor);
+
+	return cursor;
 }

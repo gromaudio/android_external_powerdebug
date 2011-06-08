@@ -11,6 +11,10 @@
  * Contributors:
  *     Amit Arora <amit.arora@linaro.org> (IBM Corporation)
  *       - initial API and implementation
+ *
+ *     Daniel Lezcano <daniel.lezcano@linaro.org> (IBM Corporation)
+ *       - Rewrote code and API
+ *
  *******************************************************************************/
 
 #ifndef _GNU_SOURCE
@@ -25,26 +29,12 @@
 #include "clocks.h"
 #include "tree.h"
 
-#define MAX_LINES 120
-
-static char clk_dir_path[PATH_MAX];
-static int  bold[MAX_LINES];
-static char clock_lines[MAX_LINES][128];
-static int clock_line_no;
-static int old_clock_line_no;
-
 struct clock_info {
-	char name[NAME_MAX];
 	int flags;
 	int rate;
 	int usecount;
-	int num_children;
-	int last_child;
-	int expanded;
-	int level;
+	bool expanded;
 	char *prefix;
-	struct clock_info *parent;
-	struct clock_info **children;
 } *clocks_info;
 
 static struct tree *clock_tree = NULL;
@@ -74,18 +64,15 @@ static int locate_debugfs(char *clk_path)
 	return ret;
 }
 
-int clock_init(void)
+static struct clock_info *clock_alloc(void)
 {
-	if (locate_debugfs(clk_dir_path))
-		return -1;
+	struct clock_info *ci;
 
-	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
+	ci = malloc(sizeof(*ci));
+	if (ci)
+		memset(ci, 0, sizeof(*ci));
 
-	clock_tree = tree_load(clk_dir_path, NULL);
-	if (!clock_tree)
-		return -1;
-
-	return access(clk_dir_path, F_OK);
+	return ci;
 }
 
 /*
@@ -236,347 +223,206 @@ void find_parents_for_clock(char *clkname, int complete)
 
 		strcat(name, clkname);
 		sprintf(str, "Enter Clock Name : %s\n", name);
-		print_one_clock(2, str, 1, 0);
+		display_reset_cursor();
+		display_print_line(0, str, 1, NULL);
+		display_refresh_pad();
 		return;
 	}
 	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
-	print_one_clock(0, name, 1, 1);
+	display_reset_cursor();
+	display_print_line(0, name, 1, NULL);
+	display_refresh_pad();
 	dump_all_parents(clkname);
 }
 
-static void destroy_clocks_info_recur(struct clock_info *clock)
+static inline int read_clock_cb(struct tree *t, void *data)
 {
-	int i;
+	struct clock_info *clk = t->private;
 
-	if (clock && clock->num_children) {
-		for (i = (clock->num_children - 1); i >= 0; i--) {
-			fflush(stdin);
-			destroy_clocks_info_recur(clock->children[i]);
-			if (!i) {
-				free(clock->children);
-				clock->children = NULL;
-				clock->num_children = 0;
-			}
-		}
-	}
-}
-
-static void destroy_clocks_info(void)
-{
-	int i;
-
-	if (!clocks_info)
-		return;
-
-	if (clocks_info->num_children) {
-		for (i = (clocks_info->num_children - 1); i >= 0 ; i--) {
-			destroy_clocks_info_recur(clocks_info->children[i]);
-			if (!i) {
-				free(clocks_info->children);
-				clocks_info->children = NULL;
-			}
-		}
-	}
-	clocks_info->num_children = 0;
-	free(clocks_info);
-	clocks_info = NULL;
-}
-
-
-int read_and_print_clock_info(int hrow, int selected)
-{
-	print_one_clock(0, "Reading Clock Tree ...", 1, 1);
-
-	if (!old_clock_line_no || selected == REFRESH_WINDOW) {
-		destroy_clocks_info();
-		read_clock_info(clk_dir_path);
-	}
-
-	if (!clocks_info || !clocks_info->num_children) {
-		fprintf(stderr, "powerdebug: No clocks found. Exiting..\n");
-		exit(1);
-	}
-
-	if (selected == CLOCK_SELECTED)
-		selected = 1;
-	else
-		selected = 0;
-
-	print_clock_info(hrow, selected);
-	hrow = (hrow < old_clock_line_no) ? hrow : old_clock_line_no - 1;
-
-	return hrow;
-}
-
-static int calc_delta_screen_size(int hrow)
-{
-	if (hrow >= (maxy - 3))
-		return hrow - (maxy - 4);
+	file_read_value(t->path, "flags", "%x", &clk->flags);
+	file_read_value(t->path, "rate", "%d", &clk->rate);
+	file_read_value(t->path, "usecount", "%d", &clk->usecount);
 
 	return 0;
 }
 
-static void prepare_name_str(char *namestr, struct clock_info *clock)
+static int read_clock_info(void)
 {
-	int i;
-
-	strcpy(namestr, "");
-	if (clock->level > 1)
-		for (i = 0; i < (clock->level - 1); i++)
-			strcat(namestr, "  ");
-	strcat(namestr, clock->name);
-}
-
-static void collapse_all_subclocks(struct clock_info *clock)
-{
-	int i;
-
-	clock->expanded = 0;
-	if (clock->num_children)
-		for (i = 0; i < clock->num_children; i++)
-			collapse_all_subclocks(clock->children[i]);
-}
-
-static void add_clock_details_recur(struct clock_info *clock,
-				    int hrow, int selected)
-{
-	int i;
-	char *unit = " Hz";
-	char rate_str[64];
-	char name_str[256];
-	double drate = (double)clock->rate;
-
-	if (drate > 1000 && drate < 1000000) {
-		unit = "KHz";
-		drate /= 1000;
-	}
-	if (drate > 1000000) {
-		unit = "MHz";
-		drate /= 1000000;
-	}
-	if (clock->usecount)
-		bold[clock_line_no] = 1;
-	else
-		bold[clock_line_no] = 0;
-
-	sprintf(rate_str, "%.2f %s", drate, unit);
-	prepare_name_str(name_str, clock);
-	sprintf(clock_lines[clock_line_no++], "%-55s 0x%-4x  %-12s %-12d %-12d",
-		name_str, clock->flags, rate_str, clock->usecount,
-		clock->num_children);
-
-	if (selected && (hrow == (clock_line_no - 1))) {
-		if (clock->expanded)
-			collapse_all_subclocks(clock);
-		else
-			clock->expanded = 1;
-		selected = 0;
-	}
-
-	if (clock->expanded && clock->num_children)
-		for (i = 0; i < clock->num_children; i++)
-			add_clock_details_recur(clock->children[i],
-						hrow, selected);
-	strcpy(clock_lines[clock_line_no], "");
-}
-
-void print_clock_info(int hrow, int selected)
-{
-	int i, count = 0, delta;
-
-	print_clock_header();
-
-	for (i = 0; i < clocks_info->num_children; i++)
-		add_clock_details_recur(clocks_info->children[i],
-					hrow, selected);
-
-	delta = calc_delta_screen_size(hrow);
-
-	while (clock_lines[count + delta] &&
-		strcmp(clock_lines[count + delta], "")) {
-		if (count < delta) {
-			count++;
-			continue;
-		}
-		print_one_clock(count - delta, clock_lines[count + delta],
-				bold[count + delta], (hrow == (count + delta)));
-		count++;
-	}
-
-	old_clock_line_no = clock_line_no;
-	clock_line_no = 0;
-}
-
-static void insert_children(struct clock_info **parent, struct clock_info *clk)
-{
-	if (!(*parent)->num_children || (*parent)->children == NULL) {
-		(*parent)->children = (struct clock_info **)
-			malloc(sizeof(struct clock_info *)*2);
-		(*parent)->num_children = 0;
-	} else
-		(*parent)->children = (struct clock_info **)
-			realloc((*parent)->children,
-				sizeof(struct clock_info *) *
-				((*parent)->num_children + 2));
-	if ((*parent)->num_children > 0)
-		(*parent)->children[(*parent)->num_children - 1]->last_child
-			= 0;
-	clk->last_child = 1;
-	(*parent)->children[(*parent)->num_children] = clk;
-	(*parent)->children[(*parent)->num_children + 1] = NULL;
-	(*parent)->num_children++;
-}
-
-static struct clock_info *read_clock_info_recur(char *clkpath, int level,
-						struct clock_info *parent)
-{
-	int ret = 0;
-	DIR *dir;
-	char filename[PATH_MAX];
-	struct dirent *item;
-	struct clock_info *cur = NULL;
-	struct stat buf;
-
-	dir = opendir(clkpath);
-	if (!dir)
-		return NULL;
-
-	while ((item = readdir(dir))) {
-		struct clock_info *child;
-		/* skip hidden dirs except ".." */
-		if (item->d_name[0] == '.' )
-			continue;
-
-		sprintf(filename, "%s/%s", clkpath, item->d_name);
-
-		ret = stat(filename, &buf);
-
-		if (ret < 0) {
-			printf("Error doing a stat on %s\n", filename);
-			exit(1);
-		}
-
-		if (S_ISREG(buf.st_mode)) {
-			if (!strcmp(item->d_name, "flags"))
-				file_read_hex(filename, &parent->flags);
-			if (!strcmp(item->d_name, "rate"))
-				file_read_int(filename, &parent->rate);
-			if (!strcmp(item->d_name, "usecount"))
-				file_read_int(filename, &parent->usecount);
-			continue;
-		}
-
-		if (!S_ISDIR(buf.st_mode))
-			continue;
-
-		cur = (struct clock_info *)malloc(sizeof(struct clock_info));
-		memset(cur, 0, sizeof(cur));
-		strcpy(cur->name, item->d_name);
-		cur->children = NULL;
-		cur->parent = NULL;
-		cur->num_children = 0;
-		cur->expanded = 0;
-		cur->level = level;
-		child = read_clock_info_recur(filename, level + 1, cur);
-		insert_children(&parent, cur);
-		cur->parent = parent;
-	}
-	closedir(dir);
-
-	return cur;
-}
-
-static struct clock_info *clock_alloc(const char *name)
-{
-	struct clock_info *ci;
-
-	ci = malloc(sizeof(*ci));
-	if (ci) {
-		memset(ci, 0, sizeof(*ci));
-		strcpy(ci->name, name);
-	}
-
-	return ci;
+	return tree_for_each(clock_tree, read_clock_cb, NULL);
 }
 
 static int fill_clock_cb(struct tree *t, void *data)
 {
-	struct clock_info *clkinfo;
+	struct clock_info *clk;
 
-	clkinfo = clock_alloc(t->name);
-	if (!clkinfo)
+	clk = clock_alloc();
+	if (!clk)
 		return -1;
+	t->private = clk;
 
-	t->private = clkinfo;
-	clkinfo->level = t->depth;
+        /* we skip the root node but we set it expanded for its children */
+	if (!t->parent) {
+		clk->expanded = true;
+		return 0;
+	}
 
-	file_read_value(t->path, "flags", "%x", &clkinfo->flags);
-	file_read_value(t->path, "rate", "%d", &clkinfo->rate);
-	file_read_value(t->path, "usecount", "%d", &clkinfo->usecount);
+	return read_clock_cb(t, data);
+}
+
+static int fill_clock_tree(void)
+{
+	return tree_for_each(clock_tree, fill_clock_cb, NULL);
+}
+
+static int is_collapsed(struct tree *t, void *data)
+{
+	struct clock_info *clk = t->private;
+
+	if (!clk->expanded)
+		return 1;
 
 	return 0;
 }
 
-int read_clock_info(char *clkpath)
+static char *clock_line(struct tree *t)
 {
-	DIR *dir;
-	struct dirent *item;
-	char filename[NAME_MAX];
-	struct clock_info *child;
-	struct clock_info *cur;
-	int ret = -1;
+	struct clock_info *clk;
+	int rate;
+	const char *clkunit;
+	char *clkrate, *clkname, *clkline = NULL;
 
-	if (tree_for_each(clock_tree, fill_clock_cb, NULL))
+	clk = t->private;
+	rate = clk->rate;
+	clkunit = clock_rate(&rate);
+
+	if (asprintf(&clkname, "%*s%s", (t->depth - 1) * 2, "", t->name) < 0)
+		return NULL;
+
+	if (asprintf(&clkrate, "%d%s", rate, clkunit) < 0)
+		goto free_clkname;
+
+	if (asprintf(&clkline, "%-55s 0x%-16x %-12s %-9d %-8d", clkname,
+		     clk->flags, clkrate, clk->usecount, t->nrchild) < 0)
+		goto free_clkrate;
+
+free_clkrate:
+	free(clkrate);
+free_clkname:
+	free(clkname);
+
+	return clkline;
+}
+
+static int clock_print_info_cb(struct tree *t, void *data)
+{
+	struct clock_info *clock = t->private;
+	int *line = data;
+	char *buffer;
+
+        /* we skip the root node of the tree */
+	if (!t->parent)
+		return 0;
+
+        /* show the clock when *all* its parent is expanded */
+	if (tree_for_each_parent(t->parent, is_collapsed, NULL))
+		return 0;
+
+	buffer = clock_line(t);
+	if (!buffer)
 		return -1;
 
-	dir = opendir(clkpath);
-	if (!dir)
-		return -1;
+	display_print_line(*line, buffer, clock->usecount, t);
 
-	clocks_info = clock_alloc("/");
-	if (!clocks_info)
-		return -1;
+	(*line)++;
 
-	while ((item = readdir(dir))) {
+	free(buffer);
 
-		/* skip hidden dirs except ".." */
-		if (item->d_name[0] == '.')
-			continue;
+	return 0;
+}
 
-		sprintf(filename, "%s/%s", clkpath, item->d_name);
+static int clock_print_info(void)
+{
+	int ret, line = 0;
 
-		cur = clock_alloc(item->d_name);
-		if (!cur)
-			goto out;
+	print_clock_header();
 
-		cur->parent = clocks_info;
-		cur->num_children = 0;
-		cur->expanded = 0;
-		cur->level = 1;
-		insert_children(&clocks_info, cur);
-		child = read_clock_info_recur(filename, 2, cur);
-	}
+	display_reset_cursor();
 
-	ret = 0;
+	ret = tree_for_each(clock_tree, clock_print_info_cb, &line);
 
-out:
-	closedir(dir);
+	display_refresh_pad();
 
 	return ret;
 }
 
-void read_and_dump_clock_info(char *clk)
+int clock_toggle_expanded(void)
 {
-	read_clock_info(clk_dir_path);
+	struct tree *t = display_get_row_data();
+	struct clock_info *clk = t->private;
+
+	clk->expanded = !clk->expanded;
+
+	return 0;
+}
+
+/*
+ * Initialize the clock framework
+ */
+int clock_init(void)
+{
+	char clk_dir_path[PATH_MAX];
+
+	if (locate_debugfs(clk_dir_path))
+		return -1;
+
+	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
+
+	if (access(clk_dir_path, F_OK))
+		return -1;
+
+	clock_tree = tree_load(clk_dir_path, NULL);
+	if (!clock_tree)
+		return -1;
+
+	return fill_clock_tree();
+}
+
+/*
+ * Read the clock information and fill the tree with the information
+ * found in the files. Then print the result to the text based interface
+ * Return 0 on success, < 0 otherwise
+ */
+int read_and_print_clock_info(int hrow, int selected)
+{
+	if (read_clock_info())
+		return -1;
+
+	return clock_print_info();
+}
+
+/*
+ * Read the clock information and fill the tree with the information
+ * found in the files. Then dump to stdout a formatted result.
+ * @clk : a name for a specific clock we want to show
+ * Return 0 on success, < 0 otherwise
+ */
+int read_and_dump_clock_info(char *clk)
+{
+	int ret;
+
+	if (read_clock_info())
+		return -1;
 
 	if (clk) {
 		printf("\nParents for \"%s\" Clock :\n\n", clk);
-		dump_all_parents(clk);
+		ret = dump_all_parents(clk);
 		printf("\n\n");
 	} else {
 		printf("\nClock Tree :\n");
 		printf("**********\n");
-		dump_clock_info();
+		ret = dump_clock_info();
 		printf("\n\n");
 	}
+
+	return ret;
 }

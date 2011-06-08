@@ -28,14 +28,25 @@
 enum {CLOCK, REGULATOR, SENSOR};
 enum {CLOCK_SELECTED = 1, REFRESH_WINDOW};
 
-extern void read_and_dump_clock_info(char *clk);
-extern int read_clock_info(char *clkpath);
+extern int read_and_dump_clock_info(char *clk);
 extern void find_parents_for_clock(char *clkname, int complete);
 extern int  read_and_print_clock_info(int hrow, int selected);
-extern void print_clock_info(int hrow, int selected);
+extern int print_clock_info(int hrow, int selected);
 extern void print_string_val(char *name, char *val);
 extern void print_clock_header(void);
-extern void print_one_clock(int line, char *str, int bold, int highlight);
+
+extern int display_print_line(int line, char *str, int bold, void *data);
+
+extern int display_refresh_pad(void);
+extern int display_reset_cursor(void);
+extern int display_next_line(void);
+extern int display_prev_line(void);
+
+extern void *display_get_row_data(void);
+
+extern int clock_toggle_expanded(void);
+extern int display_clock_select(int line);
+extern int display_clock_unselect(int line, bool bold);
 
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
 extern int  read_and_print_sensor_info(int verbose);
