@@ -213,7 +213,7 @@ int dump_clock_info(void)
 	return tree_for_each(clock_tree, dump_clock_cb, NULL);
 }
 
-static int dump_all_parents(char *clkarg, bool dump)
+static int dump_all_parents(char *clkarg)
 {
 	struct tree *tree;
 
@@ -241,7 +241,7 @@ void find_parents_for_clock(char *clkname, int complete)
 	}
 	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
 	print_one_clock(0, name, 1, 1);
-	dump_all_parents(clkname, false);
+	dump_all_parents(clkname);
 }
 
 static void destroy_clocks_info_recur(struct clock_info *clock)
@@ -571,7 +571,7 @@ void read_and_dump_clock_info_one(char *clk, bool dump)
 {
 	printf("\nParents for \"%s\" Clock :\n\n", clk);
 	read_clock_info(clk_dir_path);
-	dump_all_parents(clk, dump);
+	dump_all_parents(clk);
 	printf("\n\n");
 }
 
