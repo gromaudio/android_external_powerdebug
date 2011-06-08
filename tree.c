@@ -224,6 +224,20 @@ int tree_for_each(struct tree *tree, tree_cb_t cb, void *data)
 	return tree_for_each(tree->next, cb, data);
 }
 
+int tree_for_each_reverse(struct tree *tree, tree_cb_t cb, void *data)
+{
+	if (!tree)
+		return 0;
+
+	if (cb(tree, data))
+		return -1;
+
+	if (tree_for_each_reverse(tree->prev, cb, data))
+		return -1;
+
+	return tree_for_each_reverse(tree->parent, cb, data);
+}
+
 int tree_for_each_parent(struct tree *tree, tree_cb_t cb, void *data)
 {
 	if (!tree)
