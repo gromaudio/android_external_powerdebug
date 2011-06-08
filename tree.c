@@ -265,3 +265,51 @@ struct tree *tree_find(struct tree *tree, const char *name)
 
 	return tree_find(tree->next, name);
 }
+
+struct struct_find {
+	int nr;
+	const char *name;
+	struct tree ***ptree;
+};
+
+static int tree_finds_cb(struct tree *tree, void *data)
+{
+	struct struct_find *sf = data;
+
+	if (strncmp(sf->name, tree->name, strlen(sf->name)))
+		return 0;
+
+	if (sf->ptree)
+		(*(sf->ptree))[sf->nr] = tree;
+
+	sf->nr++;
+
+	return 0;
+}
+
+int tree_finds(struct tree *tree, const char *name, struct tree ***ptr)
+{
+	struct struct_find sf = { .nr = 0, .ptree = NULL, .name = name };
+	int nmatch;
+
+	/* first pass : count # of matching nodes */
+	tree_for_each(tree, tree_finds_cb, &sf);
+
+	/* no match */
+	if (!sf.nr)
+		return 0;
+
+	*ptr = malloc(sizeof(struct tree *) * sf.nr);
+	if (!*ptr)
+		return -1;
+
+	/* store the result as it will be overwritten by the next call */
+	nmatch = sf.nr;
+	sf.nr = 0;
+	sf.ptree = ptr;
+
+	/* second pass : fill with the matching nodes */
+	tree_for_each(tree, tree_finds_cb, &sf);
+
+	return nmatch;
+}

@@ -49,3 +49,5 @@ extern int tree_for_each(struct tree *tree, tree_cb_t cb, void *data);
 extern int tree_for_each_reverse(struct tree *tree, tree_cb_t cb, void *data);
 
 extern int tree_for_each_parent(struct tree *tree, tree_cb_t cb, void *data);
+
+extern int tree_finds(struct tree *tree, const char *name, struct tree ***ptr);
