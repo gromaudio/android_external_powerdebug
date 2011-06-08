@@ -57,6 +57,7 @@ static inline struct tree *tree_alloc(const char *path, int depth)
 	t->next = NULL;
 	t->prev = NULL;
 	t->private = NULL;
+	t->nrchild = 0;
 
 	return t;
 }
@@ -160,6 +161,8 @@ static int tree_scan(struct tree *tree, tree_filter_t filter)
 				goto out_free_newpath;
 
 			tree_add_child(tree, child);
+
+			tree->nrchild++;
 
 			ret = tree_scan(child, filter);
 		}

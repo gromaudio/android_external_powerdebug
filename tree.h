@@ -33,6 +33,7 @@ struct tree {
 	char *path;
 	char *name;
 	void *private;
+	int   nrchild;
 	unsigned char depth;
 };
 
