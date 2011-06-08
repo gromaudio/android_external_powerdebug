@@ -34,11 +34,10 @@ static WINDOW *header_win;
 static WINDOW *regulator_win;
 static WINDOW *clock_win;
 static WINDOW *sensor_win;
-static WINDOW *selected_win;
 static WINDOW *footer_win;
 
 int maxx, maxy;
-char footer_items[NUM_FOOTER_ITEMS][64];
+static char footer_items[NUM_FOOTER_ITEMS][64];
 
 static char *win_names[TOTAL_FEATURE_WINS] = {
 	"Clocks",
@@ -148,8 +147,6 @@ void create_selectedwindow(int selectedwindow)
 	case SENSOR:    sensor_win = win;
 		break;
 	}
-
-	selected_win = win;
 
 	refresh();
 }
