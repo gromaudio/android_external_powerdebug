@@ -372,63 +372,28 @@ void print_clock_info(int verbose, int hrow, int selected)
 	clock_line_no = 0;
 }
 
-void read_and_dump_clock_info_one(char *clk, bool dump)
+static void insert_children(struct clock_info **parent, struct clock_info *clk)
 {
-	printf("\nParents for \"%s\" Clock :\n\n", clk);
-	read_clock_info(clk_dir_path);
-	dump_all_parents(clk, dump);
-	printf("\n\n");
+	if (!(*parent)->num_children || (*parent)->children == NULL) {
+		(*parent)->children = (struct clock_info **)
+			malloc(sizeof(struct clock_info *)*2);
+		(*parent)->num_children = 0;
+	} else
+		(*parent)->children = (struct clock_info **)
+			realloc((*parent)->children,
+				sizeof(struct clock_info *) *
+				((*parent)->num_children + 2));
+	if ((*parent)->num_children > 0)
+		(*parent)->children[(*parent)->num_children - 1]->last_child
+			= 0;
+	clk->last_child = 1;
+	(*parent)->children[(*parent)->num_children] = clk;
+	(*parent)->children[(*parent)->num_children + 1] = NULL;
+	(*parent)->num_children++;
 }
 
-void read_and_dump_clock_info(int verbose)
-{
-	(void)verbose;
-	printf("\nClock Tree :\n");
-	printf("**********\n");
-	read_clock_info(clk_dir_path);
-	dump_clock_info(clocks_info, 1, 1);
-	printf("\n\n");
-}
-
-void read_clock_info(char *clkpath)
-{
-	DIR *dir;
-	struct dirent *item;
-	char filename[NAME_MAX], clockname[NAME_MAX];
-	struct clock_info *child;
-	struct clock_info *cur;
-
-	dir = opendir(clkpath);
-	if (!dir)
-		return;
-
-	clocks_info = (struct clock_info *)malloc(sizeof(struct clock_info));
-	memset(clocks_info, 0, sizeof(clocks_info));
-	strcpy(clocks_info->name, "/");
-	clocks_info->level = 0;
-
-	while ((item = readdir(dir))) {
-		/* skip hidden dirs except ".." */
-		if (item->d_name[0] == '.')
-			continue;
-
-		strcpy(clockname, item->d_name);
-		sprintf(filename, "%s/%s", clkpath, item->d_name);
-		cur = (struct clock_info *)malloc(sizeof(struct clock_info));
-		memset(cur, 0, sizeof(struct clock_info));
-		strcpy(cur->name, clockname);
-		cur->parent = clocks_info;
-		cur->num_children = 0;
-		cur->expanded = 0;
-		cur->level = 1;
-		insert_children(&clocks_info, cur);
-		child = read_clock_info_recur(filename, 2, cur);
-	}
-	closedir(dir);
-}
-
-struct clock_info *read_clock_info_recur(char *clkpath, int level,
-					struct clock_info *parent)
+static struct clock_info *read_clock_info_recur(char *clkpath, int level,
+						struct clock_info *parent)
 {
 	int ret = 0;
 	DIR *dir;
@@ -486,24 +451,49 @@ struct clock_info *read_clock_info_recur(char *clkpath, int level,
 	return cur;
 }
 
-void insert_children(struct clock_info **parent, struct clock_info *clk)
+void read_clock_info(char *clkpath)
 {
-	if (!(*parent)->num_children || (*parent)->children == NULL) {
-		(*parent)->children = (struct clock_info **)
-			malloc(sizeof(struct clock_info *)*2);
-		(*parent)->num_children = 0;
-	} else
-		(*parent)->children = (struct clock_info **)
-			realloc((*parent)->children,
-				sizeof(struct clock_info *) *
-				((*parent)->num_children + 2));
-	if ((*parent)->num_children > 0)
-		(*parent)->children[(*parent)->num_children - 1]->last_child
-			= 0;
-	clk->last_child = 1;
-	(*parent)->children[(*parent)->num_children] = clk;
-	(*parent)->children[(*parent)->num_children + 1] = NULL;
-	(*parent)->num_children++;
+	DIR *dir;
+	struct dirent *item;
+	char filename[NAME_MAX], clockname[NAME_MAX];
+	struct clock_info *child;
+	struct clock_info *cur;
+
+	dir = opendir(clkpath);
+	if (!dir)
+		return;
+
+	clocks_info = (struct clock_info *)malloc(sizeof(struct clock_info));
+	memset(clocks_info, 0, sizeof(clocks_info));
+	strcpy(clocks_info->name, "/");
+	clocks_info->level = 0;
+
+	while ((item = readdir(dir))) {
+		/* skip hidden dirs except ".." */
+		if (item->d_name[0] == '.')
+			continue;
+
+		strcpy(clockname, item->d_name);
+		sprintf(filename, "%s/%s", clkpath, item->d_name);
+		cur = (struct clock_info *)malloc(sizeof(struct clock_info));
+		memset(cur, 0, sizeof(struct clock_info));
+		strcpy(cur->name, clockname);
+		cur->parent = clocks_info;
+		cur->num_children = 0;
+		cur->expanded = 0;
+		cur->level = 1;
+		insert_children(&clocks_info, cur);
+		child = read_clock_info_recur(filename, 2, cur);
+	}
+	closedir(dir);
+}
+
+void read_and_dump_clock_info_one(char *clk, bool dump)
+{
+	printf("\nParents for \"%s\" Clock :\n\n", clk);
+	read_clock_info(clk_dir_path);
+	dump_all_parents(clk, dump);
+	printf("\n\n");
 }
 
 void dump_clock_info(struct clock_info *clk, int level, int bmp)
@@ -559,4 +549,14 @@ void dump_clock_info(struct clock_info *clk, int level, int bmp)
 			dump_clock_info(clk->children[i], level + 1, tbmp);
 		}
 	}
+}
+
+void read_and_dump_clock_info(int verbose)
+{
+	(void)verbose;
+	printf("\nClock Tree :\n");
+	printf("**********\n");
+	read_clock_info(clk_dir_path);
+	dump_clock_info(clocks_info, 1, 1);
+	printf("\n\n");
 }
