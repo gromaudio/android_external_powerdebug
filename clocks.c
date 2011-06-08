@@ -255,7 +255,7 @@ int read_and_print_clock_info(int verbose, int hrow, int selected)
 		read_clock_info(clk_dir_path);
 	}
 
-	if (!clocks_info->num_children) {
+	if (!clocks_info || !clocks_info->num_children) {
 		fprintf(stderr, "powerdebug: No clocks found. Exiting..\n");
 		exit(1);
 	}

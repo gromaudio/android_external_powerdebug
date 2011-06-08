@@ -251,19 +251,18 @@ int mainloop(struct powerdebug_options *options,
 
 		create_windows(options->selectedwindow);
 		show_header(options->selectedwindow);
+		create_selectedwindow(options->selectedwindow);
 
-		if (options->regulators || options->selectedwindow == REGULATOR) {
+		if (options->selectedwindow == REGULATOR) {
 			regulator_read_info(reg_info, nr_reg);
-			create_selectedwindow(options->selectedwindow);
 			show_regulator_info(reg_info, nr_reg,
 					    options->verbose);
 		}
 
-		if (options->clocks || options->selectedwindow == CLOCK) {
+		if (options->selectedwindow == CLOCK) {
 
 			int hrow;
 
-			create_selectedwindow(options->selectedwindow);
 			if (!findparent_ncurses) {
 				int command = 0;
 
@@ -282,10 +281,8 @@ int mainloop(struct powerdebug_options *options,
 						       enter_hit);
 		}
 
-		if (options->sensors || options->selectedwindow == SENSOR) {
-			create_selectedwindow(options->selectedwindow);
+		if (options->selectedwindow == SENSOR)
 			print_sensor_header();
-		}
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);
