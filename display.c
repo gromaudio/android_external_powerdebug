@@ -18,7 +18,6 @@
 #include "display.h"
 
 #define print(w, x, y, fmt, args...) do { mvwprintw(w, y, x, fmt, ##args); } while (0)
-#define NUM_FOOTER_ITEMS 5
 
 enum { PT_COLOR_DEFAULT = 1,
        PT_COLOR_HEADER_BAR,
@@ -38,7 +37,8 @@ int maxx, maxy;
 /* Number of lines in the virtual window */
 static const int maxrows = 1024;
 
-static char footer_items[NUM_FOOTER_ITEMS][64];
+#define footer_label " Q (Quit)  R (Refresh) Other Keys: 'Left', " \
+	"'Right' , 'Up', 'Down', 'enter', , 'Esc'"
 
 struct rowdata {
 	int attr;
@@ -66,7 +66,39 @@ static void display_fini(void)
 	endwin();
 }
 
-int display_init(void)
+static int show_header_footer(int win)
+{
+	int i;
+	int curr_pointer = 0;
+
+	wattrset(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
+	wbkgd(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
+	werase(header_win);
+
+	print(header_win, curr_pointer, 0, "PowerDebug %s", VERSION);
+	curr_pointer += 20;
+
+	for (i = 0; i < TOTAL_FEATURE_WINS; i++) {
+		if (win == i)
+			wattron(header_win, A_REVERSE);
+		else
+			wattroff(header_win, A_REVERSE);
+
+		print(header_win, curr_pointer, 0, " %s ", windata[i].name);
+		curr_pointer += strlen(windata[i].name) + 2;
+	}
+	wrefresh(header_win);
+	werase(footer_win);
+
+	wattron(footer_win, A_REVERSE);
+	print(footer_win, 0, 0, "%s", footer_label);
+	wattroff(footer_win, A_REVERSE);
+	wrefresh(footer_win);
+
+	return 0;
+}
+
+int display_init(int wdefault)
 {
 	int i;
 	size_t array_size = sizeof(windata) / sizeof(windata[0]);
@@ -118,65 +150,7 @@ int display_init(void)
 	if (!footer_win)
 		return -1;
 
-	return 0;
-}
-
-void create_windows(int selectedwindow)
-{
-	strcpy(footer_items[0], " Q (Quit) ");
-	strcpy(footer_items[1], " R (Refresh) ");
-
-	if (selectedwindow == CLOCK)
-		strcpy(footer_items[2], " Other Keys: 'Left', 'Right', 'Up', 'Down', 'enter', "
-			" '/', 'Esc' ");
-	else
-		strcpy(footer_items[2], " Other Keys: 'Left', 'Right' ");
-
-	strcpy(footer_items[3], "");
-
-	werase(stdscr);
-	refresh();
-
-}
-
-void create_selectedwindow(int win)
-{
-	wrefresh(windata[win].win);
-}
-
-void show_header(int selectedwindow)
-{
-	int i, j = 0;
-	int curr_pointer = 0;
-
-	wattrset(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
-	wbkgd(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
-	werase(header_win);
-
-	print(header_win, curr_pointer, 0, "PowerDebug %s", VERSION);
-	curr_pointer += 20;
-
-	for (i = 0; i < TOTAL_FEATURE_WINS; i++) {
-		if (selectedwindow == i)
-			wattron(header_win, A_REVERSE);
-		else
-			wattroff(header_win, A_REVERSE);
-
-		print(header_win, curr_pointer, 0, " %s ", windata[i].name);
-		curr_pointer += strlen(windata[i].name) + 2;
-	}
-	wrefresh(header_win);
-	werase(footer_win);
-
-	for (i = 0; i < NUM_FOOTER_ITEMS; i++) {
-		if (strlen(footer_items[i]) == 0)
-			continue;
-		wattron(footer_win, A_REVERSE);
-		print(footer_win, j, 0, "%s", footer_items[i]);
-		wattroff(footer_win, A_REVERSE);
-		j+= strlen(footer_items[i])+1;
-	}
-	wrefresh(footer_win);
+	return show_header_footer(wdefault);
 }
 
 void print_regulator_header(void)
@@ -195,6 +169,8 @@ void print_regulator_header(void)
 	print(regulator_win, 84, 0, "Max u-volts");
 	wattroff(regulator_win, A_BOLD);
 	wrefresh(regulator_win);
+
+	show_header_footer(REGULATOR);
 }
 
 void print_clock_header(void)
@@ -210,6 +186,8 @@ void print_clock_header(void)
 	print(clock_win, 98, 0, "Children");
 	wattroff(clock_win, A_BOLD);
 	wrefresh(clock_win);
+
+	show_header_footer(CLOCK);
 }
 
 void print_sensor_header(void)
@@ -222,6 +200,8 @@ void print_sensor_header(void)
 	print(sensor_win, 36, 0, "Value");
 	wattroff(sensor_win, A_BOLD);
 	wrefresh(sensor_win);
+
+	show_header_footer(SENSOR);
 }
 
 int display_refresh_pad(int win)

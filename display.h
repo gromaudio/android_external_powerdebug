@@ -13,4 +13,4 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-extern int display_init(void);
+extern int display_init(int wdefault);

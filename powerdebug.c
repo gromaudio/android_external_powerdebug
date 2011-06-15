@@ -258,11 +258,8 @@ int mainloop(struct powerdebug_options *options)
 		struct timeval tval;
 		fd_set readfds;
 
-		if (options->selectedwindow != CLOCK || !cont) {
-			create_windows(options->selectedwindow);
-			show_header(options->selectedwindow);
-			create_selectedwindow(options->selectedwindow);
-		}
+		/* if (options->selectedwindow != CLOCK || !cont) */
+		/* 	show_header(options->selectedwindow); */
 
 		if (options->selectedwindow == REGULATOR)
 			regulator_display();
@@ -328,7 +325,7 @@ static int powerdebug_dump(struct powerdebug_options *options)
 
 static int powerdebug_display(struct powerdebug_options *options)
 {
-	if (display_init()) {
+	if (display_init(options->selectedwindow)) {
 		printf("failed to initialize display\n");
 		return -1;
 	}
