@@ -234,42 +234,13 @@ int display_refresh(void)
 	return 0;
 }
 
-int display_select(void)
-{
-	if (windata[current_win].ops && windata[current_win].ops->select)
-		return windata[current_win].ops->select();
-
-	return 0;
-}
-
-int display_next_panel(void)
-{
-	size_t array_size = sizeof(windata) / sizeof(windata[0]);
-
-	current_win++;
-	current_win %= array_size;
-
-	return current_win;
-}
-
-int display_prev_panel(void)
-{
-	size_t array_size = sizeof(windata) / sizeof(windata[0]);
-
-	current_win--;
-	if (current_win < 0)
-		current_win = array_size - 1;
-
-	return current_win;
-}
-
 int display_refresh_pad(int win)
 {
 	return prefresh(windata[win].pad, windata[win].scrolling,
 			0, 2, 0, maxy - 2, maxx);
 }
 
-int display_show_unselection(int win, int line, bool bold)
+static int display_show_unselection(int win, int line, bool bold)
 {
 	if (mvwchgat(windata[win].pad, line, 0, -1,
 		     bold ? WA_BOLD: WA_NORMAL, 0, NULL) < 0)
@@ -283,7 +254,82 @@ void *display_get_row_data(int win)
 	return windata[win].rowdata[windata[win].cursor].data;
 }
 
-int display_set_row_data(int win, int line, void *data, int attr)
+static int display_select(void)
+{
+	if (windata[current_win].ops && windata[current_win].ops->select)
+		return windata[current_win].ops->select();
+
+	return 0;
+}
+
+static int display_next_panel(void)
+{
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
+	current_win++;
+	current_win %= array_size;
+
+	return current_win;
+}
+
+static int display_prev_panel(void)
+{
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
+	current_win--;
+	if (current_win < 0)
+		current_win = array_size - 1;
+
+	return current_win;
+}
+
+static int display_next_line(void)
+{
+	int cursor = windata[current_win].cursor;
+	int nrdata = windata[current_win].nrdata;
+	int scrolling = windata[current_win].scrolling;
+	struct rowdata *rowdata = windata[current_win].rowdata;
+
+	if (cursor >= nrdata)
+		return cursor;
+
+	display_show_unselection(current_win, cursor, rowdata[cursor].attr);
+	if (cursor < nrdata - 1) {
+		if (cursor >= (maxy - 4 + scrolling))
+			scrolling++;
+		cursor++;
+	}
+
+	windata[current_win].scrolling = scrolling;
+	windata[current_win].cursor = cursor;
+
+	return cursor;
+}
+
+static int display_prev_line(void)
+{
+	int cursor = windata[current_win].cursor;
+	int nrdata = windata[current_win].nrdata;
+	int scrolling = windata[current_win].scrolling;
+	struct rowdata *rowdata = windata[current_win].rowdata;
+
+	if (cursor >= nrdata)
+		return cursor;
+
+	display_show_unselection(current_win, cursor, rowdata[cursor].attr);
+	if (cursor > 0) {
+		if (cursor <= scrolling)
+			scrolling--;
+		cursor--;
+	}
+
+	windata[current_win].scrolling = scrolling;
+	windata[current_win].cursor = cursor;
+
+	return cursor;
+}
+
+static int display_set_row_data(int win, int line, void *data, int attr)
 {
 	struct rowdata *rowdata =  windata[win].rowdata;
 
@@ -330,52 +376,6 @@ int display_print_line(int win, int line, char *str, int bold, void *data)
 		wattroff(windata[win].pad, attr);
 
 	return 0;
-}
-
-int display_next_line(void)
-{
-	int cursor = windata[current_win].cursor;
-	int nrdata = windata[current_win].nrdata;
-	int scrolling = windata[current_win].scrolling;
-	struct rowdata *rowdata = windata[current_win].rowdata;
-
-	if (cursor >= nrdata)
-		return cursor;
-
-	display_show_unselection(current_win, cursor, rowdata[cursor].attr);
-	if (cursor < nrdata - 1) {
-		if (cursor >= (maxy - 4 + scrolling))
-			scrolling++;
-		cursor++;
-	}
-
-	windata[current_win].scrolling = scrolling;
-	windata[current_win].cursor = cursor;
-
-	return cursor;
-}
-
-int display_prev_line(void)
-{
-	int cursor = windata[current_win].cursor;
-	int nrdata = windata[current_win].nrdata;
-	int scrolling = windata[current_win].scrolling;
-	struct rowdata *rowdata = windata[current_win].rowdata;
-
-	if (cursor >= nrdata)
-		return cursor;
-
-	display_show_unselection(current_win, cursor, rowdata[cursor].attr);
-	if (cursor > 0) {
-		if (cursor <= scrolling)
-			scrolling--;
-		cursor--;
-	}
-
-	windata[current_win].scrolling = scrolling;
-	windata[current_win].cursor = cursor;
-
-	return cursor;
 }
 
 int display_keystroke(void *data)
