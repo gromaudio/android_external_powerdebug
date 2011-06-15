@@ -11,197 +11,209 @@
  * Contributors:
  *     Amit Arora <amit.arora@linaro.org> (IBM Corporation)
  *       - initial API and implementation
+ *     Daniel Lezcano <daniel.lezcano@linaro.org> (IBM Corporation)
+ *       - rewrote code and API based on the tree
  *******************************************************************************/
 
 #include "regulator.h"
 
 #define SYSFS_REGULATOR "/sys/class/regulator"
+#define _GNU_SOURCE
+#include <stdio.h>
+#undef _GNU_SOURCE
+#include <sys/types.h>
+#include <stdbool.h>
+#include <dirent.h>
+#include <string.h>
+#include <stdlib.h>
+#include "powerdebug.h"
+#include "tree.h"
+#include "utils.h"
 
-struct regulator_info *regulator_init(int *nr_regulators)
+struct regulator_info {
+	char name[NAME_MAX];
+	char state[VALUE_MAX];
+	char status[VALUE_MAX];
+	char type[VALUE_MAX];
+	char opmode[VALUE_MAX];
+	int microvolts;
+	int min_microvolts;
+	int max_microvolts;
+	int microamps;
+	int min_microamps;
+	int max_microamps;
+	int requested_microamps;
+	int num_users;
+};
+
+struct regulator_data {
+	const char *name;
+	const char *ifmt;
+	const char *ofmt;
+	bool derefme;
+};
+
+static struct regulator_data regdata[] = {
+	{ "name",           "%s", "\tname: %s\n"                 },
+	{ "status",         "%s", "\tstatus: %s\n"               },
+	{ "state",          "%s", "\tstate: %s\n"                },
+	{ "type",           "%s", "\ttype: %s\n"                 },
+	{ "num_users",      "%d", "\tnum_users: %d\n",      true },
+	{ "microvolts",     "%d", "\tmicrovolts: %d\n",     true },
+	{ "max_microvolts", "%d", "\tmax_microvolts: %d\n", true },
+	{ "min_microvolts", "%d", "\tmin_microvolts: %d\n", true },
+};
+
+static struct tree *reg_tree;
+
+static struct regulator_info *regulator_alloc(void)
 {
-	DIR *regdir;
-	struct dirent *item;
+	struct regulator_info *regi;
 
-	*nr_regulators = 0;
+	regi = malloc(sizeof(*regi));
+	if (regi)
+		memset(regi, 0, sizeof(*regi));
 
-	regdir = opendir(SYSFS_REGULATOR);
-	if (!regdir) {
-		fprintf(stderr, "failed to open '%s': %m\n", SYSFS_REGULATOR);
-		return NULL;
-	}
-
-	while ((item = readdir(regdir))) {
-
-		if (!strcmp(item->d_name, "."))
-			continue;
-
-		if (!strcmp(item->d_name, ".."))
-			continue;
-
-		(*nr_regulators)++;
-	}
-
-	closedir(regdir);
-
-	return malloc(*nr_regulators * sizeof(struct regulator_info));
+	return regi;
 }
 
-static void print_string_val(char *name, char *val)
-{
-	printf("\t%s=%s", name, val);
-	if (!strchr(val, '\n'))
-		printf("\n");
-}
-
-void regulator_print_info(struct regulator_info *reg_info, int nr_reg, int verbose)
+static int regulator_dump_cb(struct tree *tree, void *data)
 {
 	int i;
+	char buffer[NAME_MAX];
+	size_t nregdata = sizeof(regdata) / sizeof(regdata[0]);
 
+	if (!strncmp("regulator.", tree->name, strlen("regulator.")))
+		printf("\n%s:\n", tree->name);
+
+	for (i = 0; i < nregdata; i++) {
+
+		if (file_read_value(tree->path, regdata[i].name,
+				    regdata[i].ifmt, buffer))
+			continue;
+
+		printf(regdata[i].ofmt, regdata[i].derefme ?
+		       *((int *)buffer) : buffer);
+	}
+
+	return 0;
+}
+
+int regulator_dump(void)
+{
 	printf("\nRegulator Information:\n");
 	printf("*********************\n\n");
 
-	for (i = 0; i < nr_reg; i++) {
-		printf("Regulator %d:\n", i + 1);
-		print_string_val("name", reg_info[i].name);
-		if (strcmp(reg_info[i].status, ""))
-			print_string_val("status", reg_info[i].status);
-		if (strcmp(reg_info[i].state, ""))
-			print_string_val("state", reg_info[i].state);
-
-		if (!verbose)
-			continue;
-
-		if (strcmp(reg_info[i].type, ""))
-			print_string_val("type", reg_info[i].type);
-		if (strcmp(reg_info[i].opmode, ""))
-			print_string_val("opmode", reg_info[i].opmode);
-
-		if (reg_info[i].microvolts)
-			printf("\tmicrovolts=%d\n",
-				reg_info[i].microvolts);
-		if (reg_info[i].min_microvolts)
-			printf("\tmin_microvolts=%d\n",
-				reg_info[i].min_microvolts);
-		if (reg_info[i].max_microvolts)
-			printf("\tmax_microvolts=%d\n",
-				reg_info[i].max_microvolts);
-
-		if (reg_info[i].microamps)
-			printf("\tmicroamps=%d\n",
-				reg_info[i].microamps);
-		if (reg_info[i].min_microamps)
-			printf("\tmin_microamps=%d\n",
-				reg_info[i].min_microamps);
-		if (reg_info[i].max_microamps)
-			printf("\tmax_microamps=%d\n",
-				reg_info[i].max_microamps);
-		if (reg_info[i].requested_microamps)
-			printf("\trequested_microamps=%d\n",
-				reg_info[i].requested_microamps);
-
-		if (reg_info[i].num_users)
-			printf("\tnum_users=%d\n",
-				reg_info[i].num_users);
-		printf("\n");
-	}
-
-	if (!nr_reg && verbose) {
-		printf("Could not find regulator information!");
-		printf(" Looks like %s is empty.\n\n", SYSFS_REGULATOR);
-	}
-
-	printf("\n\n");
+	return tree_for_each(reg_tree, regulator_dump_cb, NULL);
 }
 
-static void read_info_from_dirent(struct regulator_info *reg_info,
-				  struct dirent *ritem, char *str, int idx)
+static int regulator_display_cb(struct tree *t, void *data)
 {
-	if (!strcmp(ritem->d_name, "name"))
-		strcpy(reg_info[idx].name, str);
-	if (!strcmp(ritem->d_name, "state"))
-		strcpy(reg_info[idx].state, str);
-	if (!strcmp(ritem->d_name, "status"))
-		strcpy(reg_info[idx].status, str);
+	struct regulator_info *reg = t->private;
+	int *line = data;
+	char *buf;
 
-	if (!strcmp(ritem->d_name, "type"))
-		strcpy(reg_info[idx].type, str);
-	if (!strcmp(ritem->d_name, "opmode"))
-		strcpy(reg_info[idx].opmode, str);
+        /* we skip the root node of the tree */
+	if (!t->parent)
+		return 0;
 
-	if (!strcmp(ritem->d_name, "microvolts"))
-		reg_info[idx].microvolts = atoi(str);
-	if (!strcmp(ritem->d_name, "min_microvolts"))
-		reg_info[idx].min_microvolts = atoi(str);
-	if (!strcmp(ritem->d_name, "max_microvolts"))
-		reg_info[idx].max_microvolts = atoi(str);
+	if (!strlen(reg->name))
+		return 0;
 
-	if (!strcmp(ritem->d_name, "microamps"))
-		reg_info[idx].microamps = atoi(str);
-	if (!strcmp(ritem->d_name, "min_microamps"))
-		reg_info[idx].min_microamps = atoi(str);
-	if (!strcmp(ritem->d_name, "max_microamps"))
-		reg_info[idx].max_microamps = atoi(str);
-	if (!strcmp(ritem->d_name, "requested_microamps"))
-		reg_info[idx].requested_microamps = atoi(str);
+	if (asprintf(&buf, "%-11s %-11s %-11s %-11s %-11d %-11d %-11d %-12d",
+		     reg->name, reg->status, reg->state, reg->type,
+		     reg->num_users, reg->microvolts, reg->min_microvolts,
+		     reg->max_microvolts) < 0)
+		return -1;
 
-	if (!strcmp(ritem->d_name, "num_users"))
-		reg_info[idx].num_users = atoi(str);
+	display_print_line(REGULATOR, *line, buf, reg->num_users, t);
+
+	(*line)++;
+
+	free(buf);
+
+	return 0;
 }
 
-int regulator_read_info(struct regulator_info *reg_info, int nr_reg)
+int regulator_display(void)
 {
-	FILE *file = NULL;
-	DIR *regdir, *dir;
-	int len, count = 0, ret = 0;
-	char line[1024], filename[1024], *fptr;
-	struct dirent *item, *ritem;
+	int ret, line = 0;
 
-	regdir = opendir(SYSFS_REGULATOR);
-	if (!regdir)
-		return(1);
-	while ((item = readdir(regdir))) {
-		if (strlen(item->d_name) < 3)
-			continue;
+	display_reset_cursor(REGULATOR);
 
-		if (strncmp(item->d_name, "regulator", 9))
-			continue;
+	print_regulator_header();
 
-		len = sprintf(filename, "%s/%s", SYSFS_REGULATOR, item->d_name);
+	ret = tree_for_each(reg_tree, regulator_display_cb, &line);
 
-		dir = opendir(filename);
-		if (!dir)
-			continue;
-		count++;
-
-		if (count > nr_reg) {
-			ret = 1;
-			goto exit;
-		}
-
-		strcpy(reg_info[count-1].name, item->d_name);
-		while ((ritem = readdir(dir))) {
-			if (strlen(ritem->d_name) < 3)
-				continue;
-
-			sprintf(filename + len, "/%s", ritem->d_name);
-			file = fopen(filename, "r");
-			if (!file)
-				continue;
-			memset(line, 0, 1024);
-			fptr = fgets(line, 1024, file);
-			fclose(file);
-			if (!fptr)
-				continue;
-
-			read_info_from_dirent(reg_info, ritem,
-					      fptr, count - 1);
-		}
-	exit:
-		closedir(dir);
-		if (ret)
-			break;
-	}
-	closedir(regdir);
+	display_refresh_pad(REGULATOR);
 
 	return ret;
+}
+
+static int regulator_filter_cb(const char *name)
+{
+	/* let's ignore some directories in order to avoid to be
+	 * pulled inside the sysfs circular symlinks mess/hell
+	 * (choose the word which fit better)
+	 */
+	if (!strcmp(name, "device"))
+		return 1;
+
+	if (!strcmp(name, "subsystem"))
+		return 1;
+
+	if (!strcmp(name, "driver"))
+		return 1;
+
+	return 0;
+}
+
+static inline int read_regulator_cb(struct tree *t, void *data)
+{
+	struct regulator_info *reg = t->private;
+
+	file_read_value(t->path, "name", "%s", reg->name);
+	file_read_value(t->path, "state", "%s", reg->state);
+	file_read_value(t->path, "status", "%s", reg->status);
+	file_read_value(t->path, "type", "%s", reg->type);
+	file_read_value(t->path, "opmode", "%s", reg->opmode);
+	file_read_value(t->path, "num_users", "%d", &reg->num_users);
+	file_read_value(t->path, "microvolts", "%d", &reg->microvolts);
+	file_read_value(t->path, "min_microvolts", "%d", &reg->min_microvolts);
+	file_read_value(t->path, "max_microvolts", "%d", &reg->max_microvolts);
+	file_read_value(t->path, "microamps", "%d", &reg->microamps);
+	file_read_value(t->path, "min_microamps", "%d", &reg->min_microamps);
+	file_read_value(t->path, "max_microamps", "%d", &reg->max_microamps);
+
+	return 0;
+}
+
+static int fill_regulator_cb(struct tree *t, void *data)
+{
+	struct regulator_info *reg;
+
+	reg = regulator_alloc();
+	if (!reg)
+		return -1;
+	t->private = reg;
+
+        /* we skip the root node but we set it expanded for its children */
+	if (!t->parent)
+		return 0;
+
+	return read_regulator_cb(t, data);
+}
+
+static int fill_regulator_tree(void)
+{
+	return tree_for_each(reg_tree, fill_regulator_cb, NULL);
+}
+
+int regulator_init(void)
+{
+	reg_tree = tree_load(SYSFS_REGULATOR, regulator_filter_cb);
+	if (!reg_tree)
+		return -1;
+
+	return fill_regulator_tree();
 }

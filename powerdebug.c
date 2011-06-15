@@ -174,6 +174,21 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 			options->selectedwindow = TOTAL_FEATURE_WINS - 1;
 	}
 
+#if 0 /* TODO */
+	if (options->selectedwindow == REGULATOR) {
+
+		if (keystroke == KEY_DOWN) {
+			display_next_line();
+			*cont = true;
+		}
+
+		if (keystroke == KEY_UP) {
+			display_prev_line();
+			*cont = true;
+		}
+
+	}
+#endif
 	if (options->selectedwindow == CLOCK) {
 
 		if (keystroke == KEY_DOWN) {
@@ -242,8 +257,7 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	return 0;
 }
 
-int mainloop(struct powerdebug_options *options,
-	     struct regulator_info *reg_info, int nr_reg)
+int mainloop(struct powerdebug_options *options)
 {
 	bool findparent_ncurses = false;
 	bool refreshwin = false;
@@ -264,11 +278,8 @@ int mainloop(struct powerdebug_options *options,
 			create_selectedwindow(options->selectedwindow);
 		}
 
-		if (options->selectedwindow == REGULATOR) {
-			regulator_read_info(reg_info, nr_reg);
-			show_regulator_info(reg_info, nr_reg,
-					    options->verbose);
-		}
+		if (options->selectedwindow == REGULATOR)
+			regulator_display();
 
 		if (options->selectedwindow == CLOCK) {
 
@@ -315,13 +326,10 @@ int mainloop(struct powerdebug_options *options,
 	return 0;
 }
 
-static int powerdebug_dump(struct powerdebug_options *options,
-			   struct regulator_info *reg_info, int nr_reg)
+static int powerdebug_dump(struct powerdebug_options *options)
 {
-	if (options->regulators) {
-		regulator_read_info(reg_info, nr_reg);
-		regulator_print_info(reg_info, nr_reg, options->verbose);
-	}
+	if (options->regulators)
+		regulator_dump();
 
 	if (options->clocks)
 		read_and_dump_clock_info(options->clkname);
@@ -332,15 +340,14 @@ static int powerdebug_dump(struct powerdebug_options *options,
 	return 0;
 }
 
-static int powerdebug_display(struct powerdebug_options *options,
-			      struct regulator_info *reg_info, int nr_reg)
+static int powerdebug_display(struct powerdebug_options *options)
 {
 	if (display_init()) {
 		printf("failed to initialize display\n");
 		return -1;
 	}
 
-	if (mainloop(options, reg_info, nr_reg))
+	if (mainloop(options))
 		return -1;
 
 	return 0;
@@ -362,8 +369,7 @@ static struct powerdebug_options *powerdebug_init(void)
 int main(int argc, char **argv)
 {
 	struct powerdebug_options *options;
-	struct regulator_info *regulators_info;
-	int numregulators, ret;
+	int ret;
 
 	options = powerdebug_init();
 	if (!options) {
@@ -376,8 +382,7 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	regulators_info = regulator_init(&numregulators);
-	if (!regulators_info) {
+	if (regulator_init()) {
 		printf("not enough memory to allocate regulators info\n");
 		options->regulators = false;
 	}
@@ -387,9 +392,8 @@ int main(int argc, char **argv)
 		options->clocks = false;
 	}
 
-	ret = options->dump ?
-		powerdebug_dump(options, regulators_info, numregulators) :
-		powerdebug_display(options, regulators_info, numregulators);
+	ret = options->dump ? powerdebug_dump(options) :
+		powerdebug_display(options);
 
 	return ret < 0;
 }

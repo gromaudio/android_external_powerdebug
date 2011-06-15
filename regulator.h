@@ -13,32 +13,7 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-#include <dirent.h>
-#include <getopt.h>
-
 #define VALUE_MAX 16
 
-struct regulator_info {
-	char name[NAME_MAX];
-	char state[VALUE_MAX];
-	char status[VALUE_MAX];
-	char type[VALUE_MAX];
-	char opmode[VALUE_MAX];
-	int microvolts;
-	int min_microvolts;
-	int max_microvolts;
-	int microamps;
-	int min_microamps;
-	int max_microamps;
-	int requested_microamps;
-	int num_users;
-};
-
-extern struct regulator_info *regulator_init(int *nr_regulators);
-extern int regulator_read_info(struct regulator_info *reg_info, int nr_reg);
-extern void regulator_print_info(struct regulator_info *reg_info,
-				 int nr_reg, int verbose);
+extern int regulator_init(void);
+extern int regulator_dump(void);

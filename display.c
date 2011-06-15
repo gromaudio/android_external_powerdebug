@@ -190,13 +190,8 @@ void show_header(int selectedwindow)
 	wrefresh(footer_win);
 }
 
-
-void show_regulator_info(struct regulator_info *reg_info, int nr_reg, int verbose)
+void print_regulator_header(void)
 {
-	int i, count = 1;
-
-	(void)verbose;
-
 	werase(regulator_win);
 	wattron(regulator_win, A_BOLD);
 	print(regulator_win, 0, 0, "Name");
@@ -208,6 +203,34 @@ void show_regulator_info(struct regulator_info *reg_info, int nr_reg, int verbos
 	print(regulator_win, 72, 0, "Min u-volts");
 	print(regulator_win, 84, 0, "Max u-volts");
 	wattroff(regulator_win, A_BOLD);
+	wrefresh(regulator_win);
+}
+
+void print_clock_header(void)
+{
+	werase(clock_labels);
+	wattron(clock_labels, A_BOLD);
+	print(clock_labels, 0, 0, "Name");
+	print(clock_labels, 56, 0, "Flags");
+	print(clock_labels, 75, 0, "Rate");
+	print(clock_labels, 88, 0, "Usecount");
+	print(clock_labels, 98, 0, "Children");
+	wattroff(clock_labels, A_BOLD);
+	wrefresh(clock_labels);
+}
+
+#if 0
+void show_regulator_info(struct regulator_info *reg_info, int nr_reg, int verbose)
+{
+	int i, count = 1;
+
+	print_regulator_header();
+
+	wrefresh(regulator_win);
+
+	return;
+
+	(void)verbose;
 
 	for (i = 0; i < nr_reg; i++) {
 		int col = 0;
@@ -248,20 +271,7 @@ void show_regulator_info(struct regulator_info *reg_info, int nr_reg, int verbos
 	}
 	wrefresh(regulator_win);
 }
-
-
-void print_clock_header(void)
-{
-	werase(clock_labels);
-	wattron(clock_labels, A_BOLD);
-	print(clock_labels, 0, 0, "Name");
-	print(clock_labels, 56, 0, "Flags");
-	print(clock_labels, 75, 0, "Rate");
-	print(clock_labels, 88, 0, "Usecount");
-	print(clock_labels, 98, 0, "Children");
-	wattroff(clock_labels, A_BOLD);
-	wrefresh(clock_labels);
-}
+#endif
 
 void print_sensor_header(void)
 {
