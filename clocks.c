@@ -26,6 +26,7 @@
 #include <sys/stat.h>
 
 #include "powerdebug.h"
+#include "display.h"
 #include "clocks.h"
 #include "tree.h"
 #include "utils.h"
@@ -306,28 +307,6 @@ int clock_toggle_expanded(void)
 }
 
 /*
- * Initialize the clock framework
- */
-int clock_init(void)
-{
-	char clk_dir_path[PATH_MAX];
-
-	if (locate_debugfs(clk_dir_path))
-		return -1;
-
-	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
-
-	if (access(clk_dir_path, F_OK))
-		return -1;
-
-	clock_tree = tree_load(clk_dir_path, NULL);
-	if (!clock_tree)
-		return -1;
-
-	return fill_clock_tree();
-}
-
-/*
  * Read the clock information and fill the tree with the information
  * found in the files. Then print the result to the text based interface
  * Return 0 on success, < 0 otherwise
@@ -365,4 +344,34 @@ int clock_dump(char *clk)
 	}
 
 	return ret;
+}
+
+static struct display_ops clock_ops = {
+	.display = clock_display,
+	.select  = clock_toggle_expanded,
+};
+
+/*
+ * Initialize the clock framework
+ */
+int clock_init(void)
+{
+	char clk_dir_path[PATH_MAX];
+
+	if (display_register(CLOCK, &clock_ops))
+		return -1;
+
+	if (locate_debugfs(clk_dir_path))
+		return -1;
+
+	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
+
+	if (access(clk_dir_path, F_OK))
+		return -1;
+
+	clock_tree = tree_load(clk_dir_path, NULL);
+	if (!clock_tree)
+		return -1;
+
+	return fill_clock_tree();
 }

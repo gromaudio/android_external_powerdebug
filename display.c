@@ -49,6 +49,7 @@ struct rowdata {
 struct windata {
 	WINDOW *win;
 	WINDOW *pad;
+	struct display_ops *ops;
 	struct rowdata *rowdata;
 	char *name;
 	int nrdata;
@@ -205,6 +206,16 @@ void print_sensor_header(void)
 	wrefresh(sensor_win);
 
 	show_header_footer(SENSOR);
+}
+
+int display_register(int win, struct display_ops *ops)
+{
+	if (win < 0 || win >= TOTAL_FEATURE_WINS)
+		return -1;
+
+	windata[win].ops = ops;
+
+	return 0;
 }
 
 int display_next_panel(void)

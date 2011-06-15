@@ -23,6 +23,7 @@
 #include <stdlib.h>
 
 #include "powerdebug.h"
+#include "display.h"
 #include "sensor.h"
 #include "tree.h"
 #include "utils.h"
@@ -249,8 +250,15 @@ int sensor_display(void)
 	return ret;
 }
 
+static struct display_ops sensor_ops = {
+	.display = sensor_display,
+};
+
 int sensor_init(void)
 {
+	if (display_register(SENSOR, &sensor_ops))
+		return -1;
+
 	sensor_tree = tree_load(SYSFS_SENSOR, sensor_filter_cb);
 	if (!sensor_tree)
 		return -1;

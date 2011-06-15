@@ -26,6 +26,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
+#include "display.h"
 #include "powerdebug.h"
 #include "tree.h"
 #include "utils.h"
@@ -209,8 +210,15 @@ static int fill_regulator_tree(void)
 	return tree_for_each(reg_tree, fill_regulator_cb, NULL);
 }
 
+static struct display_ops regulator_ops = {
+	.display = regulator_display,
+};
+
 int regulator_init(void)
 {
+	if (display_register(REGULATOR, &regulator_ops))
+		return -1;
+
 	reg_tree = tree_load(SYSFS_REGULATOR, regulator_filter_cb);
 	if (!reg_tree)
 		return -1;
