@@ -332,7 +332,7 @@ int clock_init(void)
  * found in the files. Then print the result to the text based interface
  * Return 0 on success, < 0 otherwise
  */
-int read_and_print_clock_info(void)
+int clock_display(void)
 {
 	if (read_clock_info())
 		return -1;
@@ -346,7 +346,7 @@ int read_and_print_clock_info(void)
  * @clk : a name for a specific clock we want to show
  * Return 0 on success, < 0 otherwise
  */
-int read_and_dump_clock_info(char *clk)
+int clock_dump(char *clk)
 {
 	int ret;
 

@@ -19,6 +19,7 @@
 #include "regulator.h"
 #include "display.h"
 #include "clocks.h"
+#include "sensor.h"
 #include "powerdebug.h"
 
 void usage(void)
@@ -275,7 +276,7 @@ int mainloop(struct powerdebug_options *options)
 					if (enter_hit)
 						clock_toggle_expanded();
 
-					read_and_print_clock_info();
+					clock_display();
 					enter_hit = false;
 				} else
 					find_parents_for_clock(clkname_str,
@@ -317,7 +318,7 @@ static int powerdebug_dump(struct powerdebug_options *options)
 		regulator_dump();
 
 	if (options->clocks)
-		read_and_dump_clock_info(options->clkname);
+		clock_dump(options->clkname);
 
 	if (options->sensors)
 		sensor_dump();
