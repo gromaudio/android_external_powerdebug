@@ -192,9 +192,6 @@ int keystroke_callback(bool *enter_hit, struct powerdebug_options *options)
 int mainloop(struct powerdebug_options *options)
 {
 	bool enter_hit = false;
-	char clkname_str[64];
-
-	strcpy(clkname_str, "");
 
 	while (1) {
 		int key = 0;
