@@ -13,6 +13,8 @@
  *       - initial API and implementation
  *******************************************************************************/
 
+enum { CLOCK, REGULATOR, SENSOR };
+
 struct display_ops {
 	int (*display)(void);
 	int (*select)(void);

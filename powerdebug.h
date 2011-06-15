@@ -15,8 +15,4 @@
 
 #define VERSION "0.4.1"
 
-enum { CLOCK, REGULATOR, SENSOR };
-
-extern void find_parents_for_clock(char *clkname, int complete);
-
 

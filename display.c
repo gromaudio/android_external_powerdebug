@@ -21,8 +21,6 @@
 #include "regulator.h"
 #include "display.h"
 
-#define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
-
 #define print(w, x, y, fmt, args...) do { mvwprintw(w, y, x, fmt, ##args); } while (0)
 
 enum { PT_COLOR_DEFAULT = 1,
@@ -63,10 +61,11 @@ struct windata {
 	int cursor;
 };
 
+/* Warning this is linked with the enum { CLOCK, REGULATOR, ... } */
 struct windata windata[] = {
-	{ .name = "Clocks"     },
-	{ .name = "Regulators" },
-	{ .name = "Sensors"    },
+	[CLOCK]     = { .name = "Clocks"     },
+	[REGULATOR] = { .name = "Regulators" },
+	[SENSOR]    = { .name = "Sensors"    },
 };
 
 static void display_fini(void)
@@ -78,6 +77,7 @@ static int show_header_footer(int win)
 {
 	int i;
 	int curr_pointer = 0;
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
 
 	wattrset(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
 	wbkgd(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
@@ -86,7 +86,7 @@ static int show_header_footer(int win)
 	print(header_win, curr_pointer, 0, "PowerDebug %s", VERSION);
 	curr_pointer += 20;
 
-	for (i = 0; i < TOTAL_FEATURE_WINS; i++) {
+	for (i = 0; i < array_size; i++) {
 		if (win == i)
 			wattron(header_win, A_REVERSE);
 		else
@@ -216,7 +216,9 @@ void print_sensor_header(void)
 
 int display_register(int win, struct display_ops *ops)
 {
-	if (win < 0 || win >= TOTAL_FEATURE_WINS)
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
+	if (win < 0 || win >= array_size)
 		return -1;
 
 	windata[win].ops = ops;
@@ -242,17 +244,21 @@ int display_select(void)
 
 int display_next_panel(void)
 {
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
 	current_win++;
-	current_win %= TOTAL_FEATURE_WINS;
+	current_win %= array_size;
 
 	return current_win;
 }
 
 int display_prev_panel(void)
 {
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
 	current_win--;
 	if (current_win < 0)
-		current_win = TOTAL_FEATURE_WINS - 1;
+		current_win = array_size - 1;
 
 	return current_win;
 }
