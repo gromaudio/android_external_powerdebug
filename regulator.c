@@ -18,6 +18,8 @@
 #include "regulator.h"
 
 #define SYSFS_REGULATOR "/sys/class/regulator"
+#define VALUE_MAX 16
+
 #define _GNU_SOURCE
 #include <stdio.h>
 #undef _GNU_SOURCE

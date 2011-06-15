@@ -13,7 +13,6 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-#define VALUE_MAX 16
-
+extern int regulator_display(void);
 extern int regulator_init(void);
 extern int regulator_dump(void);

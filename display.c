@@ -13,6 +13,10 @@
  *       - initial API and implementation
  *******************************************************************************/
 
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include <ncurses.h>
 #include "powerdebug.h"
 #include "regulator.h"
 #include "display.h"

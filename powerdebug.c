@@ -15,7 +15,11 @@
 
 #include <getopt.h>
 #include <stdbool.h>
-#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <ncurses.h>
 #include "regulator.h"
 #include "display.h"
 #include "clocks.h"

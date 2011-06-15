@@ -22,6 +22,11 @@
 #include <stdio.h>
 #undef _GNU_SOURCE
 #endif
+#include <string.h>
+#include <stdbool.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/param.h>
 #include <mntent.h>
 #include <sys/stat.h>
 
