@@ -155,35 +155,42 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 
 int keystroke_callback(struct powerdebug_options *options)
 {
-	char keychar;
 	int keystroke = getch();
 
-	if (keystroke == EOF)
-		exit(0);
+	switch (keystroke) {
 
-	if (keystroke == KEY_RIGHT || keystroke == '\t')
+	case KEY_RIGHT:
+	case '\t':
 		display_next_panel();
+		break;
 
-	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB)
+	case KEY_LEFT:
+	case KEY_BTAB:
 		display_prev_panel();
+		break;
 
-	if (keystroke == KEY_DOWN)
+	case KEY_DOWN:
 		display_next_line();
+		break;
 
-	if (keystroke == KEY_UP)
+	case KEY_UP:
 		display_prev_line();
+		break;
 
-	keychar = toupper(keystroke);
-
-	if (keystroke == '\r')
+	case '\r':
 		display_select();
+		break;
 
-	if (keychar == 'Q')
+	case EOF:
+	case 'q':
+	case 'Q':
 		return 1;
 
-	if (keychar == 'R') {
+	case 'r':
+	case 'R':
 		display_refresh();
 		options->ticktime = 3;
+		break;
 	}
 
 	return 0;
@@ -192,9 +199,11 @@ int keystroke_callback(struct powerdebug_options *options)
 int mainloop(struct powerdebug_options *options)
 {
 	while (1) {
-		int key = 0;
+		int ret;
 		struct timeval tval;
 		fd_set readfds;
+
+		display_refresh();
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);
@@ -202,11 +211,11 @@ int mainloop(struct powerdebug_options *options)
 		tval.tv_usec = (options->ticktime - tval.tv_sec) * 1000000;
 
 	again:
-		key = select(1, &readfds, NULL, NULL, &tval);
-		if (!key)
+		ret = select(1, &readfds, NULL, NULL, &tval);
+		if (!ret)
 			continue;
 
-		if (key < 0) {
+		if (ret < 0) {
 			if (errno == EINTR)
 				goto again;
 			break;
@@ -214,8 +223,6 @@ int mainloop(struct powerdebug_options *options)
 
 		if (keystroke_callback(options))
 			break;
-
-		display_refresh();
 	}
 
 	return 0;
