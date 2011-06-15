@@ -34,8 +34,6 @@ extern int display_print_line(int window, int line, char *str,
 
 extern int display_refresh_pad(int window);
 extern int display_reset_cursor(int window);
-extern int display_next_line(int window);
-extern int display_prev_line(int window);
 extern void *display_get_row_data(int window);
 
 extern int clock_toggle_expanded(void);

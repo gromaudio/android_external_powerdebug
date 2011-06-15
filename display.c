@@ -31,6 +31,7 @@ enum { PT_COLOR_DEFAULT = 1,
 
 static WINDOW *header_win;
 static WINDOW *footer_win;
+static int current_win;
 
 int maxx, maxy;
 
@@ -102,6 +103,8 @@ int display_init(int wdefault)
 {
 	int i;
 	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
+	current_win = wdefault;
 
 	if (!initscr())
 		return -1;
@@ -204,6 +207,23 @@ void print_sensor_header(void)
 	show_header_footer(SENSOR);
 }
 
+int display_next_panel(void)
+{
+	current_win++;
+	current_win %= TOTAL_FEATURE_WINS;
+
+	return current_win;
+}
+
+int display_prev_panel(void)
+{
+	current_win--;
+	if (current_win < 0)
+		current_win = TOTAL_FEATURE_WINS - 1;
+
+	return current_win;
+}
+
 int display_refresh_pad(int win)
 {
 	return prefresh(windata[win].pad, windata[win].scrolling,
@@ -285,50 +305,50 @@ int display_print_line(int win, int line, char *str, int bold, void *data)
 	return 0;
 }
 
-int display_next_line(int win)
+int display_next_line(void)
 {
-	int cursor = windata[win].cursor;
-	int nrdata = windata[win].nrdata;
-	int scrolling = windata[win].scrolling;
-	struct rowdata *rowdata = windata[win].rowdata;
+	int cursor = windata[current_win].cursor;
+	int nrdata = windata[current_win].nrdata;
+	int scrolling = windata[current_win].scrolling;
+	struct rowdata *rowdata = windata[current_win].rowdata;
 
 	if (cursor >= nrdata)
 		return cursor;
 
-	display_unselect(win, cursor, rowdata[cursor].attr);
+	display_unselect(current_win, cursor, rowdata[cursor].attr);
 	if (cursor < nrdata - 1) {
 		if (cursor >= (maxy - 4 + scrolling))
 			scrolling++;
 		cursor++;
 	}
-	display_select(win, cursor);
+	display_select(current_win, cursor);
 
-	windata[win].scrolling = scrolling;
-	windata[win].cursor = cursor;
+	windata[current_win].scrolling = scrolling;
+	windata[current_win].cursor = cursor;
 
 	return cursor;
 }
 
-int display_prev_line(int win)
+int display_prev_line(void)
 {
-	int cursor = windata[win].cursor;
-	int nrdata = windata[win].nrdata;
-	int scrolling = windata[win].scrolling;
-	struct rowdata *rowdata = windata[win].rowdata;
+	int cursor = windata[current_win].cursor;
+	int nrdata = windata[current_win].nrdata;
+	int scrolling = windata[current_win].scrolling;
+	struct rowdata *rowdata = windata[current_win].rowdata;
 
 	if (cursor >= nrdata)
 		return cursor;
 
-	display_unselect(win, cursor, rowdata[cursor].attr);
+	display_unselect(current_win, cursor, rowdata[cursor].attr);
 	if (cursor > 0) {
 		if (cursor <= scrolling)
 			scrolling--;
 		cursor--;
 	}
-	display_select(win, cursor);
+	display_select(current_win, cursor);
 
-	windata[win].scrolling = scrolling;
-	windata[win].cursor = cursor;
+	windata[current_win].scrolling = scrolling;
+	windata[current_win].cursor = cursor;
 
 	return cursor;
 }

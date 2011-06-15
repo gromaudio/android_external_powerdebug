@@ -164,24 +164,19 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	if (keystroke == EOF)
 		exit(0);
 
-	if (keystroke == KEY_RIGHT || keystroke == '\t') {
-		options->selectedwindow++;
-		options->selectedwindow %= TOTAL_FEATURE_WINS;
-	}
+	if (keystroke == KEY_RIGHT || keystroke == '\t')
+		 options->selectedwindow = display_next_panel();
 
-	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB) {
-		options->selectedwindow--;
-		if (options->selectedwindow < 0)
-			options->selectedwindow = TOTAL_FEATURE_WINS - 1;
-	}
+	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB)
+		 options->selectedwindow = display_prev_panel();
 
 	if (keystroke == KEY_DOWN) {
-		display_next_line(options->selectedwindow);
+		display_next_line();
 		*cont = true;
 	}
 
 	if (keystroke == KEY_UP) {
-		display_prev_line(options->selectedwindow);
+		display_prev_line();
 		*cont = true;
 	}
 
@@ -258,11 +253,11 @@ int mainloop(struct powerdebug_options *options)
 		struct timeval tval;
 		fd_set readfds;
 
-		/* if (options->selectedwindow != CLOCK || !cont) */
-		/* 	show_header(options->selectedwindow); */
-
 		if (options->selectedwindow == REGULATOR)
 			regulator_display();
+
+		if (options->selectedwindow == SENSOR)
+			sensor_display();
 
 		if (options->selectedwindow == CLOCK) {
 
@@ -280,9 +275,6 @@ int mainloop(struct powerdebug_options *options)
 							       enter_hit);
 			} else cont = false;
 		}
-
-		if (options->selectedwindow == SENSOR)
-			sensor_display();
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);

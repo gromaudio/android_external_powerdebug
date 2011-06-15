@@ -14,3 +14,9 @@
  *******************************************************************************/
 
 extern int display_init(int wdefault);
+
+extern int display_next_panel(void);
+extern int display_prev_panel(void);
+extern int display_next_line(void);
+extern int display_prev_line(void);
+extern int display_refresh(void);
