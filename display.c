@@ -218,6 +218,22 @@ int display_register(int win, struct display_ops *ops)
 	return 0;
 }
 
+int display_refresh(void)
+{
+	if (windata[current_win].ops && windata[current_win].ops->display)
+		return windata[current_win].ops->display();
+
+	return 0;
+}
+
+int display_select(void)
+{
+	if (windata[current_win].ops && windata[current_win].ops->select)
+		return windata[current_win].ops->select();
+
+	return 0;
+}
+
 int display_next_panel(void)
 {
 	current_win++;
@@ -241,8 +257,8 @@ int display_refresh_pad(int win)
 			0, 2, 0, maxy - 2, maxx);
 }
 
-static int inline display_un_select(int win, int line,
-					  bool highlight, bool bold)
+static int inline display_show_un_selection(int win, int line,
+					    bool highlight, bool bold)
 {
 	if (mvwchgat(windata[win].pad, line, 0, -1,
 		     highlight ? WA_STANDOUT :
@@ -252,14 +268,14 @@ static int inline display_un_select(int win, int line,
 	return display_refresh_pad(win);
 }
 
-int display_select(int win, int line)
+int display_show_selection(int win, int line)
 {
-	return display_un_select(win, line, true, false);
+	return display_show_un_selection(win, line, true, false);
 }
 
-int display_unselect(int win, int line, bool bold)
+int display_show_unselection(int win, int line, bool bold)
 {
-	return display_un_select(win, line, false, bold);
+	return display_show_un_selection(win, line, false, bold);
 }
 
 void *display_get_row_data(int win)
@@ -326,13 +342,13 @@ int display_next_line(void)
 	if (cursor >= nrdata)
 		return cursor;
 
-	display_unselect(current_win, cursor, rowdata[cursor].attr);
+	display_show_unselection(current_win, cursor, rowdata[cursor].attr);
 	if (cursor < nrdata - 1) {
 		if (cursor >= (maxy - 4 + scrolling))
 			scrolling++;
 		cursor++;
 	}
-	display_select(current_win, cursor);
+	display_show_selection(current_win, cursor);
 
 	windata[current_win].scrolling = scrolling;
 	windata[current_win].cursor = cursor;
@@ -350,13 +366,13 @@ int display_prev_line(void)
 	if (cursor >= nrdata)
 		return cursor;
 
-	display_unselect(current_win, cursor, rowdata[cursor].attr);
+	display_show_unselection(current_win, cursor, rowdata[cursor].attr);
 	if (cursor > 0) {
 		if (cursor <= scrolling)
 			scrolling--;
 		cursor--;
 	}
-	display_select(current_win, cursor);
+	display_show_selection(current_win, cursor);
 
 	windata[current_win].scrolling = scrolling;
 	windata[current_win].cursor = cursor;

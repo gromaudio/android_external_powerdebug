@@ -13,10 +13,19 @@
  *       - initial API and implementation
  *******************************************************************************/
 
+#define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
+
 struct display_ops {
 	int (*display)(void);
 	int (*select)(void);
 };
+
+extern int display_print_line(int window, int line, char *str,
+			      int bold, void *data);
+
+extern int display_refresh_pad(int window);
+extern int display_reset_cursor(int window);
+extern void *display_get_row_data(int window);
 
 extern int display_init(int wdefault);
 extern int display_register(int win, struct display_ops *ops);
@@ -25,3 +34,9 @@ extern int display_prev_panel(void);
 extern int display_next_line(void);
 extern int display_prev_line(void);
 extern int display_refresh(void);
+extern int display_select(void);
+
+/* FIXME */
+extern void print_sensor_header(void);
+extern void print_clock_header(void);
+extern void print_regulator_header(void);
