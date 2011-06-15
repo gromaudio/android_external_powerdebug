@@ -174,32 +174,17 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 			options->selectedwindow = TOTAL_FEATURE_WINS - 1;
 	}
 
-#if 0 /* TODO */
-	if (options->selectedwindow == REGULATOR) {
-
-		if (keystroke == KEY_DOWN) {
-			display_next_line();
-			*cont = true;
-		}
-
-		if (keystroke == KEY_UP) {
-			display_prev_line();
-			*cont = true;
-		}
-
+	if (keystroke == KEY_DOWN) {
+		display_next_line(options->selectedwindow);
+		*cont = true;
 	}
-#endif
+
+	if (keystroke == KEY_UP) {
+		display_prev_line(options->selectedwindow);
+		*cont = true;
+	}
+
 	if (options->selectedwindow == CLOCK) {
-
-		if (keystroke == KEY_DOWN) {
-			display_next_line(CLOCK);
-			*cont = true;
-		}
-
-		if (keystroke == KEY_UP) {
-			display_prev_line(CLOCK);
-			*cont = true;
-		}
 
 #if 0
 		/* TODO : fix with a new panel applicable for all subsystems */
@@ -299,7 +284,7 @@ int mainloop(struct powerdebug_options *options)
 		}
 
 		if (options->selectedwindow == SENSOR)
-			print_sensor_header();
+			sensor_display();
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);

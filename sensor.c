@@ -13,6 +13,15 @@
  *       - initial API and implementation
  *******************************************************************************/
 
+#define _GNU_SOURCE
+#include <stdio.h>
+#undef _GNU_SOURCE
+#include <sys/types.h>
+#include <stdbool.h>
+#include <dirent.h>
+#include <string.h>
+#include <stdlib.h>
+
 #include "powerdebug.h"
 #include "sensor.h"
 #include "tree.h"
@@ -191,6 +200,53 @@ static int sensor_filter_cb(const char *name)
 		return 1;
 
 	return 0;
+}
+
+static int sensor_display_cb(struct tree *t, void *data)
+{
+	struct sensor_info *sensor = t->private;
+	int *line = data;
+	char buf[1024];
+	int i;
+
+	if (!strlen(sensor->name))
+		return 0;
+
+	sprintf(buf, "%s", sensor->name);
+	display_print_line(SENSOR, *line, buf, 1, t);
+
+	(*line)++;
+
+	for (i = 0; i < sensor->nrtemps; i++) {
+		sprintf(buf, " %-35s%.1f °C", sensor->temperatures[i].name,
+		       (float)sensor->temperatures[i].temp / 1000);
+		display_print_line(SENSOR, *line, buf, 0, t);
+		(*line)++;
+	}
+
+	for (i = 0; i < sensor->nrfans; i++) {
+		sprintf(buf, " %-35s%d rpm", sensor->fans[i].name,
+			sensor->fans[i].rpms);
+		display_print_line(SENSOR, *line, buf, 0, t);
+		(*line)++;
+	}
+
+	return 0;
+}
+
+int sensor_display(void)
+{
+	int ret, line = 0;
+
+	display_reset_cursor(SENSOR);
+
+	print_sensor_header();
+
+	ret = tree_for_each(sensor_tree, sensor_display_cb, &line);
+
+	display_refresh_pad(SENSOR);
+
+	return ret;
 }
 
 int sensor_init(void)

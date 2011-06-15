@@ -219,12 +219,8 @@ void print_sensor_header(void)
 	werase(sensor_win);
 	wattron(sensor_win, A_BOLD);
 	print(sensor_win, 0, 0, "Name");
-	print(sensor_win, 36, 0, "Temperature");
+	print(sensor_win, 36, 0, "Value");
 	wattroff(sensor_win, A_BOLD);
-	wattron(sensor_win, A_BLINK);
-	print(sensor_win, 0, 1, "Currently Sensor information available"
-		" only in Dump mode!");
-	wattroff(sensor_win, A_BLINK);
 	wrefresh(sensor_win);
 }
 
