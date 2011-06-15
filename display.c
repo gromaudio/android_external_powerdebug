@@ -44,21 +44,24 @@ static const int maxrows = 1024;
 
 static char footer_items[NUM_FOOTER_ITEMS][64];
 
-static char *win_names[TOTAL_FEATURE_WINS] = {
-	"Clocks",
-	"Regulators",
-	"Sensors"
-};
-
 struct rowdata {
 	int attr;
 	void *data;
 };
 
-static struct rowdata *rowdata;
-static int nrdata;
-static int scrolling;
-static int cursor;
+struct windata {
+	struct rowdata *rowdata;
+	char *name;
+	int nrdata;
+	int scrolling;
+	int cursor;
+};
+
+struct windata windata[TOTAL_FEATURE_WINS] = {
+	{ .name = "Clocks"     },
+	{ .name = "Regulators" },
+	{ .name = "Sensors"    },
+};
 
 static void display_fini(void)
 {
@@ -170,8 +173,8 @@ void show_header(int selectedwindow)
 		else
 			wattroff(header_win, A_REVERSE);
 
-		print(header_win, curr_pointer, 0, " %s ", win_names[i]);
-		curr_pointer += strlen(win_names[i]) + 2;
+		print(header_win, curr_pointer, 0, " %s ", windata[i].name);
+		curr_pointer += strlen(windata[i].name) + 2;
 	}
 	wrefresh(header_win);
 	werase(footer_win);
@@ -274,69 +277,74 @@ void print_sensor_header(void)
 	wrefresh(sensor_win);
 }
 
-int display_refresh_pad(void)
+int display_refresh_pad(int win)
 {
-	return prefresh(clock_pad, scrolling, 0, 2, 0, maxy - 2, maxx);
+	return prefresh(clock_pad, windata[win].scrolling,
+			0, 2, 0, maxy - 2, maxx);
 }
 
-static int inline display_clock_un_select(int line, bool highlight, bool bold)
+static int inline display_clock_un_select(int win, int line,
+					  bool highlight, bool bold)
 {
 	if (mvwchgat(clock_pad, line, 0, -1,
 		     highlight ? WA_STANDOUT :
 		     bold ? WA_BOLD: WA_NORMAL, 0, NULL) < 0)
 		return -1;
 
-	return display_refresh_pad();
+	return display_refresh_pad(win);
 }
 
-int display_clock_select(int line)
+int display_select(int win, int line)
 {
-	return display_clock_un_select(line, true, false);
+	return display_clock_un_select(win, line, true, false);
 }
 
-int display_clock_unselect(int line, bool bold)
+int display_unselect(int win, int line, bool bold)
 {
-	return display_clock_un_select(line, false, bold);
+	return display_clock_un_select(win, line, false, bold);
 }
 
-void *display_get_row_data(void)
+void *display_get_row_data(int win)
 {
-	return rowdata[cursor].data;
+	return windata[win].rowdata[windata[win].cursor].data;
 }
 
-int display_set_row_data(int line, void *data, int attr)
+int display_set_row_data(int win, int line, void *data, int attr)
 {
-	if (line >= nrdata) {
+	struct rowdata *rowdata =  windata[win].rowdata;
+
+	if (line >= windata[win].nrdata) {
 		rowdata = realloc(rowdata, sizeof(struct rowdata) * (line + 1));
 		if (!rowdata)
 			return -1;
-		nrdata = line + 1;
+		windata[win].nrdata = line + 1;
 	}
 
 	rowdata[line].data = data;
 	rowdata[line].attr = attr;
+	windata[win].rowdata = rowdata;
 
 	return 0;
 }
 
-int display_reset_cursor(void)
+int display_reset_cursor(win)
 {
-	nrdata = 0;
+	windata[win].nrdata = 0;
 	werase(clock_pad);
 	return wmove(clock_pad, 0, 0);
 }
 
-int display_print_line(int line, char *str, int bold, void *data)
+int display_print_line(int win, int line, char *str, int bold, void *data)
 {
 	int attr = 0;
 
 	if (bold)
 		attr |= WA_BOLD;
 
-	if (line == cursor)
+	if (line == windata[win].cursor)
 		attr |= WA_STANDOUT;
 
-	if (display_set_row_data(line, data, attr))
+	if (display_set_row_data(win, line, data, attr))
 		return -1;
 
 	if (attr)
@@ -350,34 +358,50 @@ int display_print_line(int line, char *str, int bold, void *data)
 	return 0;
 }
 
-int display_next_line(void)
+int display_next_line(int win)
 {
+	int cursor = windata[win].cursor;
+	int nrdata = windata[win].nrdata;
+	int scrolling = windata[win].scrolling;
+	struct rowdata *rowdata = windata[win].rowdata;
+
 	if (cursor >= nrdata)
 		return cursor;
 
-	display_clock_unselect(cursor, rowdata[cursor].attr);
+	display_unselect(win, cursor, rowdata[cursor].attr);
 	if (cursor < nrdata - 1) {
 		if (cursor >= (maxy - 4 + scrolling))
 			scrolling++;
 		cursor++;
 	}
-	display_clock_select(cursor);
+	display_select(win, cursor);
+
+	windata[win].scrolling = scrolling;
+	windata[win].cursor = cursor;
 
 	return cursor;
 }
 
-int display_prev_line(void)
+int display_prev_line(int win)
 {
+	int cursor = windata[win].cursor;
+	int nrdata = windata[win].nrdata;
+	int scrolling = windata[win].scrolling;
+	struct rowdata *rowdata = windata[win].rowdata;
+
 	if (cursor >= nrdata)
 		return cursor;
 
-	display_clock_unselect(cursor, rowdata[cursor].attr);
+	display_unselect(win, cursor, rowdata[cursor].attr);
 	if (cursor > 0) {
 		if (cursor <= scrolling)
 			scrolling--;
 		cursor--;
 	}
-	display_clock_select(cursor);
+	display_select(win, cursor);
+
+	windata[win].scrolling = scrolling;
+	windata[win].cursor = cursor;
 
 	return cursor;
 }

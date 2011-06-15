@@ -163,15 +163,15 @@ void find_parents_for_clock(char *clkname, int complete)
 
 		strcat(name, clkname);
 		sprintf(str, "Enter Clock Name : %s\n", name);
-		display_reset_cursor();
-		display_print_line(0, str, 1, NULL);
-		display_refresh_pad();
+		display_reset_cursor(CLOCK);
+		display_print_line(CLOCK, 0, str, 1, NULL);
+		display_refresh_pad(CLOCK);
 		return;
 	}
 	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
-	display_reset_cursor();
-	display_print_line(0, name, 1, NULL);
-	display_refresh_pad();
+	display_reset_cursor(CLOCK);
+	display_print_line(CLOCK, 0, name, 1, NULL);
+	display_refresh_pad(CLOCK);
 	dump_all_parents(clkname);
 }
 
@@ -271,7 +271,7 @@ static int clock_print_info_cb(struct tree *t, void *data)
 	if (!buffer)
 		return -1;
 
-	display_print_line(*line, buffer, clock->usecount, t);
+	display_print_line(CLOCK, *line, buffer, clock->usecount, t);
 
 	(*line)++;
 
@@ -286,18 +286,18 @@ static int clock_print_info(void)
 
 	print_clock_header();
 
-	display_reset_cursor();
+	display_reset_cursor(CLOCK);
 
 	ret = tree_for_each(clock_tree, clock_print_info_cb, &line);
 
-	display_refresh_pad();
+	display_refresh_pad(CLOCK);
 
 	return ret;
 }
 
 int clock_toggle_expanded(void)
 {
-	struct tree *t = display_get_row_data();
+	struct tree *t = display_get_row_data(CLOCK);
 	struct clock_info *clk = t->private;
 
 	clk->expanded = !clk->expanded;

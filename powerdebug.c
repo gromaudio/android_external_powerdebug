@@ -177,12 +177,12 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	if (options->selectedwindow == CLOCK) {
 
 		if (keystroke == KEY_DOWN) {
-			display_next_line();
+			display_next_line(CLOCK);
 			*cont = true;
 		}
 
 		if (keystroke == KEY_UP) {
-			display_prev_line();
+			display_prev_line(CLOCK);
 			*cont = true;
 		}
 
