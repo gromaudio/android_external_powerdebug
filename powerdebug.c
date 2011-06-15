@@ -154,7 +154,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 }
 
 int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
-		       char *clkname_str, bool *refreshwin, bool *cont,
+		       char *clkname_str, bool *refreshwin,
 		       struct powerdebug_options *options)
 {
 	char keychar;
@@ -170,15 +170,11 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB)
 		 options->selectedwindow = display_prev_panel();
 
-	if (keystroke == KEY_DOWN) {
+	if (keystroke == KEY_DOWN)
 		display_next_line();
-		*cont = true;
-	}
 
-	if (keystroke == KEY_UP) {
+	if (keystroke == KEY_UP)
 		display_prev_line();
-		*cont = true;
-	}
 
 	if (options->selectedwindow == CLOCK) {
 
@@ -243,7 +239,6 @@ int mainloop(struct powerdebug_options *options)
 	bool findparent_ncurses = false;
 	bool refreshwin = false;
 	bool enter_hit = false;
-	bool cont = false;
 	char clkname_str[64];
 
 	strcpy(clkname_str, "");
@@ -260,20 +255,11 @@ int mainloop(struct powerdebug_options *options)
 			sensor_display();
 
 		if (options->selectedwindow == CLOCK) {
+			if (enter_hit)
+				clock_toggle_expanded();
 
-			if (!cont) {
-
-				if (!findparent_ncurses) {
-
-					if (enter_hit)
-						clock_toggle_expanded();
-
-					clock_display();
-					enter_hit = false;
-				} else
-					find_parents_for_clock(clkname_str,
-							       enter_hit);
-			} else cont = false;
+			clock_display();
+			enter_hit = false;
 		}
 
 		FD_ZERO(&readfds);
@@ -293,7 +279,7 @@ int mainloop(struct powerdebug_options *options)
 		}
 
 		if (keystroke_callback(&enter_hit, &findparent_ncurses,
-				       clkname_str, &refreshwin, &cont, options))
+				       clkname_str, &refreshwin, options))
 			break;
 
 	}
