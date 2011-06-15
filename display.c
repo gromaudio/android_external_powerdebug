@@ -269,25 +269,13 @@ int display_refresh_pad(int win)
 			0, 2, 0, maxy - 2, maxx);
 }
 
-static int inline display_show_un_selection(int win, int line,
-					    bool highlight, bool bold)
+int display_show_unselection(int win, int line, bool bold)
 {
 	if (mvwchgat(windata[win].pad, line, 0, -1,
-		     highlight ? WA_STANDOUT :
 		     bold ? WA_BOLD: WA_NORMAL, 0, NULL) < 0)
 		return -1;
 
 	return display_refresh_pad(win);
-}
-
-int display_show_selection(int win, int line)
-{
-	return display_show_un_selection(win, line, true, false);
-}
-
-int display_show_unselection(int win, int line, bool bold)
-{
-	return display_show_un_selection(win, line, false, bold);
 }
 
 void *display_get_row_data(int win)
@@ -360,7 +348,6 @@ int display_next_line(void)
 			scrolling++;
 		cursor++;
 	}
-	display_show_selection(current_win, cursor);
 
 	windata[current_win].scrolling = scrolling;
 	windata[current_win].cursor = cursor;
@@ -384,7 +371,6 @@ int display_prev_line(void)
 			scrolling--;
 		cursor--;
 	}
-	display_show_selection(current_win, cursor);
 
 	windata[current_win].scrolling = scrolling;
 	windata[current_win].cursor = cursor;
