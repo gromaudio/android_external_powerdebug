@@ -21,6 +21,8 @@
 #include "regulator.h"
 #include "display.h"
 
+#define TOTAL_FEATURE_WINS 3  /* Regulator, Clock and Sensor (for now) */
+
 #define print(w, x, y, fmt, args...) do { mvwprintw(w, y, x, fmt, ##args); } while (0)
 
 enum { PT_COLOR_DEFAULT = 1,
@@ -61,7 +63,7 @@ struct windata {
 	int cursor;
 };
 
-struct windata windata[TOTAL_FEATURE_WINS] = {
+struct windata windata[] = {
 	{ .name = "Clocks"     },
 	{ .name = "Regulators" },
 	{ .name = "Sensors"    },
@@ -382,4 +384,48 @@ int display_prev_line(void)
 	windata[current_win].cursor = cursor;
 
 	return cursor;
+}
+
+int display_keystroke(void *data)
+{
+	int *tick = data;
+	int keystroke = getch();
+
+	switch (keystroke) {
+
+	case KEY_RIGHT:
+	case '\t':
+		display_next_panel();
+		break;
+
+	case KEY_LEFT:
+	case KEY_BTAB:
+		display_prev_panel();
+		break;
+
+	case KEY_DOWN:
+		display_next_line();
+		break;
+
+	case KEY_UP:
+		display_prev_line();
+		break;
+
+	case '\r':
+		display_select();
+		break;
+
+	case EOF:
+	case 'q':
+	case 'Q':
+		return 1;
+
+	case 'r':
+	case 'R':
+		display_refresh();
+		*tick = 3;
+		break;
+	}
+
+	return 0;
 }

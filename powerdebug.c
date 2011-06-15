@@ -157,49 +157,6 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	return 0;
 }
 
-int keystroke_callback(struct powerdebug_options *options)
-{
-	int keystroke = getch();
-
-	switch (keystroke) {
-
-	case KEY_RIGHT:
-	case '\t':
-		display_next_panel();
-		break;
-
-	case KEY_LEFT:
-	case KEY_BTAB:
-		display_prev_panel();
-		break;
-
-	case KEY_DOWN:
-		display_next_line();
-		break;
-
-	case KEY_UP:
-		display_prev_line();
-		break;
-
-	case '\r':
-		display_select();
-		break;
-
-	case EOF:
-	case 'q':
-	case 'Q':
-		return 1;
-
-	case 'r':
-	case 'R':
-		display_refresh();
-		options->ticktime = 3;
-		break;
-	}
-
-	return 0;
-}
-
 int mainloop(struct powerdebug_options *options)
 {
 	while (1) {
@@ -225,7 +182,7 @@ int mainloop(struct powerdebug_options *options)
 			break;
 		}
 
-		if (keystroke_callback(options))
+		if (display_keystroke(&options->ticktime))
 			break;
 	}
 
