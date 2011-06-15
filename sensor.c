@@ -15,164 +15,189 @@
 
 #include "powerdebug.h"
 #include "sensor.h"
+#include "tree.h"
+#include "utils.h"
 
-static char *items_temp[32] = {"min", "max", "input", "label", ""};
-static char *suffix_temp[32] = {"°C", "°C", "°C", "", ""};
-static char *items_in[32] = {"min", "max", "input", "label", ""};
-static char *suffix_in[32] = {"Volts", "Volts", "Volts", "", ""};
-static char *items_fan[32] = {"min", "max", "input", "label", "div", "target", ""};
-static char *suffix_fan[32] = {"RPM", "RPM", "RPM", "", "", "RPM", ""};
-static char *items_pwm[32] = {"freq", "enable", "mode", ""};
-static char *suffix_pwm[32] = {"Hz", "", "", ""};
+#define SYSFS_SENSOR "/sys/class/hwmon"
 
-char *get_num(char *fname, char *sensor)
+static struct tree *sensor_tree;
+
+struct temp_info {
+	char name[NAME_MAX];
+	int temp;
+};
+
+struct fan_info {
+	char name[NAME_MAX];
+	int rpms;
+};
+
+struct sensor_info {
+	char name[NAME_MAX];
+	struct temp_info *temperatures;
+	struct fan_info *fans;
+	short nrtemps;
+	short nrfans;
+};
+
+static int sensor_dump_cb(struct tree *tree, void *data)
 {
-	char tmpstr[NAME_MAX];
-	char *str;
+	int i;
+	struct sensor_info *sensor = tree->private;
 
-	strcpy(tmpstr, (fname+strlen(sensor)));
+	if (!strlen(sensor->name))
+		return 0;
 
-	str = strrchr(tmpstr, '_');
-	str[0] = '\0';
+	printf("%s\n", sensor->name);
 
-	str = strdup(tmpstr);
-	return str;
-}
+	for (i = 0; i < sensor->nrtemps; i++)
+		printf(" %s %.1f °C\n", sensor->temperatures[i].name,
+		       (float)sensor->temperatures[i].temp / 1000);
 
-void get_sensor_info(char *path, char *fname, char *sensor, int verbose)
-{
-	FILE *filep;
-	char filename[PATH_MAX];
-	char **items = NULL, **suffix = NULL;
-	char *item, result[NAME_MAX], *num;
-	int ret, count = 0;
-
-	(void)verbose; // get rid of warning
-
-	sprintf(filename, "%s/%s", path, fname);
-
-	if (!strcmp(sensor, "in")) {
-		items = (char **)items_in;
-		suffix = (char **)suffix_in;
-	}
-
-	if (!strcmp(sensor, "temp")) {
-		items = (char **)items_temp;
-		suffix = (char **)suffix_temp;
-	}
-
-	if (!strcmp(sensor, "fan")) {
-		items = (char **)items_fan;
-		suffix = (char **)suffix_fan;
-	}
-	if (!strcmp(sensor, "pwm")) {
-		items = (char **)items_pwm;
-		suffix = (char **)suffix_pwm;
-	}
-
-
-	if (!items || !suffix)
-		return;
-
-	item = strrchr(fname, '_');
-	if (!item)
-		return;
-
-	if (item)
-		item++;
-
-	if (item > (fname + strlen(fname)))
-		return;
-
-	num = get_num(fname, sensor);
-	filep = fopen(filename, "r");
-
-	if (!filep)
-		goto exit;
-	ret = fscanf(filep, "%s", result);
-	fclose(filep);
-
-	if (ret != 1)
-		goto exit;
-
-	while (strcmp(items[count], "")) {
-		if (!strcmp(items[count], item))
-			printf("\'temp\' %s sensor %s\t\t%d%s\n",
-				num, items[count], atoi(result)/1000,
-				suffix[count]);
-		count++;
-	}
-exit:
-	free(num);
-	return;
-}
-
-int read_and_print_sensor_info(int verbose)
-{
-	DIR *dir, *subdir;
-	int len, found = 0;
-	char filename[PATH_MAX], devpath[PATH_MAX];
-	char device[PATH_MAX];
-	struct dirent *item, *subitem;
-
-	printf("\nSensor Information:\n");
-	printf("******************\n");
-
-	sprintf(filename, "%s", "/sys/class/hwmon");
-	dir = opendir(filename);
-	if (!dir)
-		return errno;
-
-	while ((item = readdir(dir))) {
-		if (item->d_name[0] == '.')  /* skip the hidden files */
-			continue;
-
-		found = 1;
-
-		sprintf(filename, "/sys/class/hwmon/%s", item->d_name);
-		sprintf(devpath, "%s/device", filename);
-
-		len = readlink(devpath, device, PATH_MAX - 1);
-
-		if (len < 0)
-			strcpy(devpath, filename);
-		else
-			device[len] = '\0';
-
-		subdir = opendir(devpath);
-
-		printf("\nSensor Information for %s :\n", item->d_name);
-		fflush(stdin);
-
-		while ((subitem = readdir(subdir))) {
-			if (subitem->d_name[0] == '.') /* skip hidden files */
-				continue;
-
-			if (!strncmp(subitem->d_name, "in", 2))
-				get_sensor_info(devpath, subitem->d_name, "in",
-						verbose);
-			else if (!strncmp(subitem->d_name, "temp", 4))
-				get_sensor_info(devpath, subitem->d_name,
-						"temp", verbose);
-			else if (!strncmp(subitem->d_name, "fan", 4))
-				get_sensor_info(devpath, subitem->d_name,
-						"fan", verbose);
-			else if (!strncmp(subitem->d_name, "pwm", 4))
-				get_sensor_info(devpath, subitem->d_name,
-						"pwm", verbose);
-
-		}
-
-		closedir(subdir);
-	}
-	closedir(dir);
-
-	if (!found && verbose) {
-		printf("Could not find sensor information!");
-		printf(" Looks like /sys/class/hwmon is empty.\n");
-	}
-
-	printf("\n");
+	for (i = 0; i < sensor->nrfans; i++)
+		printf(" %s %d rpm\n", sensor->fans[i].name,
+		       sensor->fans[i].rpms);
 
 	return 0;
+}
+
+int sensor_dump(void)
+{
+	printf("\nSensor Information:\n");
+	printf("*******************\n\n");
+
+	return tree_for_each(sensor_tree, sensor_dump_cb, NULL);
+}
+
+static struct sensor_info *sensor_alloc(void)
+{
+	struct sensor_info *sensor;
+
+	sensor = malloc(sizeof(*sensor));
+	if (sensor)
+		memset(sensor, 0, sizeof(*sensor));
+
+	return sensor;
+}
+
+static int read_sensor_cb(struct tree *tree, void *data)
+{
+	DIR *dir;
+	int value;
+        struct dirent dirent, *direntp;
+	struct sensor_info *sensor = tree->private;
+
+	int nrtemps = 0;
+	int nrfans = 0;
+
+	dir = opendir(tree->path);
+	if (!dir)
+		return -1;
+
+	file_read_value(tree->path, "name", "%s", sensor->name);
+
+	while (!readdir_r(dir, &dirent, &direntp)) {
+
+                if (!direntp)
+                        break;
+
+		if (direntp->d_type != DT_REG)
+			continue;
+
+		if (!strncmp(direntp->d_name, "temp", 4)) {
+
+			if (file_read_value(tree->path, direntp->d_name, "%d",
+					    &value))
+				continue;
+
+			sensor->temperatures =
+				realloc(sensor->temperatures,
+					sizeof(struct temp_info) * (nrtemps + 1));
+			if (!sensor->temperatures)
+				continue;
+
+			strcpy(sensor->temperatures[nrtemps].name,
+			       direntp->d_name);
+			sensor->temperatures[nrtemps].temp = value;
+
+			nrtemps++;
+		}
+
+		if (!strncmp(direntp->d_name, "fan", 3)) {
+
+			if (file_read_value(tree->path, direntp->d_name, "%d",
+					    &value))
+				continue;
+
+			sensor->fans =
+				realloc(sensor->fans,
+					sizeof(struct temp_info) * (nrfans + 1));
+			if (!sensor->fans)
+				continue;
+
+			strcpy(sensor->fans[nrfans].name,
+			       direntp->d_name);
+			sensor->fans[nrfans].rpms = value;
+
+			nrfans++;
+		}
+	}
+
+	sensor->nrtemps = nrtemps;
+	sensor->nrfans = nrfans;
+
+	closedir(dir);
+
+	return 0;
+}
+
+static int fill_sensor_cb(struct tree *t, void *data)
+{
+	struct sensor_info *sensor;
+
+	sensor = sensor_alloc();
+	if (!sensor)
+		return -1;
+
+	t->private = sensor;
+
+	if (!t->parent)
+		return 0;
+
+	return read_sensor_cb(t, data);
+}
+
+static int fill_sensor_tree(void)
+{
+	return tree_for_each(sensor_tree, fill_sensor_cb, NULL);
+}
+
+static int sensor_filter_cb(const char *name)
+{
+	/* let's ignore some directories in order to avoid to be
+	 * pulled inside the sysfs circular symlinks mess/hell
+	 * (choose the word which fit better)
+	 */
+	if (!strcmp(name, "subsystem"))
+		return 1;
+
+	if (!strcmp(name, "driver"))
+		return 1;
+
+	if (!strcmp(name, "hwmon"))
+		return 1;
+
+	if (!strcmp(name, "power"))
+		return 1;
+
+	return 0;
+}
+
+int sensor_init(void)
+{
+	sensor_tree = tree_load(SYSFS_SENSOR, sensor_filter_cb);
+	if (!sensor_tree)
+		return -1;
+
+	return fill_sensor_tree();
 }

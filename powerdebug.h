@@ -49,7 +49,7 @@ extern int display_clock_select(int window, int line);
 extern int display_clock_unselect(int window, int line, bool bold);
 
 extern void get_sensor_info(char *path, char *name, char *sensor, int verbose);
-extern int  read_and_print_sensor_info(int verbose);
+extern int  sensor_dump(void);
 extern void print_sensor_header(void);
 
 extern void killall_windows(int all);

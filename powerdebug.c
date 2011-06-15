@@ -335,7 +335,7 @@ static int powerdebug_dump(struct powerdebug_options *options)
 		read_and_dump_clock_info(options->clkname);
 
 	if (options->sensors)
-		read_and_print_sensor_info(options->verbose);
+		sensor_dump();
 
 	return 0;
 }
@@ -390,6 +390,11 @@ int main(int argc, char **argv)
 	if (clock_init()) {
 		printf("failed to initialize clock details (check debugfs)\n");
 		options->clocks = false;
+	}
+
+	if (sensor_init()) {
+		printf("failed to initialize sensors\n");
+		options->sensors = false;
 	}
 
 	ret = options->dump ? powerdebug_dump(options) :
