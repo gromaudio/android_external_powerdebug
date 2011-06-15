@@ -153,13 +153,10 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	return 0;
 }
 
-int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
-		       char *clkname_str, bool *refreshwin,
-		       struct powerdebug_options *options)
+int keystroke_callback(bool *enter_hit, struct powerdebug_options *options)
 {
 	char keychar;
 	int keystroke = getch();
-	int oldselectedwin = options->selectedwindow;
 
 	if (keystroke == EOF)
 		exit(0);
@@ -176,68 +173,24 @@ int keystroke_callback(bool *enter_hit, bool *findparent_ncurses,
 	if (keystroke == KEY_UP)
 		display_prev_line();
 
-	if (options->selectedwindow == CLOCK) {
-
-#if 0
-		/* TODO : fix with a new panel applicable for all subsystems */
-		if (keystroke == '/')
-			*findparent_ncurses = true;
-#endif
-
-		if ((keystroke == '\e' || oldselectedwin !=
-		     options->selectedwindow) && *findparent_ncurses) {
-			*findparent_ncurses = false;
-			clkname_str[0] = '\0';
-		}
-
-		if (*findparent_ncurses && keystroke != '\r') {
-			int len = strlen(clkname_str);
-			char str[2];
-
-			if (keystroke == KEY_BACKSPACE) {
-				if (len > 0)
-					len--;
-
-				clkname_str[len] = '\0';
-			} else {
-				if (strlen(clkname_str) ||
-				    keystroke != '/') {
-					str[0] = keystroke;
-					str[1] = '\0';
-					if (len < 63)
-						strcat(clkname_str,
-						       str);
-				}
-			}
-		}
-	}
-
 	keychar = toupper(keystroke);
-//#define DEBUG
-#ifdef DEBUG
-	fini_curses();
-	printf("key entered %d:%c\n", keystroke, keychar);
-	exit(1);
-#endif
 
 	if (keystroke == '\r')
 		*enter_hit = true;
 
-	if (keychar == 'Q' && !*findparent_ncurses)
+	if (keychar == 'Q')
 		return 1;
+
 	if (keychar == 'R') {
-		*refreshwin = true;
+		/* TODO refresh window */
 		options->ticktime = 3;
-	} else
-		*refreshwin = false;
+	}
 
 	return 0;
 }
 
 int mainloop(struct powerdebug_options *options)
 {
-	bool findparent_ncurses = false;
-	bool refreshwin = false;
 	bool enter_hit = false;
 	char clkname_str[64];
 
@@ -278,8 +231,7 @@ int mainloop(struct powerdebug_options *options)
 			break;
 		}
 
-		if (keystroke_callback(&enter_hit, &findparent_ncurses,
-				       clkname_str, &refreshwin, options))
+		if (keystroke_callback(&enter_hit, options))
 			break;
 
 	}
