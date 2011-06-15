@@ -198,19 +198,15 @@ int mainloop(struct powerdebug_options *options)
 		struct timeval tval;
 		fd_set readfds;
 
-		if (options->selectedwindow == REGULATOR)
-			regulator_display();
-
-		if (options->selectedwindow == SENSOR)
-			sensor_display();
 
 		if (options->selectedwindow == CLOCK) {
 			if (enter_hit)
-				clock_toggle_expanded();
-
-			clock_display();
+				display_select();
 			enter_hit = false;
 		}
+
+		display_refresh();
+
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);
