@@ -153,7 +153,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	return 0;
 }
 
-int keystroke_callback(bool *enter_hit, struct powerdebug_options *options)
+int keystroke_callback(struct powerdebug_options *options)
 {
 	char keychar;
 	int keystroke = getch();
@@ -162,10 +162,10 @@ int keystroke_callback(bool *enter_hit, struct powerdebug_options *options)
 		exit(0);
 
 	if (keystroke == KEY_RIGHT || keystroke == '\t')
-		 options->selectedwindow = display_next_panel();
+		display_next_panel();
 
 	if (keystroke == KEY_LEFT || keystroke == KEY_BTAB)
-		 options->selectedwindow = display_prev_panel();
+		display_prev_panel();
 
 	if (keystroke == KEY_DOWN)
 		display_next_line();
@@ -176,13 +176,13 @@ int keystroke_callback(bool *enter_hit, struct powerdebug_options *options)
 	keychar = toupper(keystroke);
 
 	if (keystroke == '\r')
-		*enter_hit = true;
+		display_select();
 
 	if (keychar == 'Q')
 		return 1;
 
 	if (keychar == 'R') {
-		/* TODO refresh window */
+		display_refresh();
 		options->ticktime = 3;
 	}
 
@@ -191,22 +191,10 @@ int keystroke_callback(bool *enter_hit, struct powerdebug_options *options)
 
 int mainloop(struct powerdebug_options *options)
 {
-	bool enter_hit = false;
-
 	while (1) {
 		int key = 0;
 		struct timeval tval;
 		fd_set readfds;
-
-
-		if (options->selectedwindow == CLOCK) {
-			if (enter_hit)
-				display_select();
-			enter_hit = false;
-		}
-
-		display_refresh();
-
 
 		FD_ZERO(&readfds);
 		FD_SET(0, &readfds);
@@ -224,9 +212,10 @@ int mainloop(struct powerdebug_options *options)
 			break;
 		}
 
-		if (keystroke_callback(&enter_hit, options))
+		if (keystroke_callback(options))
 			break;
 
+		display_refresh();
 	}
 
 	return 0;
@@ -252,6 +241,9 @@ static int powerdebug_display(struct powerdebug_options *options)
 		printf("failed to initialize display\n");
 		return -1;
 	}
+
+	if (display_refresh())
+		return -1;
 
 	if (mainloop(options))
 		return -1;
