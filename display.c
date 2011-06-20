@@ -111,14 +111,14 @@ static int display_show_footer(int win, char *string)
 	return 0;
 }
 
-int display_refresh(int win)
+static int display_refresh(int win, bool read)
 {
 	/* we are trying to refresh a window which is not showed */
 	if (win != current_win)
 		return 0;
 
 	if (windata[win].ops && windata[win].ops->display)
-		return windata[win].ops->display();
+		return windata[win].ops->display(read);
 
 	return 0;
 }
@@ -391,13 +391,12 @@ static int display_keystroke(int fd, void *data)
 
 	case 'r':
 	case 'R':
-		/* refresh will be done after */
-		break;
+		return display_refresh(current_win, true);
 	default:
 		return 0;
 	}
 
-	display_refresh(current_win);
+	display_refresh(current_win, false);
 
 	return 0;
 }
@@ -416,7 +415,7 @@ static int display_switch_to_main(int fd)
 	if (display_show_footer(current_win, NULL))
 		return -1;
 
-	return display_refresh(current_win);
+	return display_refresh(current_win, false);
 }
 
 static int display_find_keystroke(int fd, void *data)
@@ -547,7 +546,7 @@ int display_init(int wdefault)
 	if (display_show_footer(wdefault, NULL))
 		return -1;
 
-	return display_refresh(wdefault);
+	return display_refresh(wdefault, true);
 }
 
 int display_column_name(const char *line)

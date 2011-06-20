@@ -262,6 +262,10 @@ static int _clock_print_info_cb(struct tree *t, void *data)
 
 static int clock_print_info_cb(struct tree *t, void *data)
 {
+        /* we skip the root node of the tree */
+	if (!t->parent)
+		return 0;
+
         /* show the clock when *all* its parent is expanded */
 	if (tree_for_each_parent(t->parent, is_collapsed, NULL))
 		return 0;
@@ -315,9 +319,9 @@ static int clock_select(void)
  * found in the files. Then print the result to the text based interface
  * Return 0 on success, < 0 otherwise
  */
-static int clock_display(void)
+static int clock_display(bool refresh)
 {
-	if (read_clock_info(clock_tree))
+	if (refresh && read_clock_info(clock_tree))
 		return -1;
 
 	return clock_print_info(clock_tree);
@@ -334,13 +338,10 @@ static int clock_find(const char *name)
 
 	for (i = 0; i < nr; i++) {
 
-		ret = read_clock_info(ptree[i]);
-		if (ret)
-			break;
-
 		ret = _clock_print_info_cb(ptree[i], &line);
 		if (ret)
 			break;
+
 	}
 
 	display_refresh_pad(CLOCK);

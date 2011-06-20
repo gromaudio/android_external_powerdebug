@@ -16,7 +16,7 @@
 enum { CLOCK, REGULATOR, SENSOR };
 
 struct display_ops {
-	int (*display)(void);
+	int (*display)(bool refresh);
 	int (*select)(void);
 	int (*find)(const char *);
 	int (*selectf)(void);
@@ -31,5 +31,4 @@ extern void *display_get_row_data(int window);
 
 extern int display_init(int wdefault);
 extern int display_register(int win, struct display_ops *ops);
-extern int display_refresh(int win);
 extern int display_column_name(const char *line);
