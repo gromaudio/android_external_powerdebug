@@ -13,6 +13,5 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-extern int regulator_display(void);
 extern int regulator_init(void);
 extern int regulator_dump(void);

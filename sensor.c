@@ -250,7 +250,7 @@ static int sensor_print_header(void)
 	return ret;
 }
 
-int sensor_display(void)
+static int sensor_display(void)
 {
 	int ret, line = 0;
 

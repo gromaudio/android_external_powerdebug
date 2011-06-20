@@ -317,7 +317,7 @@ static int clock_print_info(void)
 	return ret;
 }
 
-int clock_toggle_expanded(void)
+static int clock_toggle_expanded(void)
 {
 	struct tree *t = display_get_row_data(CLOCK);
 	struct clock_info *clk = t->private;
@@ -332,7 +332,7 @@ int clock_toggle_expanded(void)
  * found in the files. Then print the result to the text based interface
  * Return 0 on success, < 0 otherwise
  */
-int clock_display(void)
+static int clock_display(void)
 {
 	if (read_clock_info())
 		return -1;

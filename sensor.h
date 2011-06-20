@@ -14,5 +14,4 @@
  *******************************************************************************/
 
 extern int sensor_dump(void);
-extern int sensor_display(void);
 extern int sensor_init(void);

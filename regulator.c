@@ -156,7 +156,7 @@ static int regulator_print_header(void)
 
 }
 
-int regulator_display(void)
+static int regulator_display(void)
 {
 	int ret, line = 0;
 

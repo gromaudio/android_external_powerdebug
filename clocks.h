@@ -14,5 +14,4 @@
  *******************************************************************************/
 
 extern int clock_init(void);
-extern int clock_display(void);
 extern int clock_dump(char *clk);
