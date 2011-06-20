@@ -18,6 +18,7 @@ enum { CLOCK, REGULATOR, SENSOR };
 struct display_ops {
 	int (*display)(void);
 	int (*select)(void);
+	int (*find)(const char *);
 };
 
 extern int display_print_line(int window, int line, char *str,

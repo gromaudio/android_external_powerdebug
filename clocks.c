@@ -159,28 +159,6 @@ static int dump_all_parents(char *clkarg)
 	return tree_for_each_parent(tree, dump_clock_cb, NULL);
 }
 
-void find_parents_for_clock(char *clkname, int complete)
-{
-	char name[256];
-
-	name[0] = '\0';
-	if (!complete) {
-		char str[256];
-
-		strcat(name, clkname);
-		sprintf(str, "Enter Clock Name : %s\n", name);
-		display_reset_cursor(CLOCK);
-		display_print_line(CLOCK, 0, str, 1, NULL);
-		display_refresh_pad(CLOCK);
-		return;
-	}
-	sprintf(name, "Parents for \"%s\" Clock : \n", clkname);
-	display_reset_cursor(CLOCK);
-	display_print_line(CLOCK, 0, name, 1, NULL);
-	display_refresh_pad(CLOCK);
-	dump_all_parents(clkname);
-}
-
 static inline int read_clock_cb(struct tree *t, void *data)
 {
 	struct clock_info *clk = t->private;
@@ -192,9 +170,9 @@ static inline int read_clock_cb(struct tree *t, void *data)
 	return 0;
 }
 
-static int read_clock_info(void)
+static int read_clock_info(struct tree *tree)
 {
-	return tree_for_each(clock_tree, read_clock_cb, NULL);
+	return tree_for_each(tree, read_clock_cb, NULL);
 }
 
 static int fill_clock_cb(struct tree *t, void *data)
@@ -259,19 +237,11 @@ free_clkname:
 	return clkline;
 }
 
-static int clock_print_info_cb(struct tree *t, void *data)
+static int _clock_print_info_cb(struct tree *t, void *data)
 {
 	struct clock_info *clock = t->private;
 	int *line = data;
 	char *buffer;
-
-        /* we skip the root node of the tree */
-	if (!t->parent)
-		return 0;
-
-        /* show the clock when *all* its parent is expanded */
-	if (tree_for_each_parent(t->parent, is_collapsed, NULL))
-		return 0;
 
 	buffer = clock_line(t);
 	if (!buffer)
@@ -284,6 +254,19 @@ static int clock_print_info_cb(struct tree *t, void *data)
 	free(buffer);
 
 	return 0;
+}
+
+static int clock_print_info_cb(struct tree *t, void *data)
+{
+        /* we skip the root node of the tree */
+	if (!t->parent)
+		return 0;
+
+        /* show the clock when *all* its parent is expanded */
+	if (tree_for_each_parent(t->parent, is_collapsed, NULL))
+		return 0;
+
+	return _clock_print_info_cb(t, data);
 }
 
 static int clock_print_header(void)
@@ -302,7 +285,7 @@ static int clock_print_header(void)
 	return ret;
 }
 
-static int clock_print_info(void)
+static int clock_print_info(struct tree *tree)
 {
 	int ret, line = 0;
 
@@ -310,7 +293,7 @@ static int clock_print_info(void)
 
 	clock_print_header();
 
-	ret = tree_for_each(clock_tree, clock_print_info_cb, &line);
+	ret = tree_for_each(tree, clock_print_info_cb, &line);
 
 	display_refresh_pad(CLOCK);
 
@@ -334,10 +317,37 @@ static int clock_toggle_expanded(void)
  */
 static int clock_display(void)
 {
-	if (read_clock_info())
+	if (read_clock_info(clock_tree))
 		return -1;
 
-	return clock_print_info();
+	return clock_print_info(clock_tree);
+}
+
+int clock_find(const char *name)
+{
+	struct tree **ptree = NULL;
+	int i, nr, line = 0, ret = 0;
+
+	nr = tree_finds(clock_tree, name, &ptree);
+
+	display_reset_cursor(CLOCK);
+
+	for (i = 0; i < nr; i++) {
+
+		ret = read_clock_info(ptree[i]);
+		if (ret)
+			break;
+
+		ret = _clock_print_info_cb(ptree[i], &line);
+		if (ret)
+			break;
+	}
+
+	display_refresh_pad(CLOCK);
+
+	free(ptree);
+
+	return ret;
 }
 
 /*
@@ -350,7 +360,7 @@ int clock_dump(char *clk)
 {
 	int ret;
 
-	if (read_clock_info())
+	if (read_clock_info(clock_tree))
 		return -1;
 
 	if (clk) {
@@ -370,6 +380,7 @@ int clock_dump(char *clk)
 static struct display_ops clock_ops = {
 	.display = clock_display,
 	.select  = clock_toggle_expanded,
+	.find    = clock_find,
 };
 
 /*

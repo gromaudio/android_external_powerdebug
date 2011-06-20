@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <ctype.h>
 #include <ncurses.h>
 #include <sys/types.h>
 #include <regex.h>
@@ -424,7 +425,6 @@ static int display_find_keystroke(int fd, void *data)
 	regex_t *reg = findd->reg;
 	char *string = findd->string;
 	int keystroke = getch();
-
 	char match[2] = { [0] = (char)keystroke, [1] = '\0' };
 	regmatch_t m[1];
 
@@ -433,6 +433,14 @@ static int display_find_keystroke(int fd, void *data)
 	case '\e':
 		display_find_form_fini(findd);
 		return display_switch_to_main(fd);
+
+	case KEY_DOWN:
+		display_next_line();
+		break;
+
+	case KEY_UP:
+		display_prev_line();
+		break;
 
 	case KEY_BACKSPACE:
 		if (strlen(string))
@@ -455,10 +463,13 @@ static int display_find_keystroke(int fd, void *data)
 		break;
 	}
 
-	if (display_show_header(current_win))
+	if (!windata[current_win].ops || !windata[current_win].ops->find)
+		return 0;
+
+	if (windata[current_win].ops->find(string))
 		return -1;
 
-	if (display_refresh(current_win))
+	if (display_show_header(current_win))
 		return -1;
 
 	if (display_show_footer(current_win, strlen(string) ? string :
