@@ -304,6 +304,9 @@ static int tree_finds_cb(struct tree *tree, void *data)
 {
 	struct struct_find *sf = data;
 
+	if (!strlen(sf->name))
+		return 0;
+
 	if (strncmp(sf->name, tree->name, strlen(sf->name)))
 		return 0;
 
