@@ -22,8 +22,6 @@
 #include "regulator.h"
 #include "display.h"
 
-#define print(w, x, y, fmt, args...) do { mvwprintw(w, y, x, fmt, ##args); } while (0)
-
 enum { PT_COLOR_DEFAULT = 1,
        PT_COLOR_HEADER_BAR,
        PT_COLOR_ERROR,
@@ -84,7 +82,7 @@ static int show_header_footer(int win)
 	wbkgd(header_win, COLOR_PAIR(PT_COLOR_HEADER_BAR));
 	werase(header_win);
 
-	print(header_win, curr_pointer, 0, "PowerDebug %s", VERSION);
+	mvwprintw(header_win, 0, curr_pointer, "PowerDebug %s", VERSION);
 	curr_pointer += 20;
 
 	for (i = 0; i < array_size; i++) {
@@ -93,14 +91,14 @@ static int show_header_footer(int win)
 		else
 			wattroff(header_win, A_REVERSE);
 
-		print(header_win, curr_pointer, 0, " %s ", windata[i].name);
+		mvwprintw(header_win, 0, curr_pointer, " %s ", windata[i].name);
 		curr_pointer += strlen(windata[i].name) + 2;
 	}
 	wrefresh(header_win);
 	werase(footer_win);
 
 	wattron(footer_win, A_REVERSE);
-	print(footer_win, 0, 0, "%s", footer_label);
+	mvwprintw(footer_win, 0, 0, "%s", footer_label);
 	wattroff(footer_win, A_REVERSE);
 	wrefresh(footer_win);
 
@@ -376,14 +374,14 @@ void print_regulator_header(void)
 {
 	werase(main_win);
 	wattron(main_win, A_BOLD);
-	print(main_win, 0, 0, "Name");
-	print(main_win, 12, 0, "Status");
-	print(main_win, 24, 0, "State");
-	print(main_win, 36, 0, "Type");
-	print(main_win, 48, 0, "Users");
-	print(main_win, 60, 0, "Microvolts");
-	print(main_win, 72, 0, "Min u-volts");
-	print(main_win, 84, 0, "Max u-volts");
+	mvwprintw(main_win, 0, 0, "Name");
+	mvwprintw(main_win, 0, 12, "Status");
+	mvwprintw(main_win, 0, 24, "State");
+	mvwprintw(main_win, 0, 36, "Type");
+	mvwprintw(main_win, 0, 48, "Users");
+	mvwprintw(main_win, 0, 60, "Microvolts");
+	mvwprintw(main_win, 0, 72, "Min u-volts");
+	mvwprintw(main_win, 0, 84, "Max u-volts");
 	wattroff(main_win, A_BOLD);
 	wrefresh(main_win);
 
@@ -394,11 +392,11 @@ void print_clock_header(void)
 {
 	werase(main_win);
 	wattron(main_win, A_BOLD);
-	print(main_win, 0, 0, "Name");
-	print(main_win, 56, 0, "Flags");
-	print(main_win, 75, 0, "Rate");
-	print(main_win, 88, 0, "Usecount");
-	print(main_win, 98, 0, "Children");
+	mvwprintw(main_win, 0, 0,  "Name");
+	mvwprintw(main_win, 0, 56, "Flags");
+	mvwprintw(main_win, 0, 75, "Rate");
+	mvwprintw(main_win, 0, 88, "Usecount");
+	mvwprintw(main_win, 0, 98, "Children");
 	wattroff(main_win, A_BOLD);
 	wrefresh(main_win);
 
@@ -409,8 +407,8 @@ void print_sensor_header(void)
 {
 	werase(main_win);
 	wattron(main_win, A_BOLD);
-	print(main_win, 0, 0, "Name");
-	print(main_win, 36, 0, "Value");
+	mvwprintw(main_win, 0, 0, "Name");
+	mvwprintw(main_win, 0, 36, "Value");
 	wattroff(main_win, A_BOLD);
 	wrefresh(main_win);
 
