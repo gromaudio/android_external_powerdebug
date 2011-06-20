@@ -32,7 +32,7 @@ struct mainloop_data **mds;
 
 #define MAX_EVENTS 10
 
-int _mainloop(unsigned int timeout)
+int mainloop(unsigned int timeout)
 {
         int i, nfds;
         struct epoll_event events[MAX_EVENTS];

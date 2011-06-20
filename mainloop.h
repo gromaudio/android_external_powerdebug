@@ -15,7 +15,7 @@
 
 typedef int (*mainloop_callback_t)(int fd, void *data);
 
-extern int _mainloop(unsigned int timeout);
+extern int mainloop(unsigned int timeout);
 extern int mainloop_add(int fd, mainloop_callback_t cb, void *data);
 extern int mainloop_del(int fd);
 extern int mainloop_init(void);

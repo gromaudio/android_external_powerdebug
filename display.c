@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <ncurses.h>
 #include "powerdebug.h"
+#include "mainloop.h"
 #include "regulator.h"
 #include "display.h"
 
@@ -106,130 +107,14 @@ static int show_header_footer(int win)
 	return 0;
 }
 
-int display_init(int wdefault)
+int display_refresh(int win)
 {
-	int i;
-	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+	/* we are trying to refresh a window which is not showed */
+	if (win != current_win)
+		return 0;
 
-	current_win = wdefault;
-
-	if (!initscr())
-		return -1;
-
-	start_color();
-	use_default_colors();
-
-	keypad(stdscr, TRUE);
-	noecho();
-	cbreak();
-	curs_set(0);
-	nonl();
-
-	if (init_pair(PT_COLOR_DEFAULT, COLOR_WHITE, COLOR_BLACK) ||
-	    init_pair(PT_COLOR_ERROR, COLOR_BLACK, COLOR_RED) ||
-	    init_pair(PT_COLOR_HEADER_BAR, COLOR_WHITE, COLOR_BLACK) ||
-	    init_pair(PT_COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW) ||
-	    init_pair(PT_COLOR_GREEN, COLOR_WHITE, COLOR_GREEN) ||
-	    init_pair(PT_COLOR_BRIGHT, COLOR_WHITE, COLOR_BLACK) ||
-	    init_pair(PT_COLOR_BLUE, COLOR_WHITE, COLOR_BLUE) ||
-	    init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED))
-		return -1;
-
-	if (atexit(display_fini))
-		return -1;
-
-	getmaxyx(stdscr, maxy, maxx);
-
-	for (i = 0; i < array_size; i++) {
-
-		windata[i].win = subwin(stdscr, maxy - 2, maxx, 1, 0);
-		if (!windata[i].win)
-			return -1;
-
-		windata[i].pad = newpad(maxrows, maxx);
-		if (!windata[i].pad)
-			return -1;
-
-	}
-
-	header_win = subwin(stdscr, 1, maxx, 0, 0);
-	if (!header_win)
-		return -1;
-
-	footer_win = subwin(stdscr, 1, maxx, maxy-1, 0);
-	if (!footer_win)
-		return -1;
-
-	return show_header_footer(wdefault);
-}
-
-void print_regulator_header(void)
-{
-	WINDOW *regulator_win = windata[REGULATOR].win;
-
-	werase(regulator_win);
-	wattron(regulator_win, A_BOLD);
-	print(regulator_win, 0, 0, "Name");
-	print(regulator_win, 12, 0, "Status");
-	print(regulator_win, 24, 0, "State");
-	print(regulator_win, 36, 0, "Type");
-	print(regulator_win, 48, 0, "Users");
-	print(regulator_win, 60, 0, "Microvolts");
-	print(regulator_win, 72, 0, "Min u-volts");
-	print(regulator_win, 84, 0, "Max u-volts");
-	wattroff(regulator_win, A_BOLD);
-	wrefresh(regulator_win);
-
-	show_header_footer(REGULATOR);
-}
-
-void print_clock_header(void)
-{
-	WINDOW *clock_win = windata[CLOCK].win;
-
-	werase(clock_win);
-	wattron(clock_win, A_BOLD);
-	print(clock_win, 0, 0, "Name");
-	print(clock_win, 56, 0, "Flags");
-	print(clock_win, 75, 0, "Rate");
-	print(clock_win, 88, 0, "Usecount");
-	print(clock_win, 98, 0, "Children");
-	wattroff(clock_win, A_BOLD);
-	wrefresh(clock_win);
-
-	show_header_footer(CLOCK);
-}
-
-void print_sensor_header(void)
-{
-	WINDOW *sensor_win = windata[SENSOR].win;
-
-	werase(sensor_win);
-	wattron(sensor_win, A_BOLD);
-	print(sensor_win, 0, 0, "Name");
-	print(sensor_win, 36, 0, "Value");
-	wattroff(sensor_win, A_BOLD);
-	wrefresh(sensor_win);
-
-	show_header_footer(SENSOR);
-}
-
-int display_register(int win, struct display_ops *ops)
-{
-	size_t array_size = sizeof(windata) / sizeof(windata[0]);
-
-	if (win < 0 || win >= array_size)
-		return -1;
-
-	windata[win].ops = ops;
-
-	return 0;
-}
-
-int display_refresh(void)
-{
-	if (windata[current_win].ops && windata[current_win].ops->display)
-		return windata[current_win].ops->display();
+	if (windata[win].ops && windata[win].ops->display)
+		return windata[win].ops->display();
 
 	return 0;
 }
@@ -378,9 +263,8 @@ int display_print_line(int win, int line, char *str, int bold, void *data)
 	return 0;
 }
 
-int display_keystroke(void *data)
+static int display_keystroke(int fd, void *data)
 {
-	int *tick = data;
 	int keystroke = getch();
 
 	switch (keystroke) {
@@ -414,10 +298,139 @@ int display_keystroke(void *data)
 
 	case 'r':
 	case 'R':
-		display_refresh();
-		*tick = 3;
+		/* refresh will be done after */
 		break;
+	default:
+		return 0;
 	}
+
+	display_refresh(current_win);
+
+	return 0;
+}
+
+int display_init(int wdefault)
+{
+	int i;
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
+	current_win = wdefault;
+
+	if (mainloop_add(0, display_keystroke, NULL))
+		return -1;
+
+	if (!initscr())
+		return -1;
+
+	start_color();
+	use_default_colors();
+
+	keypad(stdscr, TRUE);
+	noecho();
+	cbreak();
+	curs_set(0);
+	nonl();
+
+	if (init_pair(PT_COLOR_DEFAULT, COLOR_WHITE, COLOR_BLACK) ||
+	    init_pair(PT_COLOR_ERROR, COLOR_BLACK, COLOR_RED) ||
+	    init_pair(PT_COLOR_HEADER_BAR, COLOR_WHITE, COLOR_BLACK) ||
+	    init_pair(PT_COLOR_YELLOW, COLOR_WHITE, COLOR_YELLOW) ||
+	    init_pair(PT_COLOR_GREEN, COLOR_WHITE, COLOR_GREEN) ||
+	    init_pair(PT_COLOR_BRIGHT, COLOR_WHITE, COLOR_BLACK) ||
+	    init_pair(PT_COLOR_BLUE, COLOR_WHITE, COLOR_BLUE) ||
+	    init_pair(PT_COLOR_RED, COLOR_WHITE, COLOR_RED))
+		return -1;
+
+	if (atexit(display_fini))
+		return -1;
+
+	getmaxyx(stdscr, maxy, maxx);
+
+	for (i = 0; i < array_size; i++) {
+
+		windata[i].win = subwin(stdscr, maxy - 2, maxx, 1, 0);
+		if (!windata[i].win)
+			return -1;
+
+		windata[i].pad = newpad(maxrows, maxx);
+		if (!windata[i].pad)
+			return -1;
+
+	}
+
+	header_win = subwin(stdscr, 1, maxx, 0, 0);
+	if (!header_win)
+		return -1;
+
+	footer_win = subwin(stdscr, 1, maxx, maxy-1, 0);
+	if (!footer_win)
+		return -1;
+
+	if (show_header_footer(wdefault))
+		return -1;
+
+	return display_refresh(wdefault);
+}
+
+void print_regulator_header(void)
+{
+	WINDOW *regulator_win = windata[REGULATOR].win;
+
+	werase(regulator_win);
+	wattron(regulator_win, A_BOLD);
+	print(regulator_win, 0, 0, "Name");
+	print(regulator_win, 12, 0, "Status");
+	print(regulator_win, 24, 0, "State");
+	print(regulator_win, 36, 0, "Type");
+	print(regulator_win, 48, 0, "Users");
+	print(regulator_win, 60, 0, "Microvolts");
+	print(regulator_win, 72, 0, "Min u-volts");
+	print(regulator_win, 84, 0, "Max u-volts");
+	wattroff(regulator_win, A_BOLD);
+	wrefresh(regulator_win);
+
+	show_header_footer(REGULATOR);
+}
+
+void print_clock_header(void)
+{
+	WINDOW *clock_win = windata[CLOCK].win;
+
+	werase(clock_win);
+	wattron(clock_win, A_BOLD);
+	print(clock_win, 0, 0, "Name");
+	print(clock_win, 56, 0, "Flags");
+	print(clock_win, 75, 0, "Rate");
+	print(clock_win, 88, 0, "Usecount");
+	print(clock_win, 98, 0, "Children");
+	wattroff(clock_win, A_BOLD);
+	wrefresh(clock_win);
+
+	show_header_footer(CLOCK);
+}
+
+void print_sensor_header(void)
+{
+	WINDOW *sensor_win = windata[SENSOR].win;
+
+	werase(sensor_win);
+	wattron(sensor_win, A_BOLD);
+	print(sensor_win, 0, 0, "Name");
+	print(sensor_win, 36, 0, "Value");
+	wattroff(sensor_win, A_BOLD);
+	wrefresh(sensor_win);
+
+	show_header_footer(SENSOR);
+}
+
+int display_register(int win, struct display_ops *ops)
+{
+	size_t array_size = sizeof(windata) / sizeof(windata[0]);
+
+	if (win < 0 || win >= array_size)
+		return -1;
+
+	windata[win].ops = ops;
 
 	return 0;
 }

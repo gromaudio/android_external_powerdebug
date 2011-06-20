@@ -24,6 +24,7 @@
 #include "display.h"
 #include "clocks.h"
 #include "sensor.h"
+#include "mainloop.h"
 #include "powerdebug.h"
 
 void usage(void)
@@ -157,38 +158,6 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	return 0;
 }
 
-int mainloop(struct powerdebug_options *options)
-{
-	while (1) {
-		int ret;
-		struct timeval tval;
-		fd_set readfds;
-
-		display_refresh();
-
-		FD_ZERO(&readfds);
-		FD_SET(0, &readfds);
-		tval.tv_sec = options->ticktime;
-		tval.tv_usec = (options->ticktime - tval.tv_sec) * 1000000;
-
-	again:
-		ret = select(1, &readfds, NULL, NULL, &tval);
-		if (!ret)
-			continue;
-
-		if (ret < 0) {
-			if (errno == EINTR)
-				goto again;
-			break;
-		}
-
-		if (display_keystroke(&options->ticktime))
-			break;
-	}
-
-	return 0;
-}
-
 static int powerdebug_dump(struct powerdebug_options *options)
 {
 	if (options->regulators)
@@ -210,10 +179,7 @@ static int powerdebug_display(struct powerdebug_options *options)
 		return -1;
 	}
 
-	if (display_refresh())
-		return -1;
-
-	if (mainloop(options))
+	if (mainloop(options->ticktime * 1000))
 		return -1;
 
 	return 0;
@@ -245,6 +211,11 @@ int main(int argc, char **argv)
 
 	if (getoptions(argc, argv, options)) {
 		usage();
+		return 1;
+	}
+
+	if (mainloop_init()) {
+		fprintf(stderr, "failed to initialize the mainloop\n");
 		return 1;
 	}
 
