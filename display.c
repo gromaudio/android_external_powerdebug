@@ -37,8 +37,6 @@ static WINDOW *footer_win;
 static WINDOW *main_win;
 static int current_win;
 
-int maxx, maxy;
-
 /* Number of lines in the virtual window */
 static const int maxrows = 1024;
 
@@ -119,6 +117,10 @@ int display_refresh(int win)
 
 int display_refresh_pad(int win)
 {
+	int maxx, maxy;
+
+	getmaxyx(stdscr, maxy, maxx);
+
 	return prefresh(windata[win].pad, windata[win].scrolling,
 			0, 2, 0, maxy - 2, maxx);
 }
@@ -168,10 +170,13 @@ static int display_prev_panel(void)
 
 static int display_next_line(void)
 {
+	int maxx, maxy;
 	int cursor = windata[current_win].cursor;
 	int nrdata = windata[current_win].nrdata;
 	int scrolling = windata[current_win].scrolling;
 	struct rowdata *rowdata = windata[current_win].rowdata;
+
+	getmaxyx(stdscr, maxy, maxx);
 
 	if (cursor >= nrdata)
 		return cursor;
@@ -309,7 +314,7 @@ static int display_keystroke(int fd, void *data)
 
 int display_init(int wdefault)
 {
-	int i;
+	int i, maxx, maxy;
 	size_t array_size = sizeof(windata) / sizeof(windata[0]);
 
 	current_win = wdefault;
