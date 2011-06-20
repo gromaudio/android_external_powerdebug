@@ -17,7 +17,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ncurses.h>
-#include <form.h>
+#include <sys/types.h>
+#include <regex.h>
 #include "powerdebug.h"
 #include "mainloop.h"
 #include "regulator.h"
@@ -98,11 +99,11 @@ static int display_show_header(int win)
 #define footer_label " Q (Quit)  R (Refresh) Other Keys: 'Left', " \
 	"'Right' , 'Up', 'Down', 'enter', , 'Esc'"
 
-static int display_show_footer(int win)
+static int display_show_footer(int win, char *string)
 {
 	werase(footer_win);
 	wattron(footer_win, A_REVERSE);
-	mvwprintw(footer_win, 0, 0, "%s", footer_label);
+	mvwprintw(footer_win, 0, 0, "%s", string ? string : footer_label);
 	wattroff(footer_win, A_REVERSE);
 	wrefresh(footer_win);
 
@@ -274,12 +275,78 @@ int display_print_line(int win, int line, char *str, int bold, void *data)
 
 static int display_find_keystroke(int fd, void *data);
 
+struct find_data {
+	size_t len;
+	char *string;
+	regex_t *reg;
+};
+
+struct find_data *display_find_form_init(void)
+{
+	const char *regexp = "^[a-z|0-9|_|-|.]";
+	struct find_data *findd;
+	const size_t len = 64;
+	regex_t *reg;
+	char *search4;
+	int maxx, maxy;
+
+	getmaxyx(stdscr, maxy, maxx);
+
+	reg = malloc(sizeof(*reg));
+	if (!reg)
+		return NULL;
+
+	if (regcomp(reg, regexp, REG_ICASE))
+		goto out_free_reg;
+
+	search4 = malloc(len);
+	if (!search4)
+		goto out_free_regcomp;
+	memset(search4, '\0', len);
+
+	findd = malloc(sizeof(*findd));
+	if (!findd)
+		goto out_free_search4;
+
+	findd->string = search4;
+	findd->reg = reg;
+	findd->len = len;
+out:
+	return findd;
+
+out_free_search4:
+	free(search4);
+out_free_regcomp:
+	regfree(reg);
+out_free_reg:
+	free(reg);
+
+	goto out;
+}
+
+static void display_find_form_fini(struct find_data *fd)
+{
+	regfree(fd->reg);
+	free(fd->string);
+	free(fd);
+	curs_set(0);
+}
+
 static int display_switch_to_find(int fd)
 {
+	struct find_data *findd;
+
+	findd = display_find_form_init();
+	if (!findd)
+		return -1;
+
 	if (mainloop_del(fd))
 		return -1;
 
-	if (mainloop_add(fd, display_find_keystroke, NULL))
+	if (mainloop_add(fd, display_find_keystroke, findd))
+		return -1;
+
+	if (display_show_footer(current_win, "find (esc to exit)?"))
 		return -1;
 
 	return 0;
@@ -342,23 +409,61 @@ static int display_switch_to_main(int fd)
 	if (mainloop_add(fd, display_keystroke, NULL))
 		return -1;
 
-	display_refresh(current_win);
+	if (display_show_header(current_win))
+		return -1;
 
-	return 0;
+	if (display_show_footer(current_win, NULL))
+		return -1;
+
+	return display_refresh(current_win);
 }
-
 
 static int display_find_keystroke(int fd, void *data)
 {
+	struct find_data *findd = data;
+	regex_t *reg = findd->reg;
+	char *string = findd->string;
 	int keystroke = getch();
+
+	char match[2] = { [0] = (char)keystroke, [1] = '\0' };
+	regmatch_t m[1];
 
 	switch (keystroke) {
 
 	case '\e':
+		display_find_form_fini(findd);
 		return display_switch_to_main(fd);
+
+	case KEY_BACKSPACE:
+		if (strlen(string))
+			string[strlen(string) - 1] = '\0';
+		break;
+
+	case KEY_ENTER:
+		/* next patch */
+		break;
+
 	default:
+
+		/* We don't want invalid characters for a name */
+		if (regexec(reg, match, 1, m, 0))
+			return 0;
+
+		if (strlen(string) < findd->len - 1)
+			string[strlen(string)] = (char)keystroke;
+
 		break;
 	}
+
+	if (display_show_header(current_win))
+		return -1;
+
+	if (display_refresh(current_win))
+		return -1;
+
+	if (display_show_footer(current_win, strlen(string) ? string :
+				"find (esc to exit)?"))
+		return -1;
 
 	return 0;
 }
@@ -423,7 +528,7 @@ int display_init(int wdefault)
 	if (display_show_header(wdefault))
 		return -1;
 
-	if (display_show_footer(wdefault))
+	if (display_show_footer(wdefault, NULL))
 		return -1;
 
 	return display_refresh(wdefault);
