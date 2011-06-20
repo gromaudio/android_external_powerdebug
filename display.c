@@ -41,9 +41,6 @@ static int current_win;
 /* Number of lines in the virtual window */
 static const int maxrows = 1024;
 
-#define footer_label " Q (Quit)  R (Refresh) Other Keys: 'Left', " \
-	"'Right' , 'Up', 'Down', 'enter', , 'Esc'"
-
 struct rowdata {
 	int attr;
 	void *data;
@@ -71,7 +68,7 @@ static void display_fini(void)
 	endwin();
 }
 
-static int show_header_footer(int win)
+static int display_show_header(int win)
 {
 	int i;
 	int curr_pointer = 0;
@@ -94,8 +91,16 @@ static int show_header_footer(int win)
 		curr_pointer += strlen(windata[i].name) + 2;
 	}
 	wrefresh(header_win);
-	werase(footer_win);
 
+	return 0;
+}
+
+#define footer_label " Q (Quit)  R (Refresh) Other Keys: 'Left', " \
+	"'Right' , 'Up', 'Down', 'enter', , 'Esc'"
+
+static int display_show_footer(int win)
+{
+	werase(footer_win);
 	wattron(footer_win, A_REVERSE);
 	mvwprintw(footer_win, 0, 0, "%s", footer_label);
 	wattroff(footer_win, A_REVERSE);
@@ -415,7 +420,10 @@ int display_init(int wdefault)
 	if (!footer_win)
 		return -1;
 
-	if (show_header_footer(wdefault))
+	if (display_show_header(wdefault))
+		return -1;
+
+	if (display_show_footer(wdefault))
 		return -1;
 
 	return display_refresh(wdefault);
@@ -423,13 +431,19 @@ int display_init(int wdefault)
 
 int display_header_footer(int win, const char *line)
 {
+	int ret;
+
 	werase(main_win);
 	wattron(main_win, A_BOLD);
 	mvwprintw(main_win, 0, 0, "%s", line);
 	wattroff(main_win, A_BOLD);
 	wrefresh(main_win);
 
-	return show_header_footer(win);
+	ret = display_show_header(win);
+	if (ret)
+		return ret;
+
+	return display_show_footer(win);
 }
 
 int display_register(int win, struct display_ops *ops)
