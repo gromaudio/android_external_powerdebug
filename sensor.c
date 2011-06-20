@@ -243,7 +243,7 @@ static int sensor_print_header(void)
 	if (asprintf(&buf, "%-36s%s", "Name", "Value") < 0)
 		return -1;
 
-	ret = display_header_footer(SENSOR, buf);
+	ret = display_column_name(buf);
 
 	free(buf);
 

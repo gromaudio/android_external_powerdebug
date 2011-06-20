@@ -148,7 +148,7 @@ static int regulator_print_header(void)
 		     "Min u-volts", "Max u-volts") < 0)
 		return -1;
 
-	ret = display_header_footer(REGULATOR, buf);
+	ret = display_column_name(buf);
 
 	free(buf);
 

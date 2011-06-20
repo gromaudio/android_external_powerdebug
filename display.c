@@ -293,12 +293,12 @@ static int display_keystroke(int fd, void *data)
 
 	case KEY_RIGHT:
 	case '\t':
-		display_next_panel();
+		display_show_header(display_next_panel());
 		break;
 
 	case KEY_LEFT:
 	case KEY_BTAB:
-		display_prev_panel();
+		display_show_header(display_prev_panel());
 		break;
 
 	case KEY_DOWN:
@@ -429,21 +429,15 @@ int display_init(int wdefault)
 	return display_refresh(wdefault);
 }
 
-int display_header_footer(int win, const char *line)
+int display_column_name(const char *line)
 {
-	int ret;
-
 	werase(main_win);
 	wattron(main_win, A_BOLD);
 	mvwprintw(main_win, 0, 0, "%s", line);
 	wattroff(main_win, A_BOLD);
 	wrefresh(main_win);
 
-	ret = display_show_header(win);
-	if (ret)
-		return ret;
-
-	return display_show_footer(win);
+	return 0;
 }
 
 int display_register(int win, struct display_ops *ops)

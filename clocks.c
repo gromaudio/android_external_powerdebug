@@ -295,7 +295,7 @@ static int clock_print_header(void)
 		     "Name", "Flags", "Rate", "Usecount", "Children") < 0)
 		return -1;
 
-	ret = display_header_footer(CLOCK, buf);
+	ret = display_column_name(buf);
 
 	free(buf);
 
