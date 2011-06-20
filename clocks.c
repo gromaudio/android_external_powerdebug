@@ -286,13 +286,29 @@ static int clock_print_info_cb(struct tree *t, void *data)
 	return 0;
 }
 
+static int clock_print_header(void)
+{
+	char *buf;
+	int ret;
+
+	if (asprintf(&buf, "%-55s %-16s %-12s %-9s %-8s",
+		     "Name", "Flags", "Rate", "Usecount", "Children") < 0)
+		return -1;
+
+	ret = display_header_footer(CLOCK, buf);
+
+	free(buf);
+
+	return ret;
+}
+
 static int clock_print_info(void)
 {
 	int ret, line = 0;
 
-	print_clock_header();
-
 	display_reset_cursor(CLOCK);
+
+	clock_print_header();
 
 	ret = tree_for_each(clock_tree, clock_print_info_cb, &line);
 

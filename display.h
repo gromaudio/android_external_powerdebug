@@ -29,9 +29,5 @@ extern void *display_get_row_data(int window);
 
 extern int display_init(int wdefault);
 extern int display_register(int win, struct display_ops *ops);
+extern int display_header_footer(int win, const char *line);
 extern int display_refresh(int win);
-
-/* FIXME */
-extern void print_sensor_header(void);
-extern void print_clock_header(void);
-extern void print_regulator_header(void);

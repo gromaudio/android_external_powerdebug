@@ -138,13 +138,31 @@ static int regulator_display_cb(struct tree *t, void *data)
 	return 0;
 }
 
+static int regulator_print_header(void)
+{
+	char *buf;
+	int ret;
+
+	if (asprintf(&buf, "%-11s %-11s %-11s %-11s %-11s %-11s %-11s %-12s",
+		     "Name", "Status", "State", "Type", "Users", "Microvolts",
+		     "Min u-volts", "Max u-volts") < 0)
+		return -1;
+
+	ret = display_header_footer(REGULATOR, buf);
+
+	free(buf);
+
+	return ret;
+
+}
+
 int regulator_display(void)
 {
 	int ret, line = 0;
 
 	display_reset_cursor(REGULATOR);
 
-	print_regulator_header();
+	regulator_print_header();
 
 	ret = tree_for_each(reg_tree, regulator_display_cb, &line);
 

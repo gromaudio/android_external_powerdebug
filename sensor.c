@@ -235,13 +235,28 @@ static int sensor_display_cb(struct tree *t, void *data)
 	return 0;
 }
 
+static int sensor_print_header(void)
+{
+	char *buf;
+	int ret;
+
+	if (asprintf(&buf, "%-36s%s", "Name", "Value") < 0)
+		return -1;
+
+	ret = display_header_footer(SENSOR, buf);
+
+	free(buf);
+
+	return ret;
+}
+
 int sensor_display(void)
 {
 	int ret, line = 0;
 
 	display_reset_cursor(SENSOR);
 
-	print_sensor_header();
+	sensor_print_header();
 
 	ret = tree_for_each(sensor_tree, sensor_display_cb, &line);
 

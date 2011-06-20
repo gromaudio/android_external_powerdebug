@@ -375,49 +375,15 @@ int display_init(int wdefault)
 	return display_refresh(wdefault);
 }
 
-void print_regulator_header(void)
+int display_header_footer(int win, const char *line)
 {
 	werase(main_win);
 	wattron(main_win, A_BOLD);
-	mvwprintw(main_win, 0, 0, "Name");
-	mvwprintw(main_win, 0, 12, "Status");
-	mvwprintw(main_win, 0, 24, "State");
-	mvwprintw(main_win, 0, 36, "Type");
-	mvwprintw(main_win, 0, 48, "Users");
-	mvwprintw(main_win, 0, 60, "Microvolts");
-	mvwprintw(main_win, 0, 72, "Min u-volts");
-	mvwprintw(main_win, 0, 84, "Max u-volts");
+	mvwprintw(main_win, 0, 0, "%s", line);
 	wattroff(main_win, A_BOLD);
 	wrefresh(main_win);
 
-	show_header_footer(REGULATOR);
-}
-
-void print_clock_header(void)
-{
-	werase(main_win);
-	wattron(main_win, A_BOLD);
-	mvwprintw(main_win, 0, 0,  "Name");
-	mvwprintw(main_win, 0, 56, "Flags");
-	mvwprintw(main_win, 0, 75, "Rate");
-	mvwprintw(main_win, 0, 88, "Usecount");
-	mvwprintw(main_win, 0, 98, "Children");
-	wattroff(main_win, A_BOLD);
-	wrefresh(main_win);
-
-	show_header_footer(CLOCK);
-}
-
-void print_sensor_header(void)
-{
-	werase(main_win);
-	wattron(main_win, A_BOLD);
-	mvwprintw(main_win, 0, 0, "Name");
-	mvwprintw(main_win, 0, 36, "Value");
-	wattroff(main_win, A_BOLD);
-	wrefresh(main_win);
-
-	show_header_footer(SENSOR);
+	return show_header_footer(win);
 }
 
 int display_register(int win, struct display_ops *ops)
