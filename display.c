@@ -17,6 +17,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ncurses.h>
+#include <form.h>
 #include "powerdebug.h"
 #include "mainloop.h"
 #include "regulator.h"
@@ -266,6 +267,19 @@ int display_print_line(int win, int line, char *str, int bold, void *data)
 	return 0;
 }
 
+static int display_find_keystroke(int fd, void *data);
+
+static int display_switch_to_find(int fd)
+{
+	if (mainloop_del(fd))
+		return -1;
+
+	if (mainloop_add(fd, display_find_keystroke, NULL))
+		return -1;
+
+	return 0;
+}
+
 static int display_keystroke(int fd, void *data)
 {
 	int keystroke = getch();
@@ -299,6 +313,9 @@ static int display_keystroke(int fd, void *data)
 	case 'Q':
 		return 1;
 
+	case '/':
+		return display_switch_to_find(fd);
+
 	case 'r':
 	case 'R':
 		/* refresh will be done after */
@@ -308,6 +325,35 @@ static int display_keystroke(int fd, void *data)
 	}
 
 	display_refresh(current_win);
+
+	return 0;
+}
+
+static int display_switch_to_main(int fd)
+{
+	if (mainloop_del(fd))
+		return -1;
+
+	if (mainloop_add(fd, display_keystroke, NULL))
+		return -1;
+
+	display_refresh(current_win);
+
+	return 0;
+}
+
+
+static int display_find_keystroke(int fd, void *data)
+{
+	int keystroke = getch();
+
+	switch (keystroke) {
+
+	case '\e':
+		return display_switch_to_main(fd);
+	default:
+		break;
+	}
 
 	return 0;
 }
