@@ -36,6 +36,7 @@ enum { PT_COLOR_DEFAULT = 1,
 
 static WINDOW *header_win;
 static WINDOW *footer_win;
+static WINDOW *main_win;
 static int current_win;
 
 int maxx, maxy;
@@ -52,7 +53,6 @@ struct rowdata {
 };
 
 struct windata {
-	WINDOW *win;
 	WINDOW *pad;
 	struct display_ops *ops;
 	struct rowdata *rowdata;
@@ -348,8 +348,8 @@ int display_init(int wdefault)
 
 	for (i = 0; i < array_size; i++) {
 
-		windata[i].win = subwin(stdscr, maxy - 2, maxx, 1, 0);
-		if (!windata[i].win)
+		main_win = subwin(stdscr, maxy - 2, maxx, 1, 0);
+		if (!main_win)
 			return -1;
 
 		windata[i].pad = newpad(maxrows, maxx);
@@ -374,51 +374,45 @@ int display_init(int wdefault)
 
 void print_regulator_header(void)
 {
-	WINDOW *regulator_win = windata[REGULATOR].win;
-
-	werase(regulator_win);
-	wattron(regulator_win, A_BOLD);
-	print(regulator_win, 0, 0, "Name");
-	print(regulator_win, 12, 0, "Status");
-	print(regulator_win, 24, 0, "State");
-	print(regulator_win, 36, 0, "Type");
-	print(regulator_win, 48, 0, "Users");
-	print(regulator_win, 60, 0, "Microvolts");
-	print(regulator_win, 72, 0, "Min u-volts");
-	print(regulator_win, 84, 0, "Max u-volts");
-	wattroff(regulator_win, A_BOLD);
-	wrefresh(regulator_win);
+	werase(main_win);
+	wattron(main_win, A_BOLD);
+	print(main_win, 0, 0, "Name");
+	print(main_win, 12, 0, "Status");
+	print(main_win, 24, 0, "State");
+	print(main_win, 36, 0, "Type");
+	print(main_win, 48, 0, "Users");
+	print(main_win, 60, 0, "Microvolts");
+	print(main_win, 72, 0, "Min u-volts");
+	print(main_win, 84, 0, "Max u-volts");
+	wattroff(main_win, A_BOLD);
+	wrefresh(main_win);
 
 	show_header_footer(REGULATOR);
 }
 
 void print_clock_header(void)
 {
-	WINDOW *clock_win = windata[CLOCK].win;
-
-	werase(clock_win);
-	wattron(clock_win, A_BOLD);
-	print(clock_win, 0, 0, "Name");
-	print(clock_win, 56, 0, "Flags");
-	print(clock_win, 75, 0, "Rate");
-	print(clock_win, 88, 0, "Usecount");
-	print(clock_win, 98, 0, "Children");
-	wattroff(clock_win, A_BOLD);
-	wrefresh(clock_win);
+	werase(main_win);
+	wattron(main_win, A_BOLD);
+	print(main_win, 0, 0, "Name");
+	print(main_win, 56, 0, "Flags");
+	print(main_win, 75, 0, "Rate");
+	print(main_win, 88, 0, "Usecount");
+	print(main_win, 98, 0, "Children");
+	wattroff(main_win, A_BOLD);
+	wrefresh(main_win);
 
 	show_header_footer(CLOCK);
 }
 
 void print_sensor_header(void)
 {
-	WINDOW *sensor_win = windata[SENSOR].win;
-
-	werase(sensor_win);
-	wattron(sensor_win, A_BOLD);
-	print(sensor_win, 0, 0, "Name");
-	print(sensor_win, 36, 0, "Value");
-	wattroff(sensor_win, A_BOLD);
-	wrefresh(sensor_win);
+	werase(main_win);
+	wattron(main_win, A_BOLD);
+	print(main_win, 0, 0, "Name");
+	print(main_win, 36, 0, "Value");
+	wattroff(main_win, A_BOLD);
+	wrefresh(main_win);
 
 	show_header_footer(SENSOR);
 }
