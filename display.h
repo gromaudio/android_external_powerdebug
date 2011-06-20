@@ -19,6 +19,7 @@ struct display_ops {
 	int (*display)(void);
 	int (*select)(void);
 	int (*find)(const char *);
+	int (*selectf)(void);
 };
 
 extern int display_print_line(int window, int line, char *str,

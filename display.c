@@ -447,9 +447,14 @@ static int display_find_keystroke(int fd, void *data)
 			string[strlen(string) - 1] = '\0';
 		break;
 
-	case KEY_ENTER:
-		/* next patch */
-		break;
+	case '\r':
+		if (!windata[current_win].ops || !windata[current_win].ops->selectf)
+			return 0;
+
+		if (windata[current_win].ops->selectf())
+			return -1;
+
+		return 0;
 
 	default:
 
