@@ -280,6 +280,7 @@ struct find_data {
 	size_t len;
 	char *string;
 	regex_t *reg;
+	int ocursor;
 };
 
 struct find_data *display_find_form_init(void)
@@ -312,6 +313,13 @@ struct find_data *display_find_form_init(void)
 	findd->string = search4;
 	findd->reg = reg;
 	findd->len = len;
+
+	/* save the location of the cursor on the main window in order to
+	 * browse the search result
+	 */
+	findd->ocursor = windata[current_win].cursor;
+	windata[current_win].cursor = 0;
+
 out:
 	return findd;
 
@@ -327,6 +335,7 @@ out_free_reg:
 
 static void display_find_form_fini(struct find_data *fd)
 {
+	windata[current_win].cursor = fd->ocursor;
 	regfree(fd->reg);
 	free(fd->string);
 	free(fd);
