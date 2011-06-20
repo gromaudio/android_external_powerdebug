@@ -281,9 +281,10 @@ struct find_data {
 	char *string;
 	regex_t *reg;
 	int ocursor;
+	int oscrolling;
 };
 
-struct find_data *display_find_form_init(void)
+struct find_data *display_find_init(void)
 {
 	const char *regexp = "^[a-z|0-9|_|-|.]";
 	struct find_data *findd;
@@ -318,8 +319,12 @@ struct find_data *display_find_form_init(void)
 	 * browse the search result
 	 */
 	findd->ocursor = windata[current_win].cursor;
-	windata[current_win].cursor = 0;
+	findd->oscrolling = windata[current_win].scrolling;
 
+	windata[current_win].cursor = 0;
+	windata[current_win].scrolling = 0;
+
+	curs_set(1);
 out:
 	return findd;
 
@@ -333,12 +338,13 @@ out_free_reg:
 	goto out;
 }
 
-static void display_find_form_fini(struct find_data *fd)
+static void display_find_fini(struct find_data *findd)
 {
-	windata[current_win].cursor = fd->ocursor;
-	regfree(fd->reg);
-	free(fd->string);
-	free(fd);
+	windata[current_win].cursor = findd->ocursor;
+	windata[current_win].scrolling = findd->oscrolling;
+	regfree(findd->reg);
+	free(findd->string);
+	free(findd);
 	curs_set(0);
 }
 
@@ -346,7 +352,7 @@ static int display_switch_to_find(int fd)
 {
 	struct find_data *findd;
 
-	findd = display_find_form_init();
+	findd = display_find_init();
 	if (!findd)
 		return -1;
 
@@ -439,7 +445,7 @@ static int display_find_keystroke(int fd, void *data)
 	switch (keystroke) {
 
 	case '\e':
-		display_find_form_fini(findd);
+		display_find_fini(findd);
 		return display_switch_to_main(fd);
 
 	case KEY_DOWN:
@@ -453,6 +459,10 @@ static int display_find_keystroke(int fd, void *data)
 	case KEY_BACKSPACE:
 		if (strlen(string))
 			string[strlen(string) - 1] = '\0';
+
+		windata[current_win].cursor = 0;
+		windata[current_win].scrolling = 0;
+
 		break;
 
 	case '\r':
@@ -472,6 +482,9 @@ static int display_find_keystroke(int fd, void *data)
 
 		if (strlen(string) < findd->len - 1)
 			string[strlen(string)] = (char)keystroke;
+
+		windata[current_win].cursor = 0;
+		windata[current_win].scrolling = 0;
 
 		break;
 	}
