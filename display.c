@@ -472,6 +472,9 @@ static int display_find_keystroke(int fd, void *data)
 		if (windata[current_win].ops->selectf())
 			return -1;
 
+		windata[current_win].cursor = 0;
+		windata[current_win].scrolling = 0;
+
 		return 0;
 
 	default:
