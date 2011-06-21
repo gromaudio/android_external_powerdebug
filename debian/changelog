@@ -1,3 +1,23 @@
+powerdebug (0.5.0-0ubuntu1) natty; urgency=low
+
+  * added tree algorithm
+  * a lot of code cleanup
+  * rewrote the clock code
+  * rewrote the display code
+  * rewrote the regulator code
+  * rewrote the sensor code
+  * rewrote the search code for a clock
+  * added sensor to display
+  * added a mainloop
+  * made the different pm block code consistent to each other
+  * removed most of global variables
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794725
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794726
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794728
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794731
+
+ -- Daniel Lezcano <daniel.lezcano@linaro.org>  Tue, 21 Jun 2011 16:05:42 +0200
+
 powerdebug (0.4.1-0ubuntu1) natty; urgency=low
 
   * Added LICENSE file to source
