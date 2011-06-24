@@ -1,4 +1,4 @@
-powerdebug (0.5.0-0ubuntu1) natty; urgency=low
+powerdebug (0.5-2011.06-0) natty; urgency=low
 
   * added tree algorithm
   * a lot of code cleanup
