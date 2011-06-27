@@ -120,7 +120,10 @@ static int display_refresh(int win, bool read)
 	if (windata[win].ops && windata[win].ops->display)
 		return windata[win].ops->display(read);
 
-	return 0;
+	if (werase(main_win))
+		return -1;
+
+	return wrefresh(main_win);
 }
 
 int display_refresh_pad(int win)

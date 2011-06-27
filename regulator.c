@@ -236,12 +236,12 @@ static struct display_ops regulator_ops = {
 
 int regulator_init(void)
 {
-	if (display_register(REGULATOR, &regulator_ops))
-		return -1;
-
 	reg_tree = tree_load(SYSFS_REGULATOR, regulator_filter_cb);
 	if (!reg_tree)
 		return -1;
 
-	return fill_regulator_tree();
+	if (fill_regulator_tree())
+		return -1;
+
+	return display_register(REGULATOR, &regulator_ops);
 }

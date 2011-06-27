@@ -405,9 +405,6 @@ int clock_init(void)
 {
 	char clk_dir_path[PATH_MAX];
 
-	if (display_register(CLOCK, &clock_ops))
-		return -1;
-
 	if (locate_debugfs(clk_dir_path))
 		return -1;
 
@@ -420,5 +417,8 @@ int clock_init(void)
 	if (!clock_tree)
 		return -1;
 
-	return fill_clock_tree();
+	if (fill_clock_tree())
+		return -1;
+
+	return display_register(CLOCK, &clock_ops);
 }
