@@ -13,4 +13,4 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-#define VERSION "0.5.1"
+#define VERSION "0.5.2"
