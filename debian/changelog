@@ -1,16 +1,16 @@
-powerdebug (0.5-2011.08-0) natty; urgency=low
+powerdebug (0.5.2-2011.08-0) natty; urgency=low
 
   * fixed lp: 827825
 
  -- Daniel Lezcano <daniel.lezcano@linaro.org>  Wed, 17 Aug 2011 17:01:28 +0200
 
-powerdebug (0.5-2011.07-0) natty; urgency=low
+powerdebug (0.5.1-2011.07-0) natty; urgency=low
 
   * fixed lp: 802387
 
  -- Daniel Lezcano <daniel.lezcano@linaro.org>  Mon, 25 Jul 2011 23:25:05 +0200
 
-powerdebug (0.5-2011.06-0) natty; urgency=low
+powerdebug (0.5.0-2011.06-0) natty; urgency=low
 
   * added tree algorithm
   * a lot of code cleanup
