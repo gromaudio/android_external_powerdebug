@@ -39,6 +39,7 @@ struct gpio_info {
 	int value;
 	int direction;
 	int edge;
+	char *prefix;
 } *gpios_info;
 
 static struct tree *gpio_tree = NULL;
@@ -48,8 +49,10 @@ static struct gpio_info *gpio_alloc(void)
 	struct gpio_info *gi;
 
 	gi = malloc(sizeof(*gi));
-	if (gi)
-		memset(gi, 0, sizeof(*gi));
+	if (gi) {
+		memset(gi, -1, sizeof(*gi));
+		gi->prefix = NULL;
+	}
 
 	return gi;
 }
@@ -148,9 +151,45 @@ static int fill_gpio_tree(void)
 	return tree_for_each(gpio_tree, fill_gpio_cb, NULL);
 }
 
+static int dump_gpio_cb(struct tree *t, void *data)
+{
+	struct gpio_info *gpio = t->private;
+	struct gpio_info *pgpio;
+
+	if (!t->parent) {
+		printf("/\n");
+		gpio->prefix = "";
+		return 0;
+	}
+
+	pgpio = t->parent->private;
+
+	if (!gpio->prefix)
+		if (asprintf(&gpio->prefix, "%s%s%s", pgpio->prefix,
+			     t->depth > 1 ? "   ": "", t->next ? "|" : " ") < 0)
+			return -1;
+
+	printf("%s%s-- %s (active_low:%d)\n",
+	       gpio->prefix,  !t->next ? "`" : "", t->name, gpio->active_low);
+
+	return 0;
+}
+
+int dump_gpio_info(void)
+{
+	return tree_for_each(gpio_tree, dump_gpio_cb, NULL);
+}
+
 int gpio_dump(void)
 {
-	return 0;
+	int ret;
+
+	printf("\nGpio Tree :\n");
+	printf("***********\n");
+	ret = dump_gpio_info();
+	printf("\n\n");
+
+	return ret;
 }
 
 /*
