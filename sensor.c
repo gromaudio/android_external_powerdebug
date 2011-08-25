@@ -271,7 +271,7 @@ static struct display_ops sensor_ops = {
 
 int sensor_init(void)
 {
-	sensor_tree = tree_load(SYSFS_SENSOR, sensor_filter_cb);
+	sensor_tree = tree_load(SYSFS_SENSOR, sensor_filter_cb, false);
 	if (!sensor_tree)
 		return -1;
 

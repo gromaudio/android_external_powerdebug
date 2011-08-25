@@ -236,7 +236,7 @@ static struct display_ops regulator_ops = {
 
 int regulator_init(void)
 {
-	reg_tree = tree_load(SYSFS_REGULATOR, regulator_filter_cb);
+	reg_tree = tree_load(SYSFS_REGULATOR, regulator_filter_cb, false);
 	if (!reg_tree)
 		return -1;
 

@@ -41,7 +41,7 @@ typedef int (*tree_cb_t)(struct tree *t, void *data);
 
 typedef int (*tree_filter_t)(const char *name);
 
-extern struct tree *tree_load(const char *path, tree_filter_t filter);
+extern struct tree *tree_load(const char *path, tree_filter_t filter, bool follow);
 
 extern struct tree *tree_find(struct tree *tree, const char *name);
 

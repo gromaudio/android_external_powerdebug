@@ -17,6 +17,7 @@
 #include <stdio.h>
 #undef _GNU_SOURCE
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <dirent.h>
 #include <sys/types.h>
@@ -111,7 +112,7 @@ static inline void tree_add_child(struct tree *parent, struct tree *child)
  * @filter : a callback to filter out the directories
  * Returns 0 on success, -1 otherwise
  */
-static int tree_scan(struct tree *tree, tree_filter_t filter)
+static int tree_scan(struct tree *tree, tree_filter_t filter, bool follow)
 {
 	DIR *dir;
 	char *basedir, *newpath;
@@ -152,7 +153,7 @@ static int tree_scan(struct tree *tree, tree_filter_t filter)
 		if (ret)
 			goto out_free_newpath;
 
-		if (S_ISDIR(s.st_mode)) {
+		if (S_ISDIR(s.st_mode) || (S_ISLNK(s.st_mode) && follow)) {
 
 			ret = -1;
 
@@ -164,7 +165,7 @@ static int tree_scan(struct tree *tree, tree_filter_t filter)
 
 			tree->nrchild++;
 
-			ret = tree_scan(child, filter);
+			ret = tree_scan(child, filter, follow);
 		}
 
 	out_free_newpath:
@@ -190,7 +191,7 @@ static int tree_scan(struct tree *tree, tree_filter_t filter)
  * Returns a tree structure corresponding to the root node of the
  * directory tree representation on success, NULL otherwise
  */
-struct tree *tree_load(const char *path, tree_filter_t filter)
+struct tree *tree_load(const char *path, tree_filter_t filter, bool follow)
 {
 	struct tree *tree;
 
@@ -198,7 +199,7 @@ struct tree *tree_load(const char *path, tree_filter_t filter)
 	if (!tree)
 		return NULL;
 
-	if (tree_scan(tree, filter)) {
+	if (tree_scan(tree, filter, follow)) {
 		tree_free(tree);
 		return NULL;
 	}

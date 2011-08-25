@@ -413,7 +413,7 @@ int clock_init(void)
 	if (access(clk_dir_path, F_OK))
 		return -1;
 
-	clock_tree = tree_load(clk_dir_path, NULL);
+	clock_tree = tree_load(clk_dir_path, NULL, false);
 	if (!clock_tree)
 		return -1;
 
