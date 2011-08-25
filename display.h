@@ -13,7 +13,7 @@
  *       - initial API and implementation
  *******************************************************************************/
 
-enum { CLOCK, REGULATOR, SENSOR };
+enum { CLOCK, REGULATOR, SENSOR, GPIO };
 
 struct display_ops {
 	int (*display)(bool refresh);

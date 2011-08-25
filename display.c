@@ -63,6 +63,7 @@ struct windata windata[] = {
 	[CLOCK]     = { .name = "Clocks"     },
 	[REGULATOR] = { .name = "Regulators" },
 	[SENSOR]    = { .name = "Sensors"    },
+	[GPIO]      = { .name = "Gpio"    },
 };
 
 static void display_fini(void)
