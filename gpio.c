@@ -57,33 +57,6 @@ static struct gpio_info *gpio_alloc(void)
 	return gi;
 }
 
-static int gpio_display(bool refresh)
-{
-	return 0;
-}
-
-static int gpio_select(void)
-{
-	return 0;
-}
-
-static int gpio_find(const char *name)
-{
-	return 0;
-}
-
-static int gpio_selectf(void)
-{
-	return 0;
-}
-
-static struct display_ops gpio_ops = {
-	.display = gpio_display,
-	.select  = gpio_select,
-	.find    = gpio_find,
-	.selectf = gpio_selectf,
-};
-
 static int gpio_filter_cb(const char *name)
 {
 	/* let's ignore some directories in order to avoid to be
@@ -169,8 +142,21 @@ static int dump_gpio_cb(struct tree *t, void *data)
 			     t->depth > 1 ? "   ": "", t->next ? "|" : " ") < 0)
 			return -1;
 
-	printf("%s%s-- %s (active_low:%d)\n",
-	       gpio->prefix,  !t->next ? "`" : "", t->name, gpio->active_low);
+	printf("%s%s-- %s (", gpio->prefix,  !t->next ? "`" : "", t->name);
+
+	if (gpio->active_low != -1)
+		printf(" active_low:%d", gpio->active_low);
+
+	if (gpio->value != -1)
+		printf(", value:%d", gpio->value);
+
+	if (gpio->edge != -1)
+		printf(", edge:%d", gpio->edge);
+
+	if (gpio->direction != -1)
+		printf(", direction:%d", gpio->direction);
+
+	printf(" )\n");
 
 	return 0;
 }
@@ -191,6 +177,92 @@ int gpio_dump(void)
 
 	return ret;
 }
+
+static char *gpio_line(struct tree *t)
+{
+	struct gpio_info *gpio = t->private;
+	char *gpioline;
+
+	if (asprintf(&gpioline, "%-20s %-10d %-10d %-10d %-10d", t-> name,
+		     gpio->value, gpio->active_low, gpio->edge, gpio->direction) < 0)
+		return NULL;
+
+	return gpioline;
+}
+
+static int _gpio_print_info_cb(struct tree *t, void *data)
+{
+	int *line = data;
+	char *buffer;
+
+        /* we skip the root node of the tree */
+	if (!t->parent)
+		return 0;
+
+	buffer = gpio_line(t);
+	if (!buffer)
+		return -1;
+
+	display_print_line(GPIO, *line, buffer, 0, t);
+
+	(*line)++;
+
+	free(buffer);
+
+	return 0;
+}
+
+static int gpio_print_info_cb(struct tree *t, void *data)
+{
+        /* we skip the root node of the tree */
+	if (!t->parent)
+		return 0;
+
+	return _gpio_print_info_cb(t, data);
+}
+
+static int gpio_print_header(void)
+{
+	char *buf;
+	int ret;
+
+	if (asprintf(&buf, "%-20s %-10s %-10s %-10s %-10s",
+		     "Name", "Value", "Active_low", "Edge", "Direction") < 0)
+		return -1;
+
+	ret = display_column_name(buf);
+
+	free(buf);
+
+	return ret;
+}
+
+static int gpio_print_info(struct tree *tree)
+{
+	int ret, line = 0;
+
+	display_reset_cursor(GPIO);
+
+	gpio_print_header();
+
+	ret = tree_for_each(tree, gpio_print_info_cb, &line);
+
+	display_refresh_pad(GPIO);
+
+	return ret;
+}
+
+static int gpio_display(bool refresh)
+{
+	if (refresh && read_gpio_info(gpio_tree))
+		return -1;
+
+	return gpio_print_info(gpio_tree);
+}
+
+static struct display_ops gpio_ops = {
+	.display = gpio_display,
+};
 
 /*
  * Initialize the gpio framework
