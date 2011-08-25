@@ -24,6 +24,7 @@
 #include "display.h"
 #include "clocks.h"
 #include "sensor.h"
+#include "gpio.h"
 #include "mainloop.h"
 #include "powerdebug.h"
 
@@ -54,9 +55,10 @@ void version()
 
 /*
  * Options:
- * -r, --regulator      : regulator
+ * -r, --regulator      : regulators
  * -s, --sensor	 	: sensors
  * -c, --clock	  	: clocks
+ * -g, --gpio           : gpios
  * -p, --findparents    : clockname whose parents have to be found
  * -t, --time		: ticktime
  * -d, --dump		: dump
@@ -70,6 +72,7 @@ static struct option long_options[] = {
 	{ "regulator", 0, 0, 'r' },
 	{ "sensor", 0, 0, 's' },
 	{ "clock",  0, 0, 'c' },
+	{ "gpio",  0, 0, 'g' },
 	{ "findparents", 1, 0, 'p' },
 	{ "time", 1, 0, 't' },
 	{ "dump", 0, 0, 'd' },
@@ -84,6 +87,7 @@ struct powerdebug_options {
 	bool regulators;
 	bool sensors;
 	bool clocks;
+	bool gpios;
 	bool dump;
 	unsigned int ticktime;
 	int selectedwindow;
@@ -101,7 +105,7 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	while (1) {
 		int optindex = 0;
 
-		c = getopt_long(argc, argv, "rscp:t:dvVh",
+		c = getopt_long(argc, argv, "rscgp:t:dvVh",
 				long_options, &optindex);
 		if (c == -1)
 			break;
@@ -118,6 +122,10 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 		case 'c':
 			options->clocks = true;
 			options->selectedwindow = CLOCK;
+			break;
+		case 'g':
+			options->gpios = true;
+			options->selectedwindow = GPIO;
 			break;
 		case 'p':
 			options->clkname = strdup(optarg);
@@ -149,8 +157,10 @@ int getoptions(int argc, char *argv[], struct powerdebug_options *options)
 	}
 
 	/* No system specified to be dump, let's default to all */
-	if (!options->regulators && !options->clocks && !options->sensors)
-		options->regulators = options->clocks = options->sensors = true;
+	if (!options->regulators && !options->clocks &&
+	    !options->sensors && !options->gpios)
+		options->regulators = options->clocks =
+			options->sensors = options->gpios = true;
 
 	if (options->selectedwindow == -1)
 		options->selectedwindow = CLOCK;
@@ -168,6 +178,9 @@ static int powerdebug_dump(struct powerdebug_options *options)
 
 	if (options->sensors)
 		sensor_dump();
+
+	if (options->gpios)
+		gpio_dump();
 
 	return 0;
 }
@@ -232,6 +245,11 @@ int main(int argc, char **argv)
 	if (sensor_init()) {
 		printf("failed to initialize sensors\n");
 		options->sensors = false;
+	}
+
+	if (gpio_init()) {
+		printf("failed to initialize gpios\n");
+		options->gpios = false;
 	}
 
 	ret = options->dump ? powerdebug_dump(options) :
