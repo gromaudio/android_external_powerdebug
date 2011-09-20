@@ -48,27 +48,8 @@ static struct tree *clock_tree = NULL;
 
 static int locate_debugfs(char *clk_path)
 {
-	const char *mtab = "/proc/mounts";
-	struct mntent *mntent;
-	int ret = -1;
-	FILE *file = NULL;
-
-	file = setmntent(mtab, "r");
-	if (!file)
-		return -1;
-
-	while ((mntent = getmntent(file))) {
-
-		if (strcmp(mntent->mnt_type, "debugfs"))
-			continue;
-
-		strcpy(clk_path, mntent->mnt_dir);
-		ret = 0;
-		break;
-	}
-
-	fclose(file);
-	return ret;
+	strcpy(clk_path, "/sys/kernel/debug");
+	return 0;
 }
 
 static struct clock_info *clock_alloc(void)
