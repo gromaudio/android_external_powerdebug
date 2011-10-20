@@ -61,7 +61,7 @@ static int sensor_dump_cb(struct tree *tree, void *data)
 	printf("%s\n", sensor->name);
 
 	for (i = 0; i < sensor->nrtemps; i++)
-		printf(" %s %.1f °C\n", sensor->temperatures[i].name,
+		printf(" %s %.1f °C/V\n", sensor->temperatures[i].name,
 		       (float)sensor->temperatures[i].temp / 1000);
 
 	for (i = 0; i < sensor->nrfans; i++)
@@ -219,7 +219,7 @@ static int sensor_display_cb(struct tree *t, void *data)
 	(*line)++;
 
 	for (i = 0; i < sensor->nrtemps; i++) {
-		sprintf(buf, " %-35s%.1f °C", sensor->temperatures[i].name,
+		sprintf(buf, " %-35s%.1f", sensor->temperatures[i].name,
 		       (float)sensor->temperatures[i].temp / 1000);
 		display_print_line(SENSOR, *line, buf, 0, t);
 		(*line)++;
