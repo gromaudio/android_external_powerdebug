@@ -42,9 +42,19 @@ struct clock_info {
 	int usecount;
 	bool expanded;
 	char *prefix;
+	int preparecount;
+	int enablecount;
+	int notifiercount;
 } *clocks_info;
 
+enum clock_fw_type{
+	CCF,	/* common clock framework */
+	OCF,	/* old clock framework */
+	MAX,
+};
+
 static struct tree *clock_tree = NULL;
+static int clock_fw;
 
 static int locate_debugfs(char *clk_path)
 {
@@ -144,9 +154,18 @@ static inline int read_clock_cb(struct tree *t, void *data)
 {
 	struct clock_info *clk = t->private;
 
-	file_read_value(t->path, "flags", "%x", &clk->flags);
-	file_read_value(t->path, "rate", "%d", &clk->rate);
-	file_read_value(t->path, "usecount", "%d", &clk->usecount);
+	if(clock_fw == CCF) {
+		file_read_value(t->path, "clk_flags", "%x", &clk->flags);
+		file_read_value(t->path, "clk_rate", "%d", &clk->rate);
+		file_read_value(t->path, "clk_prepare_count", "%d", &clk->preparecount);
+		file_read_value(t->path, "clk_enable_count", "%d", &clk->enablecount);
+		file_read_value(t->path, "clk_notifier_count", "%d", &clk->notifiercount);
+	}
+	else {
+		file_read_value(t->path, "flags", "%x", &clk->flags);
+		file_read_value(t->path, "rate", "%d", &clk->rate);
+		file_read_value(t->path, "usecount", "%d", &clk->usecount);
+	}
 
 	return 0;
 }
@@ -206,9 +225,17 @@ static char *clock_line(struct tree *t)
 	if (asprintf(&clkrate, "%d%s", rate, clkunit) < 0)
 		goto free_clkname;
 
-	if (asprintf(&clkline, "%-55s 0x%-16x %-12s %-9d %-8d", clkname,
-		     clk->flags, clkrate, clk->usecount, t->nrchild) < 0)
-		goto free_clkrate;
+	if(clock_fw == CCF) {
+		if (asprintf(&clkline, "%-35s 0x%-8x %-12s %-10d %-11d %-15d %-14d %-10d",
+			     clkname, clk->flags, clkrate, clk->usecount, t->nrchild,
+			     clk->preparecount, clk->enablecount, clk->notifiercount) < 0)
+			goto free_clkrate;
+	}
+	else {
+		if (asprintf(&clkline, "%-55s 0x%-16x %-12s %-9d %-8d",
+			     clkname, clk->flags, clkrate, clk->usecount, t->nrchild) < 0)
+			goto free_clkrate;
+	}
 
 free_clkrate:
 	free(clkrate);
@@ -259,9 +286,17 @@ static int clock_print_header(void)
 	char *buf;
 	int ret;
 
-	if (asprintf(&buf, "%-55s %-16s %-12s %-9s %-8s",
+	if(clock_fw == CCF) {
+		if (asprintf(&buf, "%-35s %-10s %-12s %-10s %-11s %-15s %-14s %-14s",
+		     "Name", "Flags", "Rate", "Usecount", "Children", "Prepare_Count",
+		     "Enable_Count", "Notifier_Count") < 0)
+		return -1;
+	}
+	else {
+		if (asprintf(&buf, "%-55s %-16s %-12s %-9s %-8s",
 		     "Name", "Flags", "Rate", "Usecount", "Children") < 0)
 		return -1;
+	}
 
 	ret = display_column_name(buf);
 
@@ -384,17 +419,25 @@ static struct display_ops clock_ops = {
  */
 int clock_init(void)
 {
-	char clk_dir_path[PATH_MAX];
+	char clk_dir_path[MAX+1][PATH_MAX];
 
-	if (locate_debugfs(clk_dir_path))
+	if (locate_debugfs(clk_dir_path[CCF]) || locate_debugfs(clk_dir_path[OCF]))
 		return -1;
 
-	sprintf(clk_dir_path, "%s/clock", clk_dir_path);
-
-	if (access(clk_dir_path, F_OK))
+	sprintf(clk_dir_path[CCF], "%s/clk", clk_dir_path[CCF]);
+	sprintf(clk_dir_path[OCF], "%s/clock", clk_dir_path[OCF]);
+	if (!access(clk_dir_path[CCF], F_OK)) {
+		clock_fw = CCF;
+		strcpy(clk_dir_path[MAX],clk_dir_path[CCF]);
+	}
+	else if(!access(clk_dir_path[OCF], F_OK)) {
+		clock_fw = OCF;
+		strcpy(clk_dir_path[MAX],clk_dir_path[OCF]);
+	}
+	else
 		return -1;
 
-	clock_tree = tree_load(clk_dir_path, NULL, false);
+	clock_tree = tree_load(clk_dir_path[MAX], NULL, false);
 	if (!clock_tree)
 		return -1;
 
