@@ -1,0 +1,20 @@
+Regulator related information
+=============================
+Regulator fields "state" and "status" give below information about the regulator.
+
+- state: field tell whether regulator is enabled or disabled. Following are the states
+  |	- Enabled
+  |	- Disabled
+  |	- Unknown  (if unable to determine)
+  |
+  |
+  ----> status: When enabled, depending on the regulator hardware capability(modes) and runtime requirement; regulators are set to specific modes. The status field gives a little
+		more specific information about the current "state" of the regulator, which operating modes it is in. Following can be the possible status:
+		- Idle
+		- Fast
+		- Normal
+		- Standby
+		- Bypass
+		- Error
+		- Undefined
+		- On/Off
