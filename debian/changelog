@@ -1,3 +1,10 @@
+powerdebug (0.6.2-2013.02-0) precise; urgency=low
+
+  * fixed lp: 1068108
+  * added regulator related information
+
+ -- Sanjay Singh Rawat <sanjay.rawat@linaro.org>  Thu, 14 Feb 2013 16:21:52 +0530
+
 powerdebug (0.6.1-2011.10-0) natty; urgency=low
 
   * fixed lp: 857382
