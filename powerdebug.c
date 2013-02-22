@@ -216,6 +216,16 @@ int main(int argc, char **argv)
 	struct powerdebug_options *options;
 	int ret;
 
+#ifdef __ANDROID__
+	if (setenv("TERM", "xterm", 1) < 0) {
+		fprintf(stderr, "setenv failure");
+		return 1;
+	}
+	if (setenv("TERMINFO", "/system/etc/terminfo", 1) < 0) {
+		fprintf(stderr, "setenv failure");
+		return 1;
+	}
+#endif
 	options = powerdebug_init();
 	if (!options) {
 		fprintf(stderr, "not enough memory to allocate options\n");

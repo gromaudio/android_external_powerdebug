@@ -29,6 +29,6 @@ LOCAL_C_INCLUDES += external/stlport/stlport/ \
 
 LOCAL_SRC_FILES += \
 	powerdebug.c sensor.c clocks.c regulator.c \
-	display.c tree.c utils.c mainloop.c
+	display.c tree.c utils.c mainloop.c gpio.c
 
 include $(BUILD_EXECUTABLE)

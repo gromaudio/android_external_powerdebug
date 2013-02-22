@@ -90,13 +90,17 @@ static int regulator_dump_cb(struct tree *tree, void *data)
 		printf("\n%s:\n", tree->name);
 
 	for (i = 0; i < nregdata; i++) {
+		int val;
 
 		if (file_read_value(tree->path, regdata[i].name,
 				    regdata[i].ifmt, buffer))
 			continue;
 
-		printf(regdata[i].ofmt, regdata[i].derefme ?
-		       *((int *)buffer) : buffer);
+		if (regdata[i].derefme) {
+			val = atoi(buffer);
+			printf(regdata[i].ofmt, val);
+		} else
+			printf(regdata[i].ofmt, buffer);
 	}
 
 	return 0;
