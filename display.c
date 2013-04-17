@@ -137,6 +137,11 @@ int display_refresh_pad(int win)
 			0, 2, 0, maxy - 2, maxx);
 }
 
+void sigwinch_handler(int signo)
+{
+	display_refresh(current_win, true);
+}
+
 static int display_show_unselection(int win, int line, bool bold)
 {
 	if (mvwchgat(windata[win].pad, line, 0, -1,

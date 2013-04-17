@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <errno.h>
 #include <ncurses.h>
+#include <signal.h>
 #include "regulator.h"
 #include "display.h"
 #include "clocks.h"
@@ -27,6 +28,8 @@
 #include "gpio.h"
 #include "mainloop.h"
 #include "powerdebug.h"
+
+extern void sigwinch_handler(int);
 
 void usage(void)
 {
@@ -207,6 +210,7 @@ static struct powerdebug_options *powerdebug_init(void)
 		return NULL;
 
 	memset(options, 0, sizeof(*options));
+	signal(SIGWINCH, sigwinch_handler);
 
 	return options;
 }
