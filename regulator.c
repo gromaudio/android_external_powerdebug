@@ -218,8 +218,10 @@ static int fill_regulator_cb(struct tree *t, void *data)
 	struct regulator_info *reg;
 
 	reg = regulator_alloc();
-	if (!reg)
+	if (!reg) {
+		printf("error: unable to allocate memory for regulator\n");
 		return -1;
+	}
 	t->private = reg;
 
         /* we skip the root node but we set it expanded for its children */

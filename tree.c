@@ -121,8 +121,10 @@ static int tree_scan(struct tree *tree, tree_filter_t filter, bool follow)
 	int ret = 0;
 
 	dir = opendir(tree->path);
-	if (!dir)
+	if (!dir) {
+		printf("error: unable to open directory %s\n", tree->path);
 		return -1;
+	}
 
 	while (!readdir_r(dir, &dirent, &direntp)) {
 

@@ -247,7 +247,7 @@ int main(int argc, char **argv)
 	}
 
 	if (regulator_init()) {
-		printf("not enough memory to allocate regulators info\n");
+		printf("failed to initialize regulator\n");
 		options->regulators = false;
 	}
 

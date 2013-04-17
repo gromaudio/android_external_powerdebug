@@ -598,8 +598,10 @@ int display_register(int win, struct display_ops *ops)
 {
 	size_t array_size = sizeof(windata) / sizeof(windata[0]);
 
-	if (win < 0 || win >= array_size)
+	if (win < 0 || win >= array_size) {
+		printf("error: invalid window");
 		return -1;
+	}
 
 	windata[win].ops = ops;
 
