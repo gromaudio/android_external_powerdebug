@@ -401,6 +401,7 @@ static int display_keystroke(int fd, void *data)
 		display_prev_line();
 		break;
 
+	case '\n':
 	case '\r':
 		display_select();
 		break;
@@ -474,6 +475,7 @@ static int display_find_keystroke(int fd, void *data)
 
 		break;
 
+	case '\n':
 	case '\r':
 		if (!windata[current_win].ops || !windata[current_win].ops->selectf)
 			return 0;
