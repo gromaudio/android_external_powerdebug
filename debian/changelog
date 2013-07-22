@@ -1,4 +1,10 @@
-powerdebug (0.6.3-2013.04-0ubuntu1) precise; urgency=low
+powerdebug (0.6.4-2013.04-0) precise; urgency=low
+
+  * support for multiple ENTER key values
+
+ -- Sanjay Singh Rawat <sanjay.rawat@linaro.org>  Mon, 22 Jul 2013 17:31:56 +0530
+
+powerdebug (0.6.3-2013.04-0) precise; urgency=low
 
   * fixed lp: 1014667
   * fixed lp: 827828
