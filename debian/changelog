@@ -1,3 +1,10 @@
+powerdebug (0.6.3-2013.04-0ubuntu1) precise; urgency=low
+
+  * fixed lp: 1014667
+  * fixed lp: 827828
+
+ -- Sanjay Singh Rawat <sanjay.rawat@linaro.org>  Wed, 17 Apr 2013 15:42:05 +0530
+
 powerdebug (0.6.2-2013.02-0) precise; urgency=low
 
   * fixed lp: 1068108
