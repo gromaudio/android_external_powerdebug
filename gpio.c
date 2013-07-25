@@ -33,12 +33,14 @@
 
 #define SYSFS_GPIO "/sys/class/gpio"
 
+#define MAX_VALUE_BYTE	10
+
 struct gpio_info {
 	bool expanded;
 	int active_low;
 	int value;
-	int direction;
-	int edge;
+	char direction[MAX_VALUE_BYTE];
+	char edge[MAX_VALUE_BYTE];
 	char *prefix;
 } *gpios_info;
 
@@ -51,6 +53,8 @@ static struct gpio_info *gpio_alloc(void)
 	gi = malloc(sizeof(*gi));
 	if (gi) {
 		memset(gi, -1, sizeof(*gi));
+		memset(gi->direction, 0, MAX_VALUE_BYTE);
+		memset(gi->edge, 0, MAX_VALUE_BYTE);
 		gi->prefix = NULL;
 	}
 
@@ -89,8 +93,8 @@ static inline int read_gpio_cb(struct tree *t, void *data)
 
 	file_read_value(t->path, "active_low", "%d", &gpio->active_low);
 	file_read_value(t->path, "value", "%d", &gpio->value);
-	file_read_value(t->path, "edge", "%d", &gpio->edge);
-	file_read_value(t->path, "direction", "%d", &gpio->direction);
+	file_read_value(t->path, "edge", "%8s", &gpio->edge);
+	file_read_value(t->path, "direction", "%4s", &gpio->direction);
 
 	return 0;
 }
@@ -150,11 +154,11 @@ static int dump_gpio_cb(struct tree *t, void *data)
 	if (gpio->value != -1)
 		printf(", value:%d", gpio->value);
 
-	if (gpio->edge != -1)
-		printf(", edge:%d", gpio->edge);
+	if (gpio->edge[0] != 0)
+		printf(", edge:%s", gpio->edge);
 
-	if (gpio->direction != -1)
-		printf(", direction:%d", gpio->direction);
+	if (gpio->direction[0] != 0)
+		printf(", direction:%s", gpio->direction);
 
 	printf(" )\n");
 
@@ -183,7 +187,7 @@ static char *gpio_line(struct tree *t)
 	struct gpio_info *gpio = t->private;
 	char *gpioline;
 
-	if (asprintf(&gpioline, "%-20s %-10d %-10d %-10d %-10d", t-> name,
+	if (asprintf(&gpioline, "%-20s %-10d %-10d %-10s %-10s", t->name,
 		     gpio->value, gpio->active_low, gpio->edge, gpio->direction) < 0)
 		return NULL;
 
