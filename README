@@ -7,4 +7,10 @@ information.
 Current version only displays regulator information and clock tree from
 debugfs. Support will be added for sensors later.
 
- -- Amit Arora <amit.arora@linaro.org>  Fri, 08 Sep 2010 
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 08 Sep 2010
+
+Now we add gpio-change function for power consumption need.
+When gpio is not in interrupt mode. use 'D' key to change gpio direction.
+And when gpio direction is "out", use 'V' key to change gpio value.
+
+ -- Shaojie Sun <shaojie.sun@linaro.org> Mon, 29 Jul 2013

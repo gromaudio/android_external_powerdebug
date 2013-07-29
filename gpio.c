@@ -264,8 +264,53 @@ static int gpio_display(bool refresh)
 	return gpio_print_info(gpio_tree);
 }
 
+static int gpio_change(int keyvalue)
+{
+	struct tree *t = display_get_row_data(GPIO);
+	struct gpio_info *gpio = t->private;
+
+	if (!t || !gpio)
+		return -1;
+
+	switch (keyvalue) {
+	case 'D':
+		/* Only change direction when gpio interrupt not set.*/
+		if (!strstr(gpio->edge, "none"))
+			return 0;
+
+		if (strstr(gpio->direction, "in"))
+			strcpy(gpio->direction, "out");
+		else if (strstr(gpio->direction, "out"))
+			strcpy(gpio->direction, "in");
+		file_write_value(t->path, "direction", "%s", &gpio->direction);
+		file_read_value(t->path, "direction", "%s", &gpio->direction);
+
+		break;
+
+	case 'V':
+		/* Only change value when gpio direction is out. */
+		if (!strstr(gpio->edge, "none")
+			 || !strstr(gpio->direction, "out"))
+			return 0;
+
+		if (gpio->value)
+			file_write_value(t->path, "direction", "%s", &"low");
+		else
+			file_write_value(t->path, "direction", "%s", &"high");
+		file_read_value(t->path, "value", "%d", &gpio->value);
+
+		break;
+
+	default:
+		return -1;
+	}
+
+	return 0;
+}
+
 static struct display_ops gpio_ops = {
 	.display = gpio_display,
+	.change = gpio_change,
 };
 
 /*

@@ -20,6 +20,7 @@ struct display_ops {
 	int (*select)(void);
 	int (*find)(const char *);
 	int (*selectf)(void);
+	int (*change)(int keyvalue);
 };
 
 extern int display_print_line(int window, int line, char *str,

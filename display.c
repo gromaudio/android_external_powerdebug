@@ -164,6 +164,17 @@ static int display_select(void)
 	return 0;
 }
 
+static int display_change(int keyvalue)
+{
+	if (!(windata[current_win].nrdata))
+		return 0;
+
+	if (windata[current_win].ops && windata[current_win].ops->change)
+		return windata[current_win].ops->change(keyvalue);
+
+	return 0;
+}
+
 static int display_next_panel(void)
 {
 	size_t array_size = sizeof(windata) / sizeof(windata[0]);
@@ -404,6 +415,13 @@ static int display_keystroke(int fd, void *data)
 	case '\n':
 	case '\r':
 		display_select();
+		break;
+
+	case 'v':
+	case 'V':
+	case 'd':
+	case 'D':
+		display_change(toupper(keystroke));
 		break;
 
 	case EOF:
