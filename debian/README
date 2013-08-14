@@ -1,0 +1,9 @@
+The Debian Package powerdebug
+----------------------------
+
+This is a new tool which displays regulator and sensor information.
+Current version only displays regulator and clock tree information properly.
+Support will be added for displaying sensors and other power management
+related information of interest to users/developers.
+
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 03 Sep 2010 19:18:18 +0530

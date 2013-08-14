@@ -1,0 +1,120 @@
+powerdebug (0.6.4-2013.04-0) precise; urgency=low
+
+  * support for multiple ENTER key values
+
+ -- Sanjay Singh Rawat <sanjay.rawat@linaro.org>  Mon, 22 Jul 2013 17:31:56 +0530
+
+powerdebug (0.6.3-2013.04-0) precise; urgency=low
+
+  * fixed lp: 1014667
+  * fixed lp: 827828
+
+ -- Sanjay Singh Rawat <sanjay.rawat@linaro.org>  Wed, 17 Apr 2013 15:42:05 +0530
+
+powerdebug (0.6.2-2013.02-0) precise; urgency=low
+
+  * fixed lp: 1068108
+  * added regulator related information
+
+ -- Sanjay Singh Rawat <sanjay.rawat@linaro.org>  Thu, 14 Feb 2013 16:21:52 +0530
+
+powerdebug (0.6.1-2011.10-0) natty; urgency=low
+
+  * fixed lp: 857382
+
+ -- Daniel Lezcano <daniel.lezcano@linaro.org>  Thu, 20 Oct 2011 14:36:19 +0200
+
+powerdebug (0.6.0-2011.09-0) natty; urgency=low
+
+  * added gpio support
+  * added android port
+
+ -- Daniel Lezcano <daniel.lezcano@linaro.org>  Tue, 20 Sep 2011 15:54:06 +0200
+
+powerdebug (0.5.2-2011.08-0) natty; urgency=low
+
+  * fixed lp: 827825
+
+ -- Daniel Lezcano <daniel.lezcano@linaro.org>  Wed, 17 Aug 2011 17:01:28 +0200
+
+powerdebug (0.5.1-2011.07-0) natty; urgency=low
+
+  * fixed lp: 802387
+
+ -- Daniel Lezcano <daniel.lezcano@linaro.org>  Mon, 25 Jul 2011 23:25:05 +0200
+
+powerdebug (0.5.0-2011.06-0) natty; urgency=low
+
+  * added tree algorithm
+  * a lot of code cleanup
+  * rewrote the clock code
+  * rewrote the display code
+  * rewrote the regulator code
+  * rewrote the sensor code
+  * rewrote the search code for a clock
+  * added sensor to display
+  * added a mainloop
+  * made the different pm block code consistent to each other
+  * removed most of global variables
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794725
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794726
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794728
+  * fixed https://bugs.launchpad.net/linaro-powerdebug/+bug/794731
+
+ -- Daniel Lezcano <daniel.lezcano@linaro.org>  Tue, 21 Jun 2011 16:05:42 +0200
+
+powerdebug (0.4.1-0ubuntu1) natty; urgency=low
+
+  * Added LICENSE file to source
+  * Fix debian/copyright to be more machine-readable
+  * Remove XSBC-Original-Maintainer
+
+ -- Amit Kucheria <amit.kucheria@linaro.org>  Mon, 24 Jan 2011 17:58:46 +0200
+
+powerdebug (0.4-0ubuntu1) natty; urgency=low
+
+  * fix copyright in source files and debian/copyright
+
+ -- Amit Kucheria <amit.kucheria@linaro.org>  Mon, 17 Jan 2011 21:14:24 +0200
+
+powerdebug (0.3-0ubuntu1) UNRELEASED; urgency=low
+
+  * Fix coding style issues and some more cleanups
+  * Discover debugfs mount point and remove hard coded path
+  * Display clock tree in ncurses mode using in-memory data structures
+  * Read clocks into memory and add dump support
+  * Show all regulators and clocks by default
+  * Discover debugfs mount point at runtime
+  * Show units for clock rate
+  * Add multi-level support for clock tree information
+  * Add dump (-d) option support for displaying the clock tree (-c)
+  * whitespace cleanups
+  * get rid of colors
+  * make header display more compact
+
+  [ Marcin Juszkiewicz ]
+  * cleanup makefile for debian packaging
+  * dropped cdbs dependency
+  * switched packaging to '3.0 (native)'
+  * rules: switched to debhelper 7
+
+  [ Steve Langasek ]
+  * clean up grammar in the package description
+  * drop empty debian/docs file
+  * document git branch in debian/control
+  * use 3.0 (quilt) format; 3.0 (native) is only for native packages
+
+ -- Amit Kucheria <amit.kucheria@linaro.org>  Thu, 13 Jan 2011 15:14:38 -0600
+
+powerdebug (0.2) maverick; urgency=low
+
+  * Add support for clock tree information
+  * Add options for ticktime
+
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 08 Sep 2010 16:41:48 +0530
+
+powerdebug (0.1) maverick; urgency=low
+
+  * Initial Release.
+
+ -- Amit Arora <amit.arora@linaro.org>  Fri, 03 Sep 2010 19:18:18 +0530
