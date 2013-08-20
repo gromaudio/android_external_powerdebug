@@ -160,21 +160,6 @@ static int regulator_print_header(void)
 
 }
 
-static int regulator_display(bool refresh)
-{
-	int ret, line = 0;
-
-	display_reset_cursor(REGULATOR);
-
-	regulator_print_header();
-
-	ret = tree_for_each(reg_tree, regulator_display_cb, &line);
-
-	display_refresh_pad(REGULATOR);
-
-	return ret;
-}
-
 static int regulator_filter_cb(const char *name)
 {
 	/* let's ignore some directories in order to avoid to be
@@ -211,6 +196,34 @@ static inline int read_regulator_cb(struct tree *t, void *data)
 	file_read_value(t->path, "max_microamps", "%d", &reg->max_microamps);
 
 	return 0;
+}
+
+static int read_regulator_info(struct tree *tree)
+{
+	return tree_for_each(tree, read_regulator_cb, NULL);
+}
+
+static int regulator_print_info(struct tree *tree)
+{
+	int ret, line = 0;
+
+	display_reset_cursor(REGULATOR);
+
+	regulator_print_header();
+
+	ret = tree_for_each(tree, regulator_display_cb, &line);
+
+	display_refresh_pad(REGULATOR);
+
+	return ret;
+}
+
+static int regulator_display(bool refresh)
+{
+	if (refresh && read_regulator_info(reg_tree))
+		return -1;
+
+	return regulator_print_info(reg_tree);
 }
 
 static int fill_regulator_cb(struct tree *t, void *data)

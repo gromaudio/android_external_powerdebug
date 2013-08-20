@@ -161,6 +161,11 @@ static int read_sensor_cb(struct tree *tree, void *data)
 	return 0;
 }
 
+static int read_sensor_info(struct tree *tree)
+{
+	return tree_for_each(tree, read_sensor_cb, NULL);
+}
+
 static int fill_sensor_cb(struct tree *t, void *data)
 {
 	struct sensor_info *sensor;
@@ -250,7 +255,7 @@ static int sensor_print_header(void)
 	return ret;
 }
 
-static int sensor_display(bool refresh)
+static int sensor_print_info(struct tree *tree)
 {
 	int ret, line = 0;
 
@@ -258,11 +263,19 @@ static int sensor_display(bool refresh)
 
 	sensor_print_header();
 
-	ret = tree_for_each(sensor_tree, sensor_display_cb, &line);
+	ret = tree_for_each(tree, sensor_display_cb, &line);
 
 	display_refresh_pad(SENSOR);
 
 	return ret;
+}
+
+static int sensor_display(bool refresh)
+{
+	if (refresh && read_sensor_info(sensor_tree))
+		return -1;
+
+	return sensor_print_info(sensor_tree);
 }
 
 static struct display_ops sensor_ops = {
