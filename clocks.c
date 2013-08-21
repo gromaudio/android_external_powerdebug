@@ -36,9 +36,14 @@
 #include "tree.h"
 #include "utils.h"
 
+#ifndef uint
+#define uint unsigned int
+#endif
+
+
 struct clock_info {
 	int flags;
-	int rate;
+	uint rate;
 	int usecount;
 	bool expanded;
 	char *prefix;
@@ -73,9 +78,9 @@ static struct clock_info *clock_alloc(void)
 	return ci;
 }
 
-static inline const char *clock_rate(int *rate)
+static inline const char *clock_rate(uint *rate)
 {
-        int r;
+	uint r;
 
         /* GHZ */
         r = *rate >> 30;
@@ -107,7 +112,7 @@ static int dump_clock_cb(struct tree *t, void *data)
 	struct clock_info *pclk;
 	const char *unit;
 	int ret = 0;
-	int rate = clk->rate;
+	uint rate = clk->rate;
 
 	if (!t->parent) {
 		printf("/\n");
@@ -125,7 +130,7 @@ static int dump_clock_cb(struct tree *t, void *data)
 
 	unit = clock_rate(&rate);
 
-	printf("%s%s-- %s (flags:0x%x, usecount:%d, rate: %d %s)\n",
+	printf("%s%s-- %s (flags:0x%x, usecount:%d, rate: %u %s)\n",
 	       clk->prefix,  !t->next ? "`" : "", t->name, clk->flags,
 	       clk->usecount, rate, unit);
 
@@ -156,14 +161,14 @@ static inline int read_clock_cb(struct tree *t, void *data)
 
 	if(clock_fw == CCF) {
 		file_read_value(t->path, "clk_flags", "%x", &clk->flags);
-		file_read_value(t->path, "clk_rate", "%d", &clk->rate);
+		file_read_value(t->path, "clk_rate", "%u", &clk->rate);
 		file_read_value(t->path, "clk_prepare_count", "%d", &clk->preparecount);
 		file_read_value(t->path, "clk_enable_count", "%d", &clk->enablecount);
 		file_read_value(t->path, "clk_notifier_count", "%d", &clk->notifiercount);
 	}
 	else {
 		file_read_value(t->path, "flags", "%x", &clk->flags);
-		file_read_value(t->path, "rate", "%d", &clk->rate);
+		file_read_value(t->path, "rate", "%u", &clk->rate);
 		file_read_value(t->path, "usecount", "%d", &clk->usecount);
 	}
 
@@ -211,7 +216,7 @@ static int is_collapsed(struct tree *t, void *data)
 static char *clock_line(struct tree *t)
 {
 	struct clock_info *clk;
-	int rate;
+	uint rate;
 	const char *clkunit;
 	char *clkrate, *clkname, *clkline = NULL;
 
