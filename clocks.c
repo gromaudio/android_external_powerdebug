@@ -78,27 +78,51 @@ static struct clock_info *clock_alloc(void)
 	return ci;
 }
 
+static inline bool is_hex_clock(uint rate)
+{
+	return rate%10;
+}
+
 static inline const char *clock_rate(uint *rate)
 {
-	uint r;
+	uint r, mod;
+	bool is_hex = is_hex_clock(*rate);
 
         /* GHZ */
-        r = *rate >> 30;
-        if (r) {
-                *rate = r;
-                return "GHZ";
-        }
+	if (is_hex) {
+		r = *rate >> 30;
+		mod = *rate&((1<<30)-1);
+	} else {
+		r = *rate / 1000000000;
+		mod = *rate % 1000000000;
+	}
+	if (r && !mod) {
+		*rate = r;
+		return "GHZ";
+	}
 
         /* MHZ */
-        r = *rate >> 20;
-        if (r) {
+	if (is_hex) {
+		r = *rate >> 20;
+		mod = *rate&((1<<20)-1);
+	} else {
+		r = *rate / 1000000;
+		mod = *rate % 1000000;
+	}
+	if (r && !mod) {
                 *rate = r;
                 return "MHZ";
         }
 
         /* KHZ */
-        r = *rate >> 10;
-        if (r) {
+	if (is_hex) {
+		r = *rate >> 10;
+		mod = *rate&((1<<10)-1);
+	} else {
+		r = *rate / 1000;
+		mod = *rate % 1000;
+	}
+	if (r && !mod) {
                 *rate = r;
                 return "KHZ";
         }
