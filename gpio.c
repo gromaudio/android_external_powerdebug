@@ -284,6 +284,7 @@ static int gpio_change(int keyvalue)
 			strcpy(gpio->direction, "in");
 		file_write_value(t->path, "direction", "%s", &gpio->direction);
 		file_read_value(t->path, "direction", "%s", &gpio->direction);
+		file_read_value(t->path, "value", "%d", &gpio->value);
 
 		break;
 
