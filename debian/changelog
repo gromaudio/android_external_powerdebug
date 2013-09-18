@@ -1,3 +1,10 @@
+powerdebug (0.7.1-2013.09-0) precise; urgency=low
+
+  * fixed error shown clock rates
+  * fixed no refresh of regulator and sensor values after "R" key pressed.
+
+ -- shaojie.sun <shaojie.sun@linaro.org> Wed, 14 Aug 2013 18:34:23 +8000
+
 powerdebug (0.7.0-2013.08-0) precise; urgency=low
 
   * add gpio modification function.
