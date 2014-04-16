@@ -14,3 +14,11 @@ When gpio is not in interrupt mode. use 'D' key to change gpio direction.
 And when gpio direction is "out", use 'V' key to change gpio value.
 
  -- Shaojie Sun <shaojie.sun@linaro.org> Mon, 29 Jul 2013
+
+Prerequistes
+------------
+- Kernel should have support enabled for:
+  - DEBUG_FS
+  - GPIO_SYSFS
+  - HWMON
+  - REGULATOR
