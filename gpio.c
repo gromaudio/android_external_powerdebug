@@ -314,11 +314,49 @@ static struct display_ops gpio_ops = {
 	.change = gpio_change,
 };
 
+void export_gpios(void)
+{
+	FILE *fgpio, *fgpio_export;
+	int ret = 0, gpio[256], num = 0;
+	char *line;
+	ssize_t read, len;
+
+	fgpio = fopen("/sys/kernel/debug/gpio", "r");
+	if (!fgpio) {
+		printf("failed to read debugfs gpio file\n");
+		ret = -1;
+		goto out;
+	}
+
+	fgpio_export = fopen("/sys/class/gpio/export", "w");
+	if (!fgpio_export) {
+		printf("failed to write open gpio-export file\n");
+		ret = -1;
+		goto out;
+	}
+
+	/* export the gpios */
+	while (read = getline(&line, &len, fgpio) != -1) {
+		char *str;
+
+		if (strstr(line, "gpio-")) {
+			str = strtok(line, " ");
+			sscanf(str, "gpio-%d", &gpio[num]);
+			fprintf(fgpio_export, "%d", gpio[num]);
+			num++;
+		}
+	}
+out:
+	return;
+}
+
 /*
  * Initialize the gpio framework
  */
 int gpio_init(void)
 {
+	export_gpios();
+
 	gpio_tree = tree_load(SYSFS_GPIO, gpio_filter_cb, false);
 	if (!gpio_tree)
 		return -1;
