@@ -25,6 +25,7 @@ struct display_ops {
 
 extern int display_print_line(int window, int line, char *str,
 			      int bold, void *data);
+extern void display_message(int window, char *buf);
 
 extern int display_refresh_pad(int window);
 extern int display_reset_cursor(int window);

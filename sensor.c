@@ -31,6 +31,7 @@
 #define SYSFS_SENSOR "/sys/class/hwmon"
 
 static struct tree *sensor_tree;
+static bool sensor_error = false;
 
 struct temp_info {
 	char name[NAME_MAX];
@@ -272,6 +273,12 @@ static int sensor_print_info(struct tree *tree)
 
 static int sensor_display(bool refresh)
 {
+	if (sensor_error) {
+		display_message(SENSOR,
+			"error: path " SYSFS_SENSOR " not found");
+		return -2;
+	}
+
 	if (refresh && read_sensor_info(sensor_tree))
 		return -1;
 
@@ -284,6 +291,15 @@ static struct display_ops sensor_ops = {
 
 int sensor_init(void)
 {
+	int ret = 0;
+
+	ret = display_register(SENSOR, &sensor_ops);
+	if (!ret)
+		printf("error: sensor display register failed");
+
+	if (access(SYSFS_SENSOR, F_OK))
+		sensor_error = true; /* set the flag */
+
 	sensor_tree = tree_load(SYSFS_SENSOR, sensor_filter_cb, false);
 	if (!sensor_tree)
 		return -1;
@@ -291,5 +307,5 @@ int sensor_init(void)
 	if (fill_sensor_tree())
 		return -1;
 
-	return display_register(SENSOR, &sensor_ops);
+	return ret;
 }

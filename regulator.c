@@ -68,6 +68,7 @@ static struct regulator_data regdata[] = {
 };
 
 static struct tree *reg_tree;
+static bool regulator_error = false;
 
 static struct regulator_info *regulator_alloc(void)
 {
@@ -220,6 +221,12 @@ static int regulator_print_info(struct tree *tree)
 
 static int regulator_display(bool refresh)
 {
+	if (regulator_error) {
+		display_message(REGULATOR,
+			"error: path " SYSFS_REGULATOR " not found");
+		return -2;
+	}
+
 	if (refresh && read_regulator_info(reg_tree))
 		return -1;
 
@@ -255,6 +262,15 @@ static struct display_ops regulator_ops = {
 
 int regulator_init(void)
 {
+	int ret = 0;
+
+	ret = display_register(REGULATOR, &regulator_ops);
+	if (!ret)
+		printf("error: regulator display register failed");
+
+	if (access(SYSFS_REGULATOR, F_OK))
+		regulator_error = true; /* set the flag */
+
 	reg_tree = tree_load(SYSFS_REGULATOR, regulator_filter_cb, false);
 	if (!reg_tree)
 		return -1;
@@ -262,5 +278,5 @@ int regulator_init(void)
 	if (fill_regulator_tree())
 		return -1;
 
-	return display_register(REGULATOR, &regulator_ops);
+	return ret;
 }

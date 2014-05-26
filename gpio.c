@@ -45,6 +45,7 @@ struct gpio_info {
 } *gpios_info;
 
 static struct tree *gpio_tree = NULL;
+static bool gpio_error = false;
 
 static struct gpio_info *gpio_alloc(void)
 {
@@ -258,6 +259,11 @@ static int gpio_print_info(struct tree *tree)
 
 static int gpio_display(bool refresh)
 {
+	if (gpio_error) {
+		display_message(GPIO, "error: path " SYSFS_GPIO " not found");
+		return -2;
+	}
+
 	if (refresh && read_gpio_info(gpio_tree))
 		return -1;
 
@@ -355,6 +361,15 @@ out:
  */
 int gpio_init(void)
 {
+	int ret = 0;
+
+	ret = display_register(GPIO, &gpio_ops);
+	if (!ret)
+		printf("error: gpio display register failed");
+
+	if (access(SYSFS_GPIO, F_OK))
+		gpio_error = true; /* set the flag */
+
 	export_gpios();
 
 	gpio_tree = tree_load(SYSFS_GPIO, gpio_filter_cb, false);
@@ -364,5 +379,5 @@ int gpio_init(void)
 	if (fill_gpio_tree())
 		return -1;
 
-	return display_register(GPIO, &gpio_ops);
+	return ret;
 }

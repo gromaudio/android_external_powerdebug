@@ -270,6 +270,15 @@ int display_reset_cursor(int win)
 	return wmove(windata[win].pad, 0, 0);
 }
 
+void display_message(int win, char *buf)
+{
+	display_reset_cursor(win);
+	wattron(windata[win].pad, WA_BOLD);
+	wprintw(windata[win].pad, "%s\n", buf);
+	wattroff(windata[win].pad, WA_BOLD);
+	display_refresh_pad(win);
+}
+
 int display_print_line(int win, int line, char *str, int bold, void *data)
 {
 	int attr = 0;
