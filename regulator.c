@@ -28,6 +28,8 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+
 #include "display.h"
 #include "powerdebug.h"
 #include "tree.h"
@@ -265,7 +267,7 @@ int regulator_init(void)
 	int ret = 0;
 
 	ret = display_register(REGULATOR, &regulator_ops);
-	if (!ret)
+	if (ret)
 		printf("error: regulator display register failed");
 
 	if (access(SYSFS_REGULATOR, F_OK))

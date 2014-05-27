@@ -21,6 +21,7 @@
 #include <dirent.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "powerdebug.h"
 #include "display.h"
@@ -294,7 +295,7 @@ int sensor_init(void)
 	int ret = 0;
 
 	ret = display_register(SENSOR, &sensor_ops);
-	if (!ret)
+	if (ret)
 		printf("error: sensor display register failed");
 
 	if (access(SYSFS_SENSOR, F_OK))

@@ -323,21 +323,19 @@ static struct display_ops gpio_ops = {
 void export_gpios(void)
 {
 	FILE *fgpio, *fgpio_export;
-	int ret = 0, gpio[256], num = 0;
-	char *line;
+	int gpio[256], num = 0;
+	char *line = NULL;
 	ssize_t read, len;
 
 	fgpio = fopen("/sys/kernel/debug/gpio", "r");
 	if (!fgpio) {
 		printf("failed to read debugfs gpio file\n");
-		ret = -1;
 		goto out;
 	}
 
 	fgpio_export = fopen("/sys/class/gpio/export", "w");
 	if (!fgpio_export) {
 		printf("failed to write open gpio-export file\n");
-		ret = -1;
 		goto out;
 	}
 
@@ -364,7 +362,7 @@ int gpio_init(void)
 	int ret = 0;
 
 	ret = display_register(GPIO, &gpio_ops);
-	if (!ret)
+	if (ret)
 		printf("error: gpio display register failed");
 
 	if (access(SYSFS_GPIO, F_OK))
