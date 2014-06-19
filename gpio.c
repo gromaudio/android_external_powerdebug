@@ -320,10 +320,10 @@ static struct display_ops gpio_ops = {
 	.change = gpio_change,
 };
 
-void export_gpios(void)
+void export_free_gpios(void)
 {
 	FILE *fgpio, *fgpio_export;
-	int gpio[256], num = 0;
+	int i, gpio_max = 0;
 	char *line = NULL;
 	ssize_t read, len;
 
@@ -340,15 +340,18 @@ void export_gpios(void)
 	}
 
 	/* export the gpios */
-	while (read = getline(&line, &len, fgpio) != -1) {
-		char *str;
+	while ((read = getline(&line, &len, fgpio)) != -1) {
+		if (strstr(line, "GPIOs"))
+			sscanf(line, "%*[^-]-%d%*", &gpio_max);
+	}
 
-		if (strstr(line, "gpio-")) {
-			str = strtok(line, " ");
-			sscanf(str, "gpio-%d", &gpio[num]);
-			fprintf(fgpio_export, "%d", gpio[num]);
-			num++;
-		}
+	printf("log: total gpios = %d\n", gpio_max);
+	for (i = 0 ; i <= gpio_max ; i++) {
+		char command[50] = "";
+
+		sprintf(command, "echo %d > /sys/class/gpio/export", i);
+		if (system(command) < 0)
+			printf("error: failed to export gpio-%d\n", i);
 	}
 out:
 	return;
@@ -368,7 +371,7 @@ int gpio_init(void)
 	if (access(SYSFS_GPIO, F_OK))
 		gpio_error = true; /* set the flag */
 
-	export_gpios();
+	export_free_gpios();
 
 	gpio_tree = tree_load(SYSFS_GPIO, gpio_filter_cb, false);
 	if (!gpio_tree)
