@@ -3,9 +3,7 @@ include $(CLEAR_VARS)
 
 
 LOCAL_MODULE_TAGS := optional
-LOCAL_SHARED_LIBRARIES := libstlport
-
-LOCAL_STATIC_LIBRARIES := libncurses
+LOCAL_SHARED_LIBRARIES := libstlport libncurses
 
 LOCAL_MODULE := powerdebug
 
@@ -22,10 +20,10 @@ LOCAL_C_INCLUDES += external/stlport/stlport/ \
 					external/stlport/stlport/stl \
 					external/stlport/stlport/using/h/ \
 					bionic \
-					external/ncurses \
-					external/ncurses/lib \
-					external/ncurses/include \
-					external/ncurses/include/ncurses
+					external/libncurses \
+					external/libncurses/lib \
+					external/libncurses/include \
+					external/libncurses/include/ncurses
 
 LOCAL_SRC_FILES += \
 	powerdebug.c sensor.c clocks.c regulator.c \
